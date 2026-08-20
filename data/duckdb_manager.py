@@ -2,6 +2,7 @@
 DuckDB Database Manager for Fyers Trading Bot.
 Provides high-performance columnar storage and microsecond time-series queries
 for historical candlestick data, replacing individual CSV files.
+Optimized for high-concurrency multi-process read/write operations.
 """
 
 import os
@@ -16,15 +17,21 @@ DB_PATH = os.path.join(DB_DIR, "tradingbot.duckdb")
 HISTORICAL_DATA_DIR = os.path.join(DB_DIR, "historical_data")
 
 
-def get_connection() -> duckdb.DuckDBPyConnection:
-    """Returns a fresh DuckDB connection."""
+def get_connection(read_only: bool = True) -> duckdb.DuckDBPyConnection:
+    """
+    Returns a fresh DuckDB connection.
+    Defaults to read_only=True to allow unlimited concurrent readers across multiple processes.
+    """
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    return duckdb.connect(DB_PATH)
+    return duckdb.connect(DB_PATH, read_only=read_only)
 
 
 def init_db():
-    """Initializes the database schema."""
-    con = get_connection()
+    """Initializes the database schema if missing."""
+    if os.path.exists(DB_PATH):
+        return
+
+    con = duckdb.connect(DB_PATH, read_only=False)
     try:
         con.execute("""
             CREATE TABLE IF NOT EXISTS candles (
@@ -69,6 +76,7 @@ def normalize_symbol_candidates(symbol: str) -> List[str]:
 def save_candles(symbol: str, df: pd.DataFrame, con: Optional[duckdb.DuckDBPyConnection] = None) -> int:
     """
     Saves or updates candlestick data for a symbol in DuckDB.
+    Opens a write connection only for the duration of the write and closes it immediately.
     """
     if df is None or df.empty:
         return 0
@@ -119,7 +127,7 @@ def save_candles(symbol: str, df: pd.DataFrame, con: Optional[duckdb.DuckDBPyCon
 
     close_con = False
     if con is None:
-        con = get_connection()
+        con = duckdb.connect(DB_PATH, read_only=False)
         close_con = True
 
     try:
@@ -139,15 +147,18 @@ def save_candles(symbol: str, df: pd.DataFrame, con: Optional[duckdb.DuckDBPyCon
             con.close()
 
 
-def load_candles(symbol: str) -> pd.DataFrame:
+def load_candles(symbol: str, con: Optional[duckdb.DuckDBPyConnection] = None) -> pd.DataFrame:
     """
-    Loads historical candles for a symbol from DuckDB.
-    Returns DataFrame with DatetimeIndex named 'Date' and columns: Open, High, Low, Close, Volume.
+    Loads historical candles for a symbol from DuckDB using an existing or new read_only connection.
     """
     init_db()
     candidates = normalize_symbol_candidates(symbol)
 
-    con = get_connection()
+    close_con = False
+    if con is None:
+        con = get_connection(read_only=True)
+        close_con = True
+
     try:
         placeholders = ", ".join(["?"] * len(candidates))
         df = con.execute(f"""
@@ -163,7 +174,8 @@ def load_candles(symbol: str) -> pd.DataFrame:
             ORDER BY timestamp ASC
         """, candidates).df()
     finally:
-        con.close()
+        if close_con:
+            con.close()
 
     if df.empty:
         raise FileNotFoundError(f"No cached data in DuckDB for {symbol}")
@@ -177,7 +189,7 @@ def has_symbol(symbol: str) -> bool:
     """Checks if a symbol has candle records in DuckDB."""
     init_db()
     candidates = normalize_symbol_candidates(symbol)
-    con = get_connection()
+    con = get_connection(read_only=True)
     try:
         placeholders = ", ".join(["?"] * len(candidates))
         count = con.execute(f"SELECT COUNT(*) FROM candles WHERE symbol IN ({placeholders})", candidates).fetchone()[0]
@@ -189,7 +201,7 @@ def has_symbol(symbol: str) -> bool:
 def get_available_symbols() -> List[str]:
     """Returns list of distinct symbols stored in DuckDB."""
     init_db()
-    con = get_connection()
+    con = get_connection(read_only=True)
     try:
         rows = con.execute("SELECT DISTINCT symbol FROM candles ORDER BY symbol ASC").fetchall()
         return [r[0] for r in rows]
@@ -201,7 +213,7 @@ def get_latest_candle_date(symbol: str) -> Optional[datetime]:
     """Returns the latest candle timestamp for a symbol."""
     init_db()
     candidates = normalize_symbol_candidates(symbol)
-    con = get_connection()
+    con = get_connection(read_only=True)
     try:
         placeholders = ", ".join(["?"] * len(candidates))
         row = con.execute(f"SELECT MAX(timestamp) FROM candles WHERE symbol IN ({placeholders})", candidates).fetchone()
@@ -215,7 +227,7 @@ def get_latest_candle_date(symbol: str) -> Optional[datetime]:
 def get_candle_count(symbol: Optional[str] = None) -> int:
     """Returns total candle rows count (optionally filtered by symbol)."""
     init_db()
-    con = get_connection()
+    con = get_connection(read_only=True)
     try:
         if symbol:
             candidates = normalize_symbol_candidates(symbol)
@@ -270,7 +282,7 @@ def migrate_csv_directory(dir_path: str = HISTORICAL_DATA_DIR) -> Dict[str, Any]
     all_df.dropna(subset=['timestamp', 'close'], inplace=True)
     all_df.drop_duplicates(subset=['symbol', 'timestamp'], keep='last', inplace=True)
 
-    con = get_connection()
+    con = duckdb.connect(DB_PATH, read_only=False)
     try:
         con.register('bulk_view', all_df)
         con.execute('INSERT OR REPLACE INTO candles SELECT symbol, timestamp, open, high, low, close, volume FROM bulk_view;')

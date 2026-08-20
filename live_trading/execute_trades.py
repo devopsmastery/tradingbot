@@ -34,7 +34,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from live_trading.fyers_auth import get_access_token, FYERS_APP_ID
 from data.data_fetcher import (
     read_stocks, to_fyers_symbol, fetch_historical_data,
-    save_historical_data, HISTORICAL_DATA_DIR, append_live_quote
+    save_historical_data, HISTORICAL_DATA_DIR, append_live_quote,
+    load_historical_csv, fetch_batch_quotes, apply_live_quote
 )
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -462,9 +463,24 @@ def main():
           f"{main_count} main . {wl_count} watchlist . {port_extra} portfolio-only\n")
 
     # Fetch live positions only in live mode (not needed for dry run)
+    # Fetch live positions only in live mode (not needed for dry run)
     positions = {}
     if not dry_run:
         positions = get_positions(access_token)
+
+    # 1. Pre-fetch real-time market quotes in high-speed batches of 50
+    all_fyers_symbols = [to_fyers_symbol(s) for s in all_stocks]
+    print(f"  Fetching real-time quotes in high-speed batches for {len(all_fyers_symbols)} stocks...", end=" ")
+    try:
+        live_quotes = fetch_batch_quotes(all_fyers_symbols, access_token)
+        print(colored(f"Done ({len(live_quotes)} quotes active).", Colors.GREEN))
+    except Exception as q_err:
+        live_quotes = {}
+        print(colored(f"Warning: Batch quotes fallback - {q_err}", Colors.YELLOW))
+
+    print()
+
+    from data.duckdb_manager import get_connection
 
     # Tuples stored as:
     #   buy_signals:  (fyers_sym, raw_sym, close, score, reasons, in_portfolio, avg_cost, portfolio_qty)
@@ -474,57 +490,70 @@ def main():
     hold_count   = 0
     error_count  = 0
 
-    for i, symbol in enumerate(all_stocks, 1):
-        fyers_symbol = to_fyers_symbol(symbol)
-        progress = colored(f"[{i:3d}/{len(all_stocks)}]", Colors.DIM)
+    # Open single high-performance read-only connection for entire scan loop
+    db_con = get_connection(read_only=True)
 
-        # Portfolio lookup -- raw symbol keys match portfolio_db.json
-        portfolio_data = portfolio.get(symbol, {})
-        portfolio_qty  = portfolio_data.get("qty", 0)
-        avg_cost       = portfolio_data.get("avg_cost", 0.0)
-        in_portfolio   = portfolio_qty > 0
+    try:
+        for i, symbol in enumerate(all_stocks, 1):
+            fyers_symbol = to_fyers_symbol(symbol)
+            progress = colored(f"[{i:3d}/{len(all_stocks)}]", Colors.DIM)
 
-        try:
-            # Fetch latest 60 days (enough for all indicators)
-            df = fetch_historical_data(fyers_symbol, access_token, days=60)
+            # Portfolio lookup -- raw symbol keys match portfolio_db.json
+            portfolio_data = portfolio.get(symbol, {})
+            portfolio_qty  = portfolio_data.get("qty", 0)
+            avg_cost       = portfolio_data.get("avg_cost", 0.0)
+            in_portfolio   = portfolio_qty > 0
 
-            # Overlay real-time live quote so indicators use today's actual price
-            df = append_live_quote(df, fyers_symbol, access_token)
+            try:
+                # 1. Load historical candles from DuckDB (microsecond speed)
+                try:
+                    df = load_historical_csv(fyers_symbol, con=db_con)
+                except FileNotFoundError:
+                    # Fallback to API if not in DuckDB
+                    df = fetch_historical_data(fyers_symbol, access_token, days=60)
+                    save_historical_data(fyers_symbol, df)
 
-            df = compute_indicators(df)
-            signal, score, reasons = generate_signal(df)
+                # 2. Overlay real-time quote from pre-fetched batch dictionary
+                quote = live_quotes.get(fyers_symbol)
+                if quote:
+                    df = apply_live_quote(df, quote)
 
-            latest_close = df.iloc[-1]["Close"]
+                df = compute_indicators(df)
+                signal, score, reasons = generate_signal(df)
 
-            if signal == "BUY":
-                buy_signals.append((fyers_symbol, symbol, latest_close, score, reasons,
-                                    in_portfolio, avg_cost, portfolio_qty))
-                if in_portfolio:
-                    tag = colored("ADD MORE", Colors.BOLD + Colors.CYAN)
-                else:
-                    tag = colored(" NEW BUY", Colors.BOLD + Colors.GREEN)
-                print(f"  {progress} [{tag}] {symbol:22s}  Rs.{latest_close:>9.2f}  {quality_bar(score)}")
+                latest_close = df.iloc[-1]["Close"]
 
-            elif signal == "SELL":
-                # In dry run: use portfolio_db qty; in live: use API positions
-                held_qty = portfolio_qty if dry_run else positions.get(fyers_symbol, 0)
-                if held_qty > 0:
-                    sell_signals.append((fyers_symbol, symbol, latest_close, held_qty, score, reasons))
-                    tag = colored(" CAUTION", Colors.BOLD + Colors.YELLOW)
-                    print(f"  {progress} [{tag}] {symbol:22s}  Rs.{latest_close:>9.2f}  (held {held_qty} @ Rs.{avg_cost:.2f})")
+                if signal == "BUY":
+                    buy_signals.append((fyers_symbol, symbol, latest_close, score, reasons,
+                                        in_portfolio, avg_cost, portfolio_qty))
+                    if in_portfolio:
+                        tag = colored("ADD MORE", Colors.BOLD + Colors.CYAN)
+                    else:
+                        tag = colored(" NEW BUY", Colors.BOLD + Colors.GREEN)
+                    print(f"  {progress} [{tag}] {symbol:22s}  Rs.{latest_close:>9.2f}  {quality_bar(score)}")
+
+                elif signal == "SELL":
+                    # In dry run: use portfolio_db qty; in live: use API positions
+                    held_qty = portfolio_qty if dry_run else positions.get(fyers_symbol, 0)
+                    if held_qty > 0:
+                        sell_signals.append((fyers_symbol, symbol, latest_close, held_qty, score, reasons))
+                        tag = colored(" CAUTION", Colors.BOLD + Colors.YELLOW)
+                        print(f"  {progress} [{tag}] {symbol:22s}  Rs.{latest_close:>9.2f}  (held {held_qty} @ Rs.{avg_cost:.2f})")
+                    else:
+                        hold_count += 1
+                        tag = colored("HOLD", Colors.DIM)
+                        print(f"  {progress}  {tag}   {symbol:22s}  Rs.{latest_close:>9.2f}")
                 else:
                     hold_count += 1
                     tag = colored("HOLD", Colors.DIM)
                     print(f"  {progress}  {tag}   {symbol:22s}  Rs.{latest_close:>9.2f}")
-            else:
-                hold_count += 1
-                tag = colored("HOLD", Colors.DIM)
-                print(f"  {progress}  {tag}   {symbol:22s}  Rs.{latest_close:>9.2f}")
 
-        except Exception as e:
-            error_count += 1
-            tag = colored(" ERR ", Colors.BOLD + Colors.RED)
-            print(f"  {progress} {tag} {symbol:22s}  {e}")
+            except Exception as e:
+                error_count += 1
+                tag = colored(" ERR ", Colors.BOLD + Colors.RED)
+                print(f"  {progress} {tag} {symbol:22s}  {e}")
+    finally:
+        db_con.close()
 
     # ============================================================
     # TODAY'S RECOMMENDATIONS DASHBOARD

@@ -142,14 +142,14 @@ def save_historical_data(symbol: str, df: pd.DataFrame, write_csv: bool = True) 
     return file_path
 
 
-def load_historical_csv(symbol: str) -> pd.DataFrame:
+def load_historical_csv(symbol: str, con: Optional[Any] = None) -> pd.DataFrame:
     """
     Loads historical candlestick data for a symbol.
     First loads from DuckDB; if not found, falls back to CSV and auto-migrates into DuckDB.
     """
     # 1. Try loading from DuckDB
     try:
-        df = load_candles(symbol)
+        df = load_candles(symbol, con=con)
         if not df.empty:
             return df
     except FileNotFoundError:
@@ -162,8 +162,7 @@ def load_historical_csv(symbol: str) -> pd.DataFrame:
         try:
             df = pd.read_csv(file_path, index_col="Date", parse_dates=True)
             if not df.empty:
-                # Auto-migrate into DuckDB
-                save_candles(symbol, df)
+                save_candles(symbol, df, con=con)
                 return df
         except Exception:
             pass
@@ -187,45 +186,78 @@ def get_data_for_symbol(symbol: str, access_token: str = None, days: int = 365) 
         return df
 
 
+def fetch_batch_quotes(symbols: list, access_token: str, chunk_size: int = 50) -> dict:
+    """
+    Fetches real-time market quotes in high-speed batches of up to 50 symbols.
+    Returns: dict mapping symbol -> {'open': ..., 'high': ..., 'low': ..., 'close': ..., 'volume': ...}
+    """
+    if not symbols or not access_token:
+        return {}
+
+    headers = {"Authorization": f"{FYERS_APP_ID}:{access_token}"}
+    quotes = {}
+
+    for i in range(0, len(symbols), chunk_size):
+        chunk = symbols[i:i + chunk_size]
+        symbols_param = ",".join(chunk)
+        url = f"https://api-t1.fyers.in/data/quotes?symbols={symbols_param}"
+        try:
+            response = requests.get(url, headers=headers, timeout=5)
+            data = response.json()
+            if data.get("s") == "ok" and "d" in data:
+                for item in data["d"]:
+                    s_name = item.get("n", "")
+                    v = item.get("v", {})
+                    if v and "lp" in v:
+                        quotes[s_name] = {
+                            "open": v.get("open_price", v.get("lp")),
+                            "high": v.get("high_price", v.get("lp")),
+                            "low": v.get("low_price", v.get("lp")),
+                            "close": v.get("lp"),
+                            "volume": v.get("volume", 0)
+                        }
+        except Exception:
+            pass
+
+    return quotes
+
+
+def apply_live_quote(df: pd.DataFrame, quote: dict) -> pd.DataFrame:
+    """
+    Applies a pre-fetched live quote dict onto a DataFrame in memory in microseconds.
+    """
+    if not quote or df is None or df.empty:
+        return df
+
+    today = pd.Timestamp.now().normalize()
+    row = {
+        "Open": quote.get("open", quote.get("close")),
+        "High": quote.get("high", quote.get("close")),
+        "Low": quote.get("low", quote.get("close")),
+        "Close": quote.get("close"),
+        "Volume": quote.get("volume", 0)
+    }
+    
+    df_copy = df.copy()
+    if df_copy.index[-1].normalize() == today:
+        for col in row:
+            df_copy.at[df_copy.index[-1], col] = row[col]
+    else:
+        new_row = pd.DataFrame([row], index=[today])
+        new_row.index.name = "Date"
+        df_copy = pd.concat([df_copy, new_row])
+    return df_copy
+
+
 def append_live_quote(df: pd.DataFrame, fyers_symbol: str, access_token: str) -> pd.DataFrame:
     """
     Fetches the real-time quote for a symbol and appends or updates today's candle 
     in the DataFrame, ensuring indicators use the absolute latest price and volume.
     """
-    url = f"https://api-t1.fyers.in/data/quotes?symbols={fyers_symbol}"
-    headers = {"Authorization": f"{FYERS_APP_ID}:{access_token}"}
-    
-    try:
-        response = requests.get(url, headers=headers)
-        data = response.json()
-        
-        if data.get("s") == "ok" and "d" in data and len(data["d"]) > 0:
-            quote = data["d"][0].get("v", {})
-            if not quote:
-                return df
-                
-            today = pd.Timestamp.now().normalize()
-            
-            row = {
-                "Open": quote.get("open_price", quote.get("lp")),
-                "High": quote.get("high_price", quote.get("lp")),
-                "Low": quote.get("low_price", quote.get("lp")),
-                "Close": quote.get("lp"),
-                "Volume": quote.get("volume", 0)
-            }
-            
-            # If historical API already returned a partial candle for today, update it
-            if not df.empty and df.index[-1].normalize() == today:
-                for col in row:
-                    df.at[df.index[-1], col] = row[col]
-            else:
-                # Otherwise append it as a new live candle
-                new_row = pd.DataFrame([row], index=[today])
-                new_row.index.name = "Date"
-                df = pd.concat([df, new_row])
-    except Exception as e:
-        print(f"  Warning: Failed to fetch live quote for {fyers_symbol} - {e}")
-        
+    quotes = fetch_batch_quotes([fyers_symbol], access_token)
+    quote = quotes.get(fyers_symbol)
+    if quote:
+        return apply_live_quote(df, quote)
     return df
 
 
