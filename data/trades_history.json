@@ -1,1 +1,1411 @@
-[]
+[
+    {
+        "timestamp": "2026-07-12T12:00:00.000000",
+        "date": "2026-07-12",
+        "symbol": "SKIPPER",
+        "qty": 48,
+        "price": 558.85,
+        "action": "BUY",
+        "total_value": 26824.8
+    },
+    {
+        "timestamp": "2026-07-12T12:00:00.000000",
+        "date": "2026-07-12",
+        "symbol": "STALLION",
+        "qty": 11,
+        "price": 209.61,
+        "action": "BUY",
+        "total_value": 2305.71
+    },
+    {
+        "timestamp": "2026-07-12T12:00:00.000000",
+        "date": "2026-07-12",
+        "symbol": "STALLION",
+        "qty": 12,
+        "price": 209.6,
+        "action": "BUY",
+        "total_value": 2515.2
+    },
+    {
+        "timestamp": "2026-07-12T12:00:00.000000",
+        "date": "2026-07-12",
+        "symbol": "STALLION",
+        "qty": 20,
+        "price": 209.6,
+        "action": "BUY",
+        "total_value": 4192.0
+    },
+    {
+        "timestamp": "2026-07-12T12:00:00.000000",
+        "date": "2026-07-12",
+        "symbol": "STALLION",
+        "qty": 21,
+        "price": 209.6,
+        "action": "BUY",
+        "total_value": 4401.6
+    },
+    {
+        "timestamp": "2026-07-12T12:00:00.000000",
+        "date": "2026-07-12",
+        "symbol": "STALLION",
+        "qty": 47,
+        "price": 209.6,
+        "action": "BUY",
+        "total_value": 9851.2
+    },
+    {
+        "timestamp": "2026-07-12T12:00:00.000000",
+        "date": "2026-07-12",
+        "symbol": "STALLION",
+        "qty": 5,
+        "price": 209.6,
+        "action": "BUY",
+        "total_value": 1048.0
+    },
+    {
+        "timestamp": "2026-07-12T12:00:00.000000",
+        "date": "2026-07-12",
+        "symbol": "STALLION",
+        "qty": 12,
+        "price": 209.61,
+        "action": "BUY",
+        "total_value": 2515.32
+    },
+    {
+        "timestamp": "2026-07-12T12:00:00.000000",
+        "date": "2026-07-12",
+        "symbol": "STALLION",
+        "qty": 124,
+        "price": 209.61,
+        "action": "BUY",
+        "total_value": 25991.64
+    },
+    {
+        "timestamp": "2026-07-12T12:00:00.000000",
+        "date": "2026-07-12",
+        "symbol": "STALLION",
+        "qty": 20,
+        "price": 209.61,
+        "action": "BUY",
+        "total_value": 4192.2
+    },
+    {
+        "timestamp": "2026-07-12T12:00:00.000000",
+        "date": "2026-07-12",
+        "symbol": "STALLION",
+        "qty": 20,
+        "price": 209.61,
+        "action": "BUY",
+        "total_value": 4192.2
+    },
+    {
+        "timestamp": "2026-07-12T12:00:00.000000",
+        "date": "2026-07-12",
+        "symbol": "SKIPPER",
+        "qty": 48,
+        "price": 559.4,
+        "action": "BUY",
+        "total_value": 26851.2
+    },
+    {
+        "timestamp": "2026-07-13T12:00:00.000000",
+        "date": "2026-07-13",
+        "symbol": "CAPLIPOINT",
+        "qty": 6,
+        "price": 2568.95,
+        "action": "SELL",
+        "total_value": 15413.7
+    },
+    {
+        "timestamp": "2026-07-13T12:00:00.000000",
+        "date": "2026-07-13",
+        "symbol": "CAPLIPOINT",
+        "qty": 18,
+        "price": 2568.95,
+        "action": "SELL",
+        "total_value": 46241.1
+    },
+    {
+        "timestamp": "2026-07-13T12:00:00.000000",
+        "date": "2026-07-13",
+        "symbol": "CAPLIPOINT",
+        "qty": 4,
+        "price": 2568.95,
+        "action": "SELL",
+        "total_value": 10275.8
+    },
+    {
+        "timestamp": "2026-07-13T12:00:00.000000",
+        "date": "2026-07-13",
+        "symbol": "CAPLIPOINT",
+        "qty": 4,
+        "price": 2570.6,
+        "action": "SELL",
+        "total_value": 10282.4
+    },
+    {
+        "timestamp": "2026-07-13T12:00:00.000000",
+        "date": "2026-07-13",
+        "symbol": "CAPLIPOINT",
+        "qty": 1,
+        "price": 2570.0,
+        "action": "SELL",
+        "total_value": 2570.0
+    },
+    {
+        "timestamp": "2026-07-13T12:00:00.000000",
+        "date": "2026-07-13",
+        "symbol": "PWL",
+        "qty": 221,
+        "price": 146.69,
+        "action": "BUY",
+        "total_value": 32418.49
+    },
+    {
+        "timestamp": "2026-07-13T12:00:00.000000",
+        "date": "2026-07-13",
+        "symbol": "POCL",
+        "qty": 200,
+        "price": 1339.8,
+        "action": "SELL",
+        "total_value": 267960.0
+    },
+    {
+        "timestamp": "2026-07-13T12:00:00.000000",
+        "date": "2026-07-13",
+        "symbol": "KDDL",
+        "qty": 1,
+        "price": 3283.75,
+        "action": "SELL",
+        "total_value": 3283.75
+    },
+    {
+        "timestamp": "2026-07-13T12:00:00.000000",
+        "date": "2026-07-13",
+        "symbol": "KDDL",
+        "qty": 1,
+        "price": 3285.5,
+        "action": "SELL",
+        "total_value": 3285.5
+    },
+    {
+        "timestamp": "2026-07-13T12:00:00.000000",
+        "date": "2026-07-13",
+        "symbol": "KDDL",
+        "qty": 2,
+        "price": 3283.9,
+        "action": "SELL",
+        "total_value": 6567.8
+    },
+    {
+        "timestamp": "2026-07-13T12:00:00.000000",
+        "date": "2026-07-13",
+        "symbol": "KDDL",
+        "qty": 2,
+        "price": 3283.95,
+        "action": "SELL",
+        "total_value": 6567.9
+    },
+    {
+        "timestamp": "2026-07-13T12:00:00.000000",
+        "date": "2026-07-13",
+        "symbol": "KDDL",
+        "qty": 2,
+        "price": 3291.6,
+        "action": "SELL",
+        "total_value": 6583.2
+    },
+    {
+        "timestamp": "2026-07-14T12:00:00.000000",
+        "date": "2026-07-14",
+        "symbol": "JSWINFRA",
+        "qty": 111,
+        "price": 289.8,
+        "action": "SELL",
+        "total_value": 32167.8
+    },
+    {
+        "timestamp": "2026-07-14T12:00:00.000000",
+        "date": "2026-07-14",
+        "symbol": "JSWINFRA",
+        "qty": 120,
+        "price": 289.8,
+        "action": "SELL",
+        "total_value": 34776.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "SPORTKING",
+        "qty": 11,
+        "price": 191.0,
+        "action": "BUY",
+        "total_value": 2101.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "SPORTKING",
+        "qty": 46,
+        "price": 191.0,
+        "action": "BUY",
+        "total_value": 8786.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "SKYGOLD",
+        "qty": 61,
+        "price": 622.5,
+        "action": "BUY",
+        "total_value": 37972.5
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "SKYGOLD",
+        "qty": 67,
+        "price": 622.84,
+        "action": "BUY",
+        "total_value": 41730.28
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "EBGNG",
+        "qty": 11,
+        "price": 484.5,
+        "action": "SELL",
+        "total_value": 5329.5
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 100,
+        "price": 2383.15,
+        "action": "SELL",
+        "total_value": 238315.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 1,
+        "price": 2385.6,
+        "action": "SELL",
+        "total_value": 2385.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 1,
+        "price": 2385.6,
+        "action": "SELL",
+        "total_value": 2385.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 1,
+        "price": 2385.6,
+        "action": "SELL",
+        "total_value": 2385.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 1,
+        "price": 2385.6,
+        "action": "SELL",
+        "total_value": 2385.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 1,
+        "price": 2385.6,
+        "action": "SELL",
+        "total_value": 2385.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 10,
+        "price": 2385.7,
+        "action": "SELL",
+        "total_value": 23857.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 10,
+        "price": 2385.7,
+        "action": "SELL",
+        "total_value": 23857.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 18,
+        "price": 2385.7,
+        "action": "SELL",
+        "total_value": 42942.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 25,
+        "price": 2385.6,
+        "action": "SELL",
+        "total_value": 59640.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 3,
+        "price": 2385.6,
+        "action": "SELL",
+        "total_value": 7156.8
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 4,
+        "price": 2385.6,
+        "action": "SELL",
+        "total_value": 9542.4
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 5,
+        "price": 2385.6,
+        "action": "SELL",
+        "total_value": 11928.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 6,
+        "price": 2385.6,
+        "action": "SELL",
+        "total_value": 14313.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 6,
+        "price": 2385.6,
+        "action": "SELL",
+        "total_value": 14313.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 6,
+        "price": 2385.6,
+        "action": "SELL",
+        "total_value": 14313.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 6,
+        "price": 2385.7,
+        "action": "SELL",
+        "total_value": 14314.2
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 8,
+        "price": 2385.6,
+        "action": "SELL",
+        "total_value": 19084.8
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLOSENG",
+        "qty": 9,
+        "price": 2385.6,
+        "action": "SELL",
+        "total_value": 21470.4
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLPNU",
+        "qty": 10,
+        "price": 1747.6,
+        "action": "SELL",
+        "total_value": 17476.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLPNU",
+        "qty": 1,
+        "price": 1747.0,
+        "action": "SELL",
+        "total_value": 1747.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLPNU",
+        "qty": 1,
+        "price": 1747.6,
+        "action": "SELL",
+        "total_value": 1747.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLPNU",
+        "qty": 1,
+        "price": 1747.6,
+        "action": "SELL",
+        "total_value": 1747.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLPNU",
+        "qty": 1,
+        "price": 1747.6,
+        "action": "SELL",
+        "total_value": 1747.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLPNU",
+        "qty": 1,
+        "price": 1747.6,
+        "action": "SELL",
+        "total_value": 1747.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLPNU",
+        "qty": 10,
+        "price": 1748.0,
+        "action": "SELL",
+        "total_value": 17480.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLPNU",
+        "qty": 21,
+        "price": 1748.65,
+        "action": "SELL",
+        "total_value": 36721.65
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLPNU",
+        "qty": 2,
+        "price": 1746.9,
+        "action": "SELL",
+        "total_value": 3493.8
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLPNU",
+        "qty": 2,
+        "price": 1746.9,
+        "action": "SELL",
+        "total_value": 3493.8
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLPNU",
+        "qty": 2,
+        "price": 1747.0,
+        "action": "SELL",
+        "total_value": 3494.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLPNU",
+        "qty": 2,
+        "price": 1747.6,
+        "action": "SELL",
+        "total_value": 3495.2
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLPNU",
+        "qty": 3,
+        "price": 1747.6,
+        "action": "SELL",
+        "total_value": 5242.8
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLPNU",
+        "qty": 4,
+        "price": 1748.15,
+        "action": "SELL",
+        "total_value": 6992.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLPNU",
+        "qty": 4,
+        "price": 1748.65,
+        "action": "SELL",
+        "total_value": 6994.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KIRLPNU",
+        "qty": 7,
+        "price": 1747.6,
+        "action": "SELL",
+        "total_value": 12233.2
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 1,
+        "price": 1227.0,
+        "action": "SELL",
+        "total_value": 1227.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 1,
+        "price": 1226.3,
+        "action": "SELL",
+        "total_value": 1226.3
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 1,
+        "price": 1226.3,
+        "action": "SELL",
+        "total_value": 1226.3
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 1,
+        "price": 1226.8,
+        "action": "SELL",
+        "total_value": 1226.8
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 1,
+        "price": 1226.8,
+        "action": "SELL",
+        "total_value": 1226.8
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 1,
+        "price": 1226.85,
+        "action": "SELL",
+        "total_value": 1226.85
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 1,
+        "price": 1227.0,
+        "action": "SELL",
+        "total_value": 1227.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 1,
+        "price": 1227.0,
+        "action": "SELL",
+        "total_value": 1227.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 1,
+        "price": 1227.0,
+        "action": "SELL",
+        "total_value": 1227.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 1,
+        "price": 1227.0,
+        "action": "SELL",
+        "total_value": 1227.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 1,
+        "price": 1227.0,
+        "action": "SELL",
+        "total_value": 1227.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 1,
+        "price": 1227.0,
+        "action": "SELL",
+        "total_value": 1227.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 1,
+        "price": 1227.0,
+        "action": "SELL",
+        "total_value": 1227.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 2,
+        "price": 1226.8,
+        "action": "SELL",
+        "total_value": 2453.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 2,
+        "price": 1226.8,
+        "action": "SELL",
+        "total_value": 2453.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 27,
+        "price": 1226.3,
+        "action": "SELL",
+        "total_value": 33110.1
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 4,
+        "price": 1226.3,
+        "action": "SELL",
+        "total_value": 4905.2
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 4,
+        "price": 1227.0,
+        "action": "SELL",
+        "total_value": 4908.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 5,
+        "price": 1227.0,
+        "action": "SELL",
+        "total_value": 6135.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "KMEW",
+        "qty": 62,
+        "price": 1226.3,
+        "action": "SELL",
+        "total_value": 76030.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "SOLARINDS",
+        "qty": 6,
+        "price": 10200.0,
+        "action": "SELL",
+        "total_value": 61200.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "SOLARINDS",
+        "qty": 1,
+        "price": 10200.0,
+        "action": "SELL",
+        "total_value": 10200.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "SKYGOLD",
+        "qty": 100,
+        "price": 619.25,
+        "action": "BUY",
+        "total_value": 61925.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "SKYGOLD",
+        "qty": 1,
+        "price": 619.25,
+        "action": "BUY",
+        "total_value": 619.25
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "SKYGOLD",
+        "qty": 2,
+        "price": 619.25,
+        "action": "BUY",
+        "total_value": 1238.5
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "SKYGOLD",
+        "qty": 4,
+        "price": 619.25,
+        "action": "BUY",
+        "total_value": 2477.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "SKYGOLD",
+        "qty": 4,
+        "price": 619.25,
+        "action": "BUY",
+        "total_value": 2477.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "SKYGOLD",
+        "qty": 5,
+        "price": 619.25,
+        "action": "BUY",
+        "total_value": 3096.25
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "SKYGOLD",
+        "qty": 6,
+        "price": 619.25,
+        "action": "BUY",
+        "total_value": 3715.5
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "SKYGOLD",
+        "qty": 6,
+        "price": 619.25,
+        "action": "BUY",
+        "total_value": 3715.5
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "ASTRAMICRO",
+        "qty": 1,
+        "price": 1721.2,
+        "action": "SELL",
+        "total_value": 1721.2
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "ATHERENERG",
+        "qty": 7,
+        "price": 1147.0,
+        "action": "BUY",
+        "total_value": 8029.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "ARVSMART",
+        "qty": 1,
+        "price": 1020.8,
+        "action": "SELL",
+        "total_value": 1020.8
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "ARVSMART",
+        "qty": 1,
+        "price": 1021.15,
+        "action": "SELL",
+        "total_value": 1021.15
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "ADANIENSOL",
+        "qty": 10,
+        "price": 1603.2,
+        "action": "BUY",
+        "total_value": 16032.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "ADANIENSOL",
+        "qty": 10,
+        "price": 1603.2,
+        "action": "BUY",
+        "total_value": 16032.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "ADANIENSOL",
+        "qty": 18,
+        "price": 1603.2,
+        "action": "BUY",
+        "total_value": 28857.6
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "ADANIENSOL",
+        "qty": 20,
+        "price": 1603.2,
+        "action": "BUY",
+        "total_value": 32064.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "ADANIENSOL",
+        "qty": 25,
+        "price": 1603.2,
+        "action": "BUY",
+        "total_value": 40080.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "ADANIENSOL",
+        "qty": 4,
+        "price": 1604.2,
+        "action": "BUY",
+        "total_value": 6416.8
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "FORCEMOT",
+        "qty": 6,
+        "price": 19134.0,
+        "action": "SELL",
+        "total_value": 114804.0
+    },
+    {
+        "timestamp": "2026-07-15T12:00:00.000000",
+        "date": "2026-07-15",
+        "symbol": "FORCEMOT",
+        "qty": 1,
+        "price": 19133.0,
+        "action": "SELL",
+        "total_value": 19133.0
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SUVEN",
+        "qty": 11,
+        "price": 385.75,
+        "action": "SELL",
+        "total_value": 4243.25
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SUVEN",
+        "qty": 11,
+        "price": 385.75,
+        "action": "SELL",
+        "total_value": 4243.25
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SUVEN",
+        "qty": 12,
+        "price": 385.7,
+        "action": "SELL",
+        "total_value": 4628.4
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SUVEN",
+        "qty": 16,
+        "price": 385.85,
+        "action": "SELL",
+        "total_value": 6173.6
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SUVEN",
+        "qty": 18,
+        "price": 385.75,
+        "action": "SELL",
+        "total_value": 6943.5
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SUVEN",
+        "qty": 20,
+        "price": 385.85,
+        "action": "SELL",
+        "total_value": 7717.0
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SUVEN",
+        "qty": 31,
+        "price": 385.85,
+        "action": "SELL",
+        "total_value": 11961.35
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SUVEN",
+        "qty": 40,
+        "price": 385.75,
+        "action": "SELL",
+        "total_value": 15430.0
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SUVEN",
+        "qty": 60,
+        "price": 385.75,
+        "action": "SELL",
+        "total_value": 23145.0
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SUVEN",
+        "qty": 9,
+        "price": 385.75,
+        "action": "SELL",
+        "total_value": 3471.75
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "CGCL",
+        "qty": 11,
+        "price": 267.35,
+        "action": "SELL",
+        "total_value": 2940.85
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "ABB",
+        "qty": 11,
+        "price": 7365.0,
+        "action": "SELL",
+        "total_value": 81015.0
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SPORTKING",
+        "qty": 45,
+        "price": 208.55,
+        "action": "BUY",
+        "total_value": 9384.75
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SPORTKING",
+        "qty": 52,
+        "price": 208.45,
+        "action": "BUY",
+        "total_value": 10839.4
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SPORTKING",
+        "qty": 53,
+        "price": 208.55,
+        "action": "BUY",
+        "total_value": 11053.15
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SPORTKING",
+        "qty": 60,
+        "price": 208.35,
+        "action": "BUY",
+        "total_value": 12501.0
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SPORTKING",
+        "qty": 62,
+        "price": 208.45,
+        "action": "BUY",
+        "total_value": 12923.9
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SPORTKING",
+        "qty": 81,
+        "price": 208.55,
+        "action": "BUY",
+        "total_value": 16892.55
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "SPORTKING",
+        "qty": 9,
+        "price": 208.55,
+        "action": "BUY",
+        "total_value": 1876.95
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "ROSSARI",
+        "qty": 100,
+        "price": 805.2,
+        "action": "BUY",
+        "total_value": 80520.0
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "NAUKRI",
+        "qty": 1,
+        "price": 1195.15,
+        "action": "BUY",
+        "total_value": 1195.15
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "NAUKRI",
+        "qty": 13,
+        "price": 1195.15,
+        "action": "BUY",
+        "total_value": 15536.95
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "NAUKRI",
+        "qty": 5,
+        "price": 1195.15,
+        "action": "BUY",
+        "total_value": 5975.75
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "NAUKRI",
+        "qty": 5,
+        "price": 1195.15,
+        "action": "BUY",
+        "total_value": 5975.75
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "NAUKRI",
+        "qty": 20,
+        "price": 1195.15,
+        "action": "BUY",
+        "total_value": 23903.0
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "GABRIEL",
+        "qty": 2,
+        "price": 1032.7,
+        "action": "BUY",
+        "total_value": 2065.4
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "GABRIEL",
+        "qty": 7,
+        "price": 1032.7,
+        "action": "BUY",
+        "total_value": 7228.9
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "GABRIEL",
+        "qty": 30,
+        "price": 1032.7,
+        "action": "BUY",
+        "total_value": 30981.0
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "GABRIEL",
+        "qty": 6,
+        "price": 1032.7,
+        "action": "BUY",
+        "total_value": 6196.2
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "GABRIEL",
+        "qty": 12,
+        "price": 1033.0,
+        "action": "BUY",
+        "total_value": 12396.0
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "GLAND",
+        "qty": 1,
+        "price": 2537.1,
+        "action": "BUY",
+        "total_value": 2537.1
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "GLAND",
+        "qty": 5,
+        "price": 2537.1,
+        "action": "BUY",
+        "total_value": 12685.5
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "GLAND",
+        "qty": 6,
+        "price": 2537.1,
+        "action": "BUY",
+        "total_value": 15222.6
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "GLAND",
+        "qty": 10,
+        "price": 2537.1,
+        "action": "BUY",
+        "total_value": 25371.0
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "GLAND",
+        "qty": 10,
+        "price": 2530.5,
+        "action": "BUY",
+        "total_value": 25305.0
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "GLAND",
+        "qty": 1,
+        "price": 2530.5,
+        "action": "BUY",
+        "total_value": 2530.5
+    },
+    {
+        "timestamp": "2026-07-16T12:00:00.000000",
+        "date": "2026-07-16",
+        "symbol": "GLAND",
+        "qty": 12,
+        "price": 2530.5,
+        "action": "BUY",
+        "total_value": 30366.0
+    },
+    {
+        "timestamp": "2026-07-17T12:00:00.000000",
+        "date": "2026-07-17",
+        "symbol": "SUVEN",
+        "qty": 19,
+        "price": 328.65,
+        "action": "BUY",
+        "total_value": 6244.35
+    },
+    {
+        "timestamp": "2026-07-17T12:00:00.000000",
+        "date": "2026-07-17",
+        "symbol": "SUVEN",
+        "qty": 25,
+        "price": 328.65,
+        "action": "BUY",
+        "total_value": 8216.25
+    },
+    {
+        "timestamp": "2026-07-17T12:00:00.000000",
+        "date": "2026-07-17",
+        "symbol": "SUVEN",
+        "qty": 6,
+        "price": 328.65,
+        "action": "BUY",
+        "total_value": 1971.9
+    },
+    {
+        "timestamp": "2026-07-17T12:00:00.000000",
+        "date": "2026-07-17",
+        "symbol": "SUVEN",
+        "qty": 71,
+        "price": 328.65,
+        "action": "BUY",
+        "total_value": 23334.15
+    },
+    {
+        "timestamp": "2026-07-17T12:00:00.000000",
+        "date": "2026-07-17",
+        "symbol": "SUVEN",
+        "qty": 76,
+        "price": 328.65,
+        "action": "BUY",
+        "total_value": 24977.4
+    },
+    {
+        "timestamp": "2026-07-17T12:00:00.000000",
+        "date": "2026-07-17",
+        "symbol": "SUVEN",
+        "qty": 56,
+        "price": 328.65,
+        "action": "BUY",
+        "total_value": 18404.4
+    },
+    {
+        "timestamp": "2026-07-17T12:00:00.000000",
+        "date": "2026-07-17",
+        "symbol": "SKYGOLD",
+        "qty": 20,
+        "price": 624.45,
+        "action": "BUY",
+        "total_value": 12489.0
+    },
+    {
+        "timestamp": "2026-07-17T12:00:00.000000",
+        "date": "2026-07-17",
+        "symbol": "SKYGOLD",
+        "qty": 97,
+        "price": 623.75,
+        "action": "BUY",
+        "total_value": 60503.75
+    },
+    {
+        "timestamp": "2026-07-17T12:00:00.000000",
+        "date": "2026-07-17",
+        "symbol": "STALLION",
+        "qty": 27,
+        "price": 209.61,
+        "action": "BUY",
+        "total_value": 5659.47
+    },
+    {
+        "timestamp": "2026-07-17T12:00:00.000000",
+        "date": "2026-07-17",
+        "symbol": "STALLION",
+        "qty": 40,
+        "price": 209.61,
+        "action": "BUY",
+        "total_value": 8384.4
+    },
+    {
+        "symbol": "ANANDRATHI",
+        "date": "22-JUL-2026",
+        "type": "BUY",
+        "qty": 32,
+        "price": 2077.57
+    },
+    {
+        "symbol": "SUVEN",
+        "date": "22-JUL-2026",
+        "type": "BUY",
+        "qty": 250,
+        "price": 315.83
+    }
+]

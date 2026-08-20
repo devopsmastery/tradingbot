@@ -1,0 +1,57 @@
+ADD MORE:
+1. POWERINDIA - Rs.35730.00 - 95% (EXCELLENT)
+   Reasons: Strong breakout (57% of ATR above KC) . Moderate EMA trend (EMA10 0.5% above EMA21) . Fresh EMA golden cross (today)
+2. SANGHVIMOV - Rs.519.50 - 90% (EXCELLENT)
+   Reasons: Strong breakout (54% of ATR above KC) . Strong EMA trend (EMA10 3.4% above EMA21) . High volume (2.2x avg)
+3. SKYGOLD - Rs.788.00 - 90% (EXCELLENT)
+   Reasons: Strong breakout (144% of ATR above KC) . Strong EMA trend (EMA10 5.2% above EMA21) . High volume (3.6x avg)
+4. SWELECTES - Rs.693.55 - 85% (EXCELLENT)
+   Reasons: Strong breakout (62% of ATR above KC) . Moderate EMA trend (EMA10 1.8% above EMA21) . High volume (2.9x avg)
+5. AKUMS - Rs.738.85 - 85% (EXCELLENT)
+   Reasons: Strong breakout (54% of ATR above KC) . Moderate EMA trend (EMA10 1.5% above EMA21) . High volume (4.3x avg)
+6. HAL - Rs.4920.00 - 75% (GOOD)
+   Reasons: Strong breakout (75% of ATR above KC) . Strong EMA trend (EMA10 2.3% above EMA21) . Low volume (0.2x avg) -- caution
+7. HINDZINC - Rs.605.10 - 75% (GOOD)
+   Reasons: Strong breakout (126% of ATR above KC) . Strong EMA trend (EMA10 2.9% above EMA21) . Low volume (0.4x avg) -- caution
+8. PATILAUTOM-ST - Rs.216.90 - 75% (GOOD)
+   Reasons: Strong breakout (105% of ATR above KC) . Strong EMA trend (EMA10 2.1% above EMA21) . Low volume (0.7x avg) -- caution
+9. ATHERENERG - Rs.1482.90 - 75% (GOOD)
+   Reasons: Strong breakout (55% of ATR above KC) . Strong EMA trend (EMA10 5.8% above EMA21) . Low volume (0.4x avg) -- caution
+10. DEEPINDS - Rs.639.65 - 75% (GOOD)
+   Reasons: Strong breakout (54% of ATR above KC) . Strong EMA trend (EMA10 7.8% above EMA21) . Low volume (0.1x avg) -- caution
+11. GOLDBEES - Rs.124.32 - 70% (GOOD)
+   Reasons: Strong breakout (102% of ATR above KC) . Moderate EMA trend (EMA10 1.0% above EMA21) . Low volume (0.8x avg) -- caution
+12. LTFOODS - Rs.428.10 - 70% (GOOD)
+   Reasons: Moderate breakout (44% of ATR above KC) . Strong EMA trend (EMA10 2.9% above EMA21) . Low volume (0.1x avg) -- caution
+13. RRKABEL - Rs.2772.20 - 65% (GOOD)
+   Reasons: Marginal breakout (8% of ATR above KC) . Strong EMA trend (EMA10 4.3% above EMA21) . Low volume (0.1x avg) -- caution
+
+NEW BUY:
+1. EMIL - Rs.179.24 - 90% (EXCELLENT)
+   Reasons: Strong breakout (190% of ATR above KC) . Strong EMA trend (EMA10 6.6% above EMA21) . High volume (6.1x avg)
+2. SAILIFE - Rs.1442.50 - 85% (EXCELLENT)
+   Reasons: Moderate breakout (30% of ATR above KC) . Strong EMA trend (EMA10 3.1% above EMA21) . High volume (3.2x avg)
+3. CUPID - Rs.261.09 - 75% (GOOD)
+   Reasons: Strong breakout (54% of ATR above KC) . Strong EMA trend (EMA10 6.3% above EMA21) . Low volume (0.5x avg) -- caution
+4. KDDL - Rs.3966.00 - 75% (GOOD)
+   Reasons: Strong breakout (114% of ATR above KC) . Strong EMA trend (EMA10 5.2% above EMA21) . Low volume (0.6x avg) -- caution
+5. ALIVUS - Rs.1362.70 - 75% (GOOD)
+   Reasons: Strong breakout (82% of ATR above KC) . Strong EMA trend (EMA10 4.7% above EMA21) . Low volume (0.4x avg) -- caution
+6. HAPPYFORGE - Rs.1919.10 - 75% (GOOD)
+   Reasons: Strong breakout (115% of ATR above KC) . Strong EMA trend (EMA10 4.9% above EMA21) . Low volume (0.8x avg) -- caution
+7. UNOMINDA - Rs.1289.70 - 75% (GOOD)
+   Reasons: Strong breakout (89% of ATR above KC) . Strong EMA trend (EMA10 3.1% above EMA21) . Low volume (0.3x avg) -- caution
+8. NEULANDLAB - Rs.22240.00 - 75% (GOOD)
+   Reasons: Strong breakout (57% of ATR above KC) . Strong EMA trend (EMA10 4.2% above EMA21) . Low volume (0.5x avg) -- caution
+9. RKFORGE - Rs.754.75 - 75% (GOOD)
+   Reasons: Strong breakout (195% of ATR above KC) . Strong EMA trend (EMA10 6.1% above EMA21) . Low volume (0.5x avg) -- caution
+10. AGARWALEYE - Rs.561.30 - 75% (GOOD)
+   Reasons: Strong breakout (71% of ATR above KC) . Strong EMA trend (EMA10 3.3% above EMA21) . Low volume (0.8x avg) -- caution
+11. APARINDS - Rs.16920.00 - 75% (GOOD)
+   Reasons: Strong breakout (92% of ATR above KC) . Strong EMA trend (EMA10 3.7% above EMA21) . Low volume (0.5x avg) -- caution
+12. ORISSAMINE - Rs.4471.80 - 70% (GOOD)
+   Reasons: Moderate breakout (21% of ATR above KC) . Strong EMA trend (EMA10 3.7% above EMA21) . Low volume (0.3x avg) -- caution
+13. STYL - Rs.416.40 - 65% (GOOD)
+   Reasons: Marginal breakout (19% of ATR above KC) . Strong EMA trend (EMA10 3.3% above EMA21) . Low volume (0.7x avg) -- caution
+14. MIDHANI - Rs.441.00 - 65% (GOOD)
+   Reasons: Moderate breakout (22% of ATR above KC) . Moderate EMA trend (EMA10 1.2% above EMA21) . Low volume (0.8x avg) -- caution

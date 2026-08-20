@@ -31,7 +31,7 @@ def push_to_git():
 
     # Repository info (hardcoded based on current setup, can be made dynamic)
     github_user = "devopsmastery"
-    repo_name = "fyers_trading_strategy"
+    repo_name = "tradingbot"
     remote_url = f"https://{github_user}:{git_token}@github.com/{github_user}/{repo_name}.git"
 
     # 2. Update the origin URL with the fresh token

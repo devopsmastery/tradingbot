@@ -16,6 +16,7 @@ When the user says "Hi", "Hello", or asks for the menu, you must reply with the 
 4. **Add New Stocks**: Import stocks from `Newly_added_stocks.txt` and fetch their history.
 5. **Portfolio Scan (Portfolio Watchdog)**: Analyze your active holdings for SELL/CAUTION/HOLD signals with risk report.
 6. **Trade History**: View your complete trade audit log.
+7. **Trades Bot**: View Trades history over timeframes and calculate P&L.
 
 *Reply with a number to select an option, or describe what you need.*
 ```
@@ -54,6 +55,10 @@ Invoke the `portfolio-watchdog` subagent. It will:
 ### Option 6: Trade History (Direct — no subagent needed)
 1. Run `python scripts/trades_history.py` directly.
 2. If the user asks to filter: use `--symbol <TICKER>` or `--action BUY/SELL`.
+
+### Option 7: Trades Bot → Invoke `trades-bot`
+1. Invoke the `trades-bot` subagent.
+2. It will display the sub-menu for P&L calculations and trade reporting over timeframes.
 
 ## Trade Execution (Any Context) → Invoke `trade-executor`
 When the user says "Buy X shares of Y at Z" or "Sell Y" or pastes a broker trade table, invoke the `trade-executor` subagent. It will:

@@ -181,7 +181,7 @@
     },
     "SKYGOLD": {
         "qty": 128,
-        "avg_cost": 621.8690624999999
+        "avg_cost": 621.87
     },
     "SOTL": {
         "qty": 25,
@@ -200,8 +200,8 @@
         "avg_cost": 949.83
     },
     "SUVEN": {
-        "qty": 253,
-        "avg_cost": 322.5
+        "qty": 503,
+        "avg_cost": 319.1848906560636
     },
     "SWELECTES": {
         "qty": 235,
@@ -238,5 +238,9 @@
     "WOCKPHARMA": {
         "qty": 50,
         "avg_cost": 2029.63
+    },
+    "ANANDRATHI": {
+        "qty": 32,
+        "avg_cost": 2077.57
     }
 }

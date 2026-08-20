@@ -17,6 +17,7 @@ from strategies import (
     KeltnerBreakoutTunedStrategy,
     SqueezeBreakoutStrategy,
     KeltnerEMACrossStrategy,
+    KeltnerRetracementBreakoutStrategy,
 )
 
 STOCKS_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "stocks_to_test.txt")
@@ -116,11 +117,12 @@ def main():
     print("Using cached historical CSV data.\n")
 
     strategies = [
-        (KeltnerBreakoutTunedStrategy, "Keltner Tuned (ATR 2.0 + EMA)"),
-        (KeltnerEMACrossStrategy,       "Keltner + EMA Cross (NEW)"),
-        (KeltnerBreakoutStrategy,       "Keltner Breakout (ATR 1.5)"),
-        (BollingerRSIStrategy,          "Bollinger RSI"),
-        (SqueezeBreakoutStrategy,       "Squeeze Breakout"),
+        (KeltnerRetracementBreakoutStrategy, "Keltner 5-Rule Retracement (NEW)"),
+        (KeltnerBreakoutTunedStrategy,       "Keltner Tuned (ATR 2.0 + EMA)"),
+        (KeltnerEMACrossStrategy,             "Keltner + EMA Cross"),
+        (KeltnerBreakoutStrategy,             "Keltner Breakout (ATR 1.5)"),
+        (BollingerRSIStrategy,                "Bollinger RSI"),
+        (SqueezeBreakoutStrategy,             "Squeeze Breakout"),
     ]
 
     overall_results = []

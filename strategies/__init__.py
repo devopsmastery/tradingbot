@@ -3,3 +3,4 @@ from .keltner_breakout import KeltnerBreakoutStrategy
 from .keltner_breakout_tuned import KeltnerBreakoutTunedStrategy
 from .squeeze_breakout import SqueezeBreakoutStrategy
 from .keltner_ema_cross import KeltnerEMACrossStrategy
+from .keltner_retracement_breakout import KeltnerRetracementBreakoutStrategy

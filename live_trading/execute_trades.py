@@ -3,17 +3,21 @@ Fyers Live Trading Script: Keltner Tuned (ATR 2.0 + EMA 10/21)
 
 This script:
 1. Authenticates with Fyers API
-2. Fetches latest daily candle data for stocks in stocks_to_test.txt
-3. Computes Keltner Channel (ATR 2.0) and EMA 10/21 indicators
+2. Fetches latest daily candle data for stocks in stocks_to_test.txt + stocks_watchlist.txt
+   (also includes all portfolio holdings so ADD MORE signals are never missed)
+3. Computes Keltner Channel (ATR 2.0) and EMA 10/21 indicators using live prices
 4. Generates color-coded BUY/SELL signals with quality scores
-5. Places orders via Fyers API (when DRY_RUN=False)
+5. Labels BUY signals as ADD MORE (already held) or NEW BUY (fresh entry)
+6. Places orders via Fyers API only when DRY_RUN=False
 
 Usage:
     python live_trading/execute_trades.py
+    python scripts/dry_run.py          (forces DRY_RUN=True)
 """
 
 import os
 import sys
+import json
 import requests
 import pandas as pd
 import numpy as np
@@ -36,6 +40,7 @@ from data.data_fetcher import (
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STOCKS_FILE = os.path.join(PROJECT_DIR, "stocks_to_test.txt")
 WATCHLIST_FILE = os.path.join(PROJECT_DIR, "stocks_watchlist.txt")
+PORTFOLIO_DB_FILE = os.path.join(PROJECT_DIR, "data", "portfolio_db.json")
 ORDER_URL = "https://api-t1.fyers.in/api/v3/orders/sync"
 
 # Strategy Parameters
@@ -99,6 +104,10 @@ def compute_indicators(df: pd.DataFrame) -> pd.DataFrame:
     # Volume SMA for volume confirmation
     df["VOL_SMA"] = df["Volume"].rolling(window=20).mean()
 
+    # Bollinger Band Upper (20-period, 2.0 std dev) for Strategy 6
+    df["BB_STD"] = df["Close"].rolling(window=20).std()
+    df["BB_UPPER"] = df["KC_MID"] + (2.0 * df["BB_STD"])
+
     return df
 
 
@@ -106,25 +115,97 @@ def compute_indicators(df: pd.DataFrame) -> pd.DataFrame:
 # Signal Generation with Quality Score
 # ============================================================
 
-def generate_signal(df: pd.DataFrame) -> tuple:
+def generate_signal(df: pd.DataFrame, strategy_id: int = None) -> tuple:
     """
-    Generate a trading signal using Keltner Tuned (ATR 2.0 + EMA 10/21) strategy.
-
-    Strategy:
-      BUY : Price breaks above KC Upper band AND EMA10 > EMA21 (bullish trend confirmed)
-      SELL: Price drops below KC mid-line OR EMA10 crosses below EMA21 (death cross)
-
-    Volume is used as a quality SCORING BONUS only (not a hard gate).
-    Backtest proved volume as a hard gate on daily data reduces PnL by 69%.
+    Generate a trading signal. Default is Strategy 1 (Keltner Tuned - winning strategy).
+    Optionally supports Strategy 6 (5-Rule Retracement Strategy).
 
     Returns: (signal, quality_score, reasons)
-        signal: 'BUY', 'SELL', or 'HOLD'
-        quality_score: 0-100 (higher = stronger signal)
-        reasons: list of strings explaining why
     """
+    if strategy_id is None:
+        try:
+            strategy_id = int(os.getenv("STRATEGY_ID", "1"))
+        except ValueError:
+            strategy_id = 1
+
     if len(df) < KC_PERIOD + 1:
         return "HOLD", 0, ["Insufficient data"]
 
+    # ---- STRATEGY 6: 5-RULE RETRACEMENT BREAKOUT ----
+    if strategy_id == 6:
+        today = df.iloc[-1]
+        prev = df.iloc[-2]
+        today_open = today["Open"]
+        today_close = today["Close"]
+        today_high = today["High"]
+        today_low = today["Low"]
+        kc_upper = today["KC_UPPER"]
+        kc_mid = today["KC_MID"]
+        kc_lower = today["KC_LOWER"]
+        bb_upper = today.get("BB_UPPER", kc_upper)
+        ema_fast = today["EMA_FAST"]
+        ema_slow = today["EMA_SLOW"]
+        prev_ema_fast = prev["EMA_FAST"]
+        prev_ema_slow = prev["EMA_SLOW"]
+
+        # Check SELL signal
+        ema_cross_down = (prev_ema_fast >= prev_ema_slow) and (ema_fast < ema_slow)
+        if today_close < kc_mid or ema_cross_down:
+            score = 50
+            reasons = []
+            if today_close < kc_mid:
+                reasons.append("Price below KC mid-line")
+            if ema_cross_down:
+                reasons.append("EMA10 crossed below EMA21")
+            return "SELL", min(score, 100), reasons
+
+        # Check BUY signal (Rule 5: positive candle touching upper band)
+        rule5_pos = today_close > today_open
+        rule5_touch = (today_high >= kc_upper) or (today_high >= bb_upper)
+
+        if rule5_pos and rule5_touch:
+            for days_back in range(1, 4):
+                if len(df) <= days_back + 1:
+                    continue
+                bc_idx = -(days_back + 1)
+                bc = df.iloc[bc_idx]
+
+                bc_close = bc["Close"]
+                bc_high = bc["High"]
+                bc_low = bc["Low"]
+                bc_kc_mid = bc["KC_MID"]
+                bc_ema_fast = bc["EMA_FAST"]
+                bc_ema_slow = bc["EMA_SLOW"]
+
+                # Rule 1 & 2 on BC candle
+                if bc_ema_fast > bc_ema_slow and bc_close > bc_kc_mid:
+                    retrace_ok = False
+                    support_ok = True
+
+                    for sub_idx in range(bc_idx + 1, 0):
+                        bar = df.iloc[sub_idx]
+                        if bar["Low"] < bc_low or bar["Low"] < bar["KC_LOWER"]:
+                            support_ok = False
+                            break
+                        depth = (bc_high - bar["Low"]) / bc_high if bc_high > 0 else 0
+                        if depth >= 0.03:
+                            retrace_ok = True
+
+                    if support_ok and retrace_ok:
+                        score = 75
+                        reasons = [
+                            "Rule 1 & 2: BC candle confirmed (EMA10 > EMA21 & Close > KC Mid)",
+                            f"Rule 3 & 4: Retracement >=3% held above BC low ({bc_low:.2f})",
+                            "Rule 5: Green candle touched Upper Band"
+                        ]
+                        if today_close > kc_upper:
+                            score += 15
+                            reasons.append("Breakout above KC Upper")
+                        return "BUY", min(score, 100), reasons
+
+        return "HOLD", 0, ["Does not satisfy 5-rule entry sequence"]
+
+    # ---- DEFAULT: STRATEGY 1 (KELTNER TUNED - WINNING STRATEGY) ----
     latest = df.iloc[-1]
     prev   = df.iloc[-2]
 
@@ -176,7 +257,7 @@ def generate_signal(df: pd.DataFrame) -> tuple:
             score += 10
             reasons.append("Fresh EMA golden cross (today)")
 
-        # Factor 4: Volume — scoring bonus only (not a hard gate)
+        # Factor 4: Volume -- scoring bonus only (not a hard gate)
         if vol_ratio >= 2.0:
             score += 15
             reasons.append(f"High volume ({vol_ratio:.1f}x avg)")
@@ -187,7 +268,7 @@ def generate_signal(df: pd.DataFrame) -> tuple:
             score += 5
             reasons.append(f"Normal volume ({vol_ratio:.1f}x avg)")
         else:
-            reasons.append(f"Low volume ({vol_ratio:.1f}x avg) — caution")
+            reasons.append(f"Low volume ({vol_ratio:.1f}x avg) -- caution")
 
         # Factor 5: Full trend alignment
         if close > ema_fast > ema_slow:
@@ -237,16 +318,16 @@ def quality_bar(score):
     return f"{color}[{'=' * filled}{' ' * empty}] {score}%{Colors.RESET}"
 
 
-def quality_label(score):
+def quality_label(score, plain=False):
     """Return a text label for the score."""
     if score >= 80:
-        return colored("EXCELLENT", Colors.BOLD + Colors.GREEN)
+        return "EXCELLENT" if plain else colored("EXCELLENT", Colors.BOLD + Colors.GREEN)
     elif score >= 65:
-        return colored("GOOD", Colors.GREEN)
+        return "GOOD" if plain else colored("GOOD", Colors.GREEN)
     elif score >= 50:
-        return colored("MODERATE", Colors.YELLOW)
+        return "MODERATE" if plain else colored("MODERATE", Colors.YELLOW)
     else:
-        return colored("WEAK", Colors.RED)
+        return "WEAK" if plain else colored("WEAK", Colors.RED)
 
 
 # ============================================================
@@ -270,9 +351,9 @@ def place_order(access_token: str, symbol: str, side: int, qty: int = QUANTITY):
     payload = {
         "symbol": symbol,
         "qty": qty,
-        "type": 2,          # Market order
-        "side": side,        # 1=Buy, -1=Sell
-        "productType": "CNC",  # Cash and Carry (delivery)
+        "type": 2,           # Market order
+        "side": side,         # 1=Buy, -1=Sell
+        "productType": "CNC", # Cash and Carry (delivery)
         "limitPrice": 0,
         "stopPrice": 0,
         "validity": "DAY",
@@ -295,7 +376,7 @@ def place_order(access_token: str, symbol: str, side: int, qty: int = QUANTITY):
 
 
 def get_positions(access_token: str) -> dict:
-    """Fetches current open positions from Fyers."""
+    """Fetches current open positions from Fyers (used in live mode only)."""
     headers = {"Authorization": f"{FYERS_APP_ID}:{access_token}"}
     url = "https://api-t1.fyers.in/api/v3/positions"
     response = requests.get(url, headers=headers)
@@ -305,6 +386,21 @@ def get_positions(access_token: str) -> dict:
         for pos in data.get("netPositions", []):
             positions[pos["symbol"]] = pos.get("netQty", 0)
     return positions
+
+
+def load_portfolio() -> dict:
+    """
+    Load portfolio_db.json for local portfolio lookups.
+
+    Returns:
+        dict: {symbol: {qty, avg_cost}}
+        e.g. {"STALLION": {"qty": 292, "avg_cost": 209.61}}
+    """
+    try:
+        with open(PORTFOLIO_DB_FILE, "r") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
 
 
 # ============================================================
@@ -318,15 +414,24 @@ def main():
     print(colored(f"  {datetime.now().strftime('%A, %d %B %Y  %H:%M:%S')}", Colors.CYAN))
     print(colored("=" * 70, Colors.CYAN))
 
+    # Determine run mode upfront so all logic below can branch on it
+    dry_run = os.getenv("DRY_RUN", "True").lower() != "false"
+    mode_label = colored("DRY RUN (recommendations only)", Colors.YELLOW + Colors.BOLD) if dry_run else colored("LIVE MODE", Colors.RED + Colors.BOLD)
+    print(f"\n  Mode: {mode_label}")
+
     access_token = get_access_token()
 
-    # Load stocks from both files
+    # Load local portfolio -- used for ADD MORE vs NEW BUY labelling
+    # and to ensure every held stock is included in the scan
+    portfolio = load_portfolio()
+
+    # ---- Build scanning universe ----
     main_stocks = read_stocks(STOCKS_FILE)
     watchlist_stocks = []
     if os.path.exists(WATCHLIST_FILE):
         watchlist_stocks = read_stocks(WATCHLIST_FILE)
 
-    # Track source for labeling
+    # Track source tag for display
     stock_source = {}
     for s in main_stocks:
         stock_source[s] = "MAIN"
@@ -337,133 +442,264 @@ def main():
     # Merge and deduplicate (preserving order)
     all_stocks = list(dict.fromkeys(main_stocks + watchlist_stocks))
 
+    # Ensure every portfolio holding is included even if not in scan lists
+    # so ADD MORE signals are never missed
+    for ps in portfolio.keys():
+        if ps not in stock_source:
+            stock_source[ps] = "PORTFOLIO"
+            all_stocks.append(ps)
+
     if not all_stocks:
-        print(colored("No stocks found in stocks_to_test.txt or stocks_watchlist.txt", Colors.RED))
+        print(colored("No stocks found to scan.", Colors.RED))
         return
 
-    main_count = len(main_stocks)
-    wl_count = len([s for s in all_stocks if stock_source.get(s) == "WATCHLIST"])
-    print(f"\n  Scanning {colored(str(len(all_stocks)), Colors.BOLD)} stocks "
-          f"({main_count} main + {wl_count} watchlist) for signals...\n")
+    main_count  = len(main_stocks)
+    wl_count    = len([s for s in all_stocks if stock_source.get(s) == "WATCHLIST"])
+    port_extra  = len([s for s in all_stocks if stock_source.get(s) == "PORTFOLIO"])
+    held_in_scan = len([s for s in all_stocks if s in portfolio and stock_source.get(s) != "PORTFOLIO"])
 
-    stocks = all_stocks
+    print(f"\n  Scanning {colored(str(len(all_stocks)), Colors.BOLD)} stocks -- "
+          f"{main_count} main . {wl_count} watchlist . {port_extra} portfolio-only\n")
 
-    # Fetch current positions
-    positions = get_positions(access_token)
+    # Fetch live positions only in live mode (not needed for dry run)
+    positions = {}
+    if not dry_run:
+        positions = get_positions(access_token)
 
-    buy_signals = []
+    # Tuples stored as:
+    #   buy_signals:  (fyers_sym, raw_sym, close, score, reasons, in_portfolio, avg_cost, portfolio_qty)
+    #   sell_signals: (fyers_sym, raw_sym, close, held_qty, score, reasons)
+    buy_signals  = []
     sell_signals = []
-    hold_count = 0
-    error_count = 0
+    hold_count   = 0
+    error_count  = 0
 
-    for i, symbol in enumerate(stocks, 1):
+    for i, symbol in enumerate(all_stocks, 1):
         fyers_symbol = to_fyers_symbol(symbol)
-        progress = colored(f"[{i:3d}/{len(stocks)}]", Colors.DIM)
+        progress = colored(f"[{i:3d}/{len(all_stocks)}]", Colors.DIM)
+
+        # Portfolio lookup -- raw symbol keys match portfolio_db.json
+        portfolio_data = portfolio.get(symbol, {})
+        portfolio_qty  = portfolio_data.get("qty", 0)
+        avg_cost       = portfolio_data.get("avg_cost", 0.0)
+        in_portfolio   = portfolio_qty > 0
+
         try:
-            # Fetch latest 60 days of data (enough for indicators)
+            # Fetch latest 60 days (enough for all indicators)
             df = fetch_historical_data(fyers_symbol, access_token, days=60)
-            
-            # Append/update with real-time live quote to ensure latest price/volume
+
+            # Overlay real-time live quote so indicators use today's actual price
             df = append_live_quote(df, fyers_symbol, access_token)
-            
+
             df = compute_indicators(df)
             signal, score, reasons = generate_signal(df)
 
-            current_qty = positions.get(fyers_symbol, 0)
             latest_close = df.iloc[-1]["Close"]
 
-            if signal == "BUY" and current_qty == 0:
-                buy_signals.append((fyers_symbol, latest_close, score, reasons))
-                tag = colored(" BUY ", Colors.BOLD + Colors.WHITE + Colors.BG_GREEN)
-                print(f"  {progress} {tag} {fyers_symbol:25s}  Close: {latest_close:>10.2f}  {quality_bar(score)}")
-            elif signal == "SELL" and current_qty > 0:
-                sell_signals.append((fyers_symbol, latest_close, current_qty, score, reasons))
-                tag = colored(" SELL", Colors.BOLD + Colors.WHITE + Colors.BG_RED)
-                print(f"  {progress} {tag} {fyers_symbol:25s}  Close: {latest_close:>10.2f}  Qty: {current_qty}")
+            if signal == "BUY":
+                buy_signals.append((fyers_symbol, symbol, latest_close, score, reasons,
+                                    in_portfolio, avg_cost, portfolio_qty))
+                if in_portfolio:
+                    tag = colored("ADD MORE", Colors.BOLD + Colors.CYAN)
+                else:
+                    tag = colored(" NEW BUY", Colors.BOLD + Colors.GREEN)
+                print(f"  {progress} [{tag}] {symbol:22s}  Rs.{latest_close:>9.2f}  {quality_bar(score)}")
+
+            elif signal == "SELL":
+                # In dry run: use portfolio_db qty; in live: use API positions
+                held_qty = portfolio_qty if dry_run else positions.get(fyers_symbol, 0)
+                if held_qty > 0:
+                    sell_signals.append((fyers_symbol, symbol, latest_close, held_qty, score, reasons))
+                    tag = colored(" CAUTION", Colors.BOLD + Colors.YELLOW)
+                    print(f"  {progress} [{tag}] {symbol:22s}  Rs.{latest_close:>9.2f}  (held {held_qty} @ Rs.{avg_cost:.2f})")
+                else:
+                    hold_count += 1
+                    tag = colored("HOLD", Colors.DIM)
+                    print(f"  {progress}  {tag}   {symbol:22s}  Rs.{latest_close:>9.2f}")
             else:
                 hold_count += 1
                 tag = colored("HOLD", Colors.DIM)
-                print(f"  {progress} {tag}  {fyers_symbol:25s}  Close: {latest_close:>10.2f}")
+                print(f"  {progress}  {tag}   {symbol:22s}  Rs.{latest_close:>9.2f}")
 
         except Exception as e:
             error_count += 1
             tag = colored(" ERR ", Colors.BOLD + Colors.RED)
-            print(f"  {progress} {tag} {fyers_symbol:25s}  {e}")
+            print(f"  {progress} {tag} {symbol:22s}  {e}")
 
     # ============================================================
-    # SIGNAL SUMMARY DASHBOARD
+    # TODAY'S RECOMMENDATIONS DASHBOARD
     # ============================================================
     print()
     print(colored("=" * 70, Colors.CYAN))
-    print(colored("  SIGNAL DASHBOARD", Colors.BOLD + Colors.CYAN))
+    print(colored("  TODAY'S BUY RECOMMENDATIONS", Colors.BOLD + Colors.CYAN))
+    print(colored(f"  {datetime.now().strftime('%A, %d %B %Y')}", Colors.CYAN))
     print(colored("=" * 70, Colors.CYAN))
-    print(f"  Stocks scanned: {len(stocks)}")
-    print(f"  {colored('BUY signals:', Colors.GREEN)}  {len(buy_signals)}")
-    print(f"  {colored('SELL signals:', Colors.RED)} {len(sell_signals)}")
-    print(f"  {colored('HOLD:', Colors.DIM)}         {hold_count}")
+    print(f"  Stocks scanned  : {len(all_stocks)}")
+    print(f"  {colored('BUY signals  :', Colors.GREEN)}   {len(buy_signals)}")
+    print(f"  {colored('SELL/Caution :', Colors.YELLOW)}  {len(sell_signals)} held stocks showing weakness")
+    print(f"  {colored('HOLD         :', Colors.DIM)}  {hold_count}")
     if error_count:
-        print(f"  {colored('Errors:', Colors.RED)}       {error_count}")
+        print(f"  {colored('Errors       :', Colors.RED)}  {error_count}")
 
-    # ---- BUY SIGNAL DETAILS ----
-    if buy_signals:
-        # Sort by quality score descending (best signals first)
-        buy_signals.sort(key=lambda x: x[2], reverse=True)
-
-        print()
-        print(colored("  --- BUY SIGNALS (sorted by quality) ---", Colors.GREEN + Colors.BOLD))
-        print()
-        for fyers_symbol, close, score, reasons in buy_signals:
-            name = fyers_symbol.replace("NSE:", "").replace("-EQ", "")
-            print(f"  {colored(name, Colors.BOLD + Colors.GREEN):20s}  "
-                  f"Close: {close:>10.2f}  "
-                  f"Quality: {quality_bar(score)}  {quality_label(score)}")
-            for reason in reasons:
-                print(f"    {colored('>', Colors.GREEN)} {reason}")
-            print()
-
-    # ---- SELL SIGNAL DETAILS ----
-    if sell_signals:
-        print()
-        print(colored("  --- SELL SIGNALS ---", Colors.RED + Colors.BOLD))
-        print()
-        for fyers_symbol, close, qty, score, reasons in sell_signals:
-            name = fyers_symbol.replace("NSE:", "").replace("-EQ", "")
-            print(f"  {colored(name, Colors.BOLD + Colors.RED):20s}  "
-                  f"Close: {close:>10.2f}  Qty: {qty}")
-            for reason in reasons:
-                print(f"    {colored('>', Colors.RED)} {reason}")
-            print()
-
-    # ---- NO SIGNALS ----
     if not buy_signals and not sell_signals:
-        print(f"\n  {colored('No actionable signals today.', Colors.YELLOW)}")
-        return
-
-    # ---- TRADING GUIDE ----
-    print(colored("-" * 70, Colors.DIM))
-    print(colored("  HOW TO READ SIGNALS:", Colors.BOLD))
-    print(f"  {colored('Quality Score:', Colors.BOLD)} Higher = stronger signal. Look for {colored('65+', Colors.GREEN)} for good trades.")
-    print(f"  {colored('EXCELLENT (80+):', Colors.GREEN)} All factors aligned - strong breakout, trend, volume")
-    print(f"  {colored('GOOD (65-79):', Colors.GREEN)} Most factors aligned - solid entry candidate")
-    print(f"  {colored('MODERATE (50-64):', Colors.YELLOW)} Some factors present - enter with caution")
-    print(f"  {colored('WEAK (<50):', Colors.RED)} Few factors - consider skipping")
-    print(colored("-" * 70, Colors.DIM))
-
-    # ---- ORDER PLACEMENT ----
-    dry_run = os.getenv("DRY_RUN", "True").lower() != "false"
-
-    if dry_run:
-        print(f"\n  {colored('** DRY RUN MODE **', Colors.YELLOW + Colors.BOLD)}")
-        print(f"  {colored('Orders NOT placed. Set DRY_RUN=False in .env to enable live trading.', Colors.YELLOW)}")
+        print(f"\n  {colored('No actionable signals today. Market may be in consolidation.', Colors.YELLOW)}")
     else:
-        print(f"\n  {colored('** LIVE MODE - PLACING ORDERS **', Colors.RED + Colors.BOLD)}")
-        # Place SELL orders first (free up capital)
-        for fyers_symbol, close, qty, score, reasons in sell_signals:
-            place_order(access_token, fyers_symbol, side=-1, qty=qty)
+        # Sort all buy signals by score descending (best first)
+        buy_signals.sort(key=lambda x: x[3], reverse=True)
 
-        # Place BUY orders
-        for fyers_symbol, close, score, reasons in buy_signals:
-            place_order(access_token, fyers_symbol, side=1, qty=QUANTITY)
+        # Split into ADD MORE (already held) and NEW BUY (fresh entry)
+        add_more = [
+            (fs, rs, cl, sc, reas, ac, qty)
+            for fs, rs, cl, sc, reas, inp, ac, qty in buy_signals if inp
+        ]
+        new_buy = [
+            (fs, rs, cl, sc, reas)
+            for fs, rs, cl, sc, reas, inp, ac, qty in buy_signals if not inp
+        ]
+
+        # ---- ADD MORE ----
+        if add_more:
+            print()
+            print(colored("  >> ADD MORE  --  Stocks you already hold with continuing momentum:", Colors.BOLD + Colors.CYAN))
+            print(colored("  " + "-" * 68, Colors.CYAN))
+            for idx, (fyers_sym, raw_sym, close, score, reasons, avg_cost, qty) in enumerate(add_more, 1):
+                unrealised_pct = ((close - avg_cost) / avg_cost * 100) if avg_cost > 0 else 0.0
+                pnl_color = Colors.GREEN if unrealised_pct >= 0 else Colors.RED
+                pnl_str   = colored(f"{unrealised_pct:+.1f}%", pnl_color)
+                brief     = "  .  ".join(reasons[:3])
+                print()
+                print(f"  {colored(str(idx) + '.', Colors.BOLD)} {colored(raw_sym, Colors.BOLD + Colors.CYAN):30s} "
+                      f"Rs.{close:>9.2f}   {quality_bar(score)}  {quality_label(score)}")
+                print(f"     Avg Cost: Rs.{avg_cost:>9.2f}  |  Qty held: {qty}  |  Unrealised P&L: {pnl_str}")
+                print(f"     {colored('>', Colors.CYAN)} {brief}")
+
+        # ---- NEW BUY ----
+        if new_buy:
+            print()
+            print(colored("  >> NEW BUY  --  Fresh entry opportunities:", Colors.BOLD + Colors.GREEN))
+            print(colored("  " + "-" * 68, Colors.GREEN))
+            for idx, (fyers_sym, raw_sym, close, score, reasons) in enumerate(new_buy, 1):
+                brief = "  .  ".join(reasons[:3])
+                print()
+                print(f"  {colored(str(idx) + '.', Colors.BOLD)} {colored(raw_sym, Colors.BOLD + Colors.GREEN):30s} "
+                      f"Rs.{close:>9.2f}   {quality_bar(score)}  {quality_label(score)}")
+                print(f"     {colored('>', Colors.GREEN)} {brief}")
+
+        # ---- CAUTION: HELD STOCKS WEAKENING ----
+        if sell_signals:
+            print()
+            print(colored("  [!]  CAUTION  --  Held stocks showing weakness (consider reviewing):", Colors.BOLD + Colors.YELLOW))
+            print(colored("  " + "-" * 68, Colors.YELLOW))
+            for fyers_sym, raw_sym, close, held_qty, score, reasons in sell_signals:
+                pd_data       = portfolio.get(raw_sym, {})
+                avg_c         = pd_data.get("avg_cost", 0.0)
+                unrealised    = ((close - avg_c) / avg_c * 100) if avg_c > 0 else 0.0
+                pnl_color     = Colors.GREEN if unrealised >= 0 else Colors.RED
+                pnl_str       = colored(f"{unrealised:+.1f}%", pnl_color)
+                brief         = "  .  ".join(reasons[:2])
+                print(f"  {colored(raw_sym, Colors.YELLOW + Colors.BOLD):20s}  Rs.{close:>9.2f}  "
+                      f"Qty: {held_qty:>5}  P&L: {pnl_str}")
+                print(f"     {colored('>', Colors.YELLOW)} {brief}")
+
+    # ---- QUALITY GUIDE ----
+    print()
+    print(colored("  " + "-" * 68, Colors.DIM))
+    print(colored("  SIGNAL QUALITY GUIDE:", Colors.BOLD))
+    print(f"  {colored('EXCELLENT (80+):', Colors.GREEN)}  All factors aligned -- strong breakout, trend & volume")
+    print(f"  {colored('GOOD      (65+):', Colors.GREEN)}  Most factors present -- solid entry candidate")
+    print(f"  {colored('MODERATE  (50+):', Colors.YELLOW)} Some factors -- enter with caution")
+    print(f"  {colored('WEAK      (<50):', Colors.RED)}  Few factors -- consider skipping")
+    print(colored("  " + "-" * 68, Colors.DIM))
+
+    # ---- ORDER PLACEMENT (LIVE MODE ONLY) ----
+    if not dry_run:
+        print(f"\n  {colored('** LIVE MODE - PLACING ORDERS **', Colors.RED + Colors.BOLD)}")
+        # Sell orders first to free up capital
+        for fyers_sym, raw_sym, close, held_qty, score, reasons in sell_signals:
+            place_order(access_token, fyers_sym, side=-1, qty=held_qty)
+        # Then buy orders
+        for fyers_sym, raw_sym, close, score, reasons, in_portfolio, avg_cost, qty in buy_signals:
+            place_order(access_token, fyers_sym, side=1, qty=QUANTITY)
+    else:
+        print(f"\n  {colored('DRY RUN -- No orders placed. Review recommendations above.', Colors.YELLOW)}")
+
+    # ---- LOG SIGNALS FOR HISTORICAL TRACKING & RESULTS FILE ----
+    history_file = os.path.join(PROJECT_DIR, "data", "dry_run_history.json")
+    today_str    = datetime.now().strftime('%Y-%m-%d')
+
+    # Save to Results/dd-mm-hh-dryrun-results.txt
+    results_dir = os.path.join(PROJECT_DIR, "Results")
+    os.makedirs(results_dir, exist_ok=True)
+    now = datetime.now()
+    results_filename = f"{now.strftime('%d-%m-%H')}-dryrun-results.txt"
+    results_filepath = os.path.join(results_dir, results_filename)
+
+    try:
+        lines = []
+        excellent_good_add_more = [
+            (raw_sym, score) for _, raw_sym, close, score, reasons, inp, avg_cost, qty in buy_signals
+            if inp and score >= 65
+        ]
+        excellent_good_new_buy = [
+            (raw_sym, score) for _, raw_sym, close, score, reasons, inp, avg_cost, qty in buy_signals
+            if not inp and score >= 65
+        ]
+
+        if excellent_good_add_more:
+            lines.append("ADD MORE:")
+            for idx, (raw_sym, score) in enumerate(excellent_good_add_more, 1):
+                label = quality_label(score, plain=True)
+                lines.append(f"{idx}. {raw_sym} — {score}% {label}")
+            lines.append("")
+
+        if excellent_good_new_buy:
+            lines.append("NEW BUY:")
+            for idx, (raw_sym, score) in enumerate(excellent_good_new_buy, 1):
+                label = quality_label(score, plain=True)
+                lines.append(f"{idx}. {raw_sym} — {score}% {label}")
+
+        with open(results_filepath, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines) + "\n")
+        print(f"  {colored('Results saved:', Colors.GREEN)} Results/{results_filename}")
+    except Exception as e:
+        print(f"  {colored('Results File Error:', Colors.RED)} {e}")
+
+    daily_record = {
+        "date": today_str,
+        "buy_signals": [
+            {
+                "symbol": raw_sym,
+                "close": close,
+                "score": score,
+                "action": "ADD_MORE" if inp else "NEW_BUY"
+            }
+            for _, raw_sym, close, score, reasons, inp, avg_cost, qty in buy_signals
+        ],
+        "sell_signals": [
+            {"symbol": raw_sym, "close": close, "qty": held_qty, "score": score}
+            for _, raw_sym, close, held_qty, score, reasons in sell_signals
+        ]
+    }
+
+    try:
+        if os.path.exists(history_file):
+            with open(history_file, "r") as f:
+                history_data = json.load(f)
+        else:
+            history_data = []
+
+        # Replace today's record if already exists, else append
+        existing_idx = next((i for i, d in enumerate(history_data) if d["date"] == today_str), -1)
+        if existing_idx >= 0:
+            history_data[existing_idx] = daily_record
+        else:
+            history_data.append(daily_record)
+
+        with open(history_file, "w") as f:
+            json.dump(history_data, f, indent=4)
+        print(f"  {colored('History:', Colors.DIM)} Saved today's signals -> data/dry_run_history.json")
+    except Exception as e:
+        print(f"  {colored('History Error:', Colors.RED)} {e}")
 
     print()
 

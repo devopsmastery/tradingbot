@@ -1,6 +1,7 @@
 # Environments and Secrets
 .env
 .fyers_token
+.last_auth_date
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -10,6 +11,7 @@ __pycache__/
 # IDEs and Editors
 .vscode/
 .idea/
+*.code-workspace
 
 # Virtual environments
 venv/
@@ -19,3 +21,8 @@ env/
 # Ignore local data
 data/historical_data/*.csv
 data/historical_data/*.xlsx
+
+# Temporary run outputs and logs
+*_today.txt
+*_output*.txt
+*.log
