@@ -114,29 +114,67 @@ def fetch_historical_data(
     return df
 
 
-def save_historical_data(symbol: str, df: pd.DataFrame) -> str:
-    """Saves a DataFrame as CSV in the historical_data directory."""
-    os.makedirs(HISTORICAL_DATA_DIR, exist_ok=True)
+from data.duckdb_manager import (
+    save_candles, load_candles, has_symbol, get_latest_candle_date, get_candle_count, DB_PATH
+)
+
+
+def save_historical_data(symbol: str, df: pd.DataFrame, write_csv: bool = True) -> str:
+    """
+    Saves a DataFrame into DuckDB (and optionally as CSV for backup).
+    Maintains full backward compatibility.
+    """
+    # 1. Save directly into DuckDB
+    try:
+        save_candles(symbol, df)
+    except Exception as e:
+        print(f"  Warning: DuckDB save failed for {symbol}: {e}")
+
+    # 2. Save CSV as backup
     clean_name = symbol.replace(":", "_").replace("-", "_")
     file_path = os.path.join(HISTORICAL_DATA_DIR, f"{clean_name}.csv")
-    df.to_csv(file_path)
+    if write_csv:
+        try:
+            os.makedirs(HISTORICAL_DATA_DIR, exist_ok=True)
+            df.to_csv(file_path)
+        except Exception:
+            pass
     return file_path
 
 
 def load_historical_csv(symbol: str) -> pd.DataFrame:
-    """Loads previously saved historical CSV for a symbol."""
+    """
+    Loads historical candlestick data for a symbol.
+    First loads from DuckDB; if not found, falls back to CSV and auto-migrates into DuckDB.
+    """
+    # 1. Try loading from DuckDB
+    try:
+        df = load_candles(symbol)
+        if not df.empty:
+            return df
+    except FileNotFoundError:
+        pass
+
+    # 2. Fallback to legacy CSV file
     clean_name = symbol.replace(":", "_").replace("-", "_")
     file_path = os.path.join(HISTORICAL_DATA_DIR, f"{clean_name}.csv")
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"No cached data for {symbol}. Run fetch first.")
-    df = pd.read_csv(file_path, index_col="Date", parse_dates=True)
-    return df
+    if os.path.exists(file_path):
+        try:
+            df = pd.read_csv(file_path, index_col="Date", parse_dates=True)
+            if not df.empty:
+                # Auto-migrate into DuckDB
+                save_candles(symbol, df)
+                return df
+        except Exception:
+            pass
+
+    raise FileNotFoundError(f"No cached data in DuckDB or CSV for {symbol}. Run fetch first.")
 
 
 def get_data_for_symbol(symbol: str, access_token: str = None, days: int = 365) -> pd.DataFrame:
     """
     Returns historical data for a symbol.
-    First checks for a cached CSV; if not found, fetches from Fyers API.
+    First checks DuckDB / CSV; if not found, fetches from Fyers API and stores in DuckDB.
     """
     fyers_symbol = to_fyers_symbol(symbol)
     try:

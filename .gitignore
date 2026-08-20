@@ -21,6 +21,8 @@ env/
 # Ignore local data
 data/historical_data/*.csv
 data/historical_data/*.xlsx
+*.duckdb*
+data/*.duckdb*
 
 # Temporary run outputs and logs
 *_today.txt

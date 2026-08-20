@@ -6,4 +6,6 @@ pytest
 requests
 fastapi
 uvicorn
+duckdb
+
 
