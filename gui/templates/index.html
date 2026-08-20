@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FYERS Trading Bot | Institutional Dashboard</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              500: '#10b981',
+              600: '#059669',
+              900: '#064e3b',
+            },
+            dark: {
+              bg: '#080c14',
+              card: '#0f172a',
+              card2: '#131e36',
+              border: '#1e293b',
+              muted: '#64748b'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Menlo', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #080c14;
+      color: #f1f5f9;
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    .glow-emerald {
+      box-shadow: 0 0 20px -5px rgba(16, 185, 129, 0.3);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 20px -5px rgba(6, 182, 212, 0.3);
+    }
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .animate-pulse-slow {
+      animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+  <!-- ========================================================= -->
+  <!-- TOP NAVBAR -->
+  <!-- ========================================================= -->
+  <header class="border-b border-dark-border bg-dark-card/90 backdrop-blur sticky top-0 z-40 px-4 lg:px-8 py-3.5">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <i data-lucide="trending-up" class="w-6 h-6 text-dark-bg stroke-[2.5]"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+              FYERS TRADER AGENT
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-semibold uppercase">PRO v2.0</span>
+            </h1>
+          </div>
+          <p class="text-xs text-slate-400 font-mono" id="live-datetime">Loading clock...</p>
+        </div>
+      </div>
+
+      <!-- Center System Status & Task Badge -->
+      <div class="hidden md:flex items-center space-x-3">
+        <div id="task-indicator" class="hidden items-center space-x-2 px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-mono">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+          <span id="active-task-name">Task Running...</span>
+          <button onclick="stopActiveTask()" class="ml-2 hover:text-rose-400 text-slate-400" title="Cancel Task">
+            <i data-lucide="x-circle" class="w-4 h-4"></i>
+          </button>
+        </div>
+        
+        <div class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-dark-card2 border border-dark-border text-xs text-slate-300 font-mono">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-slow"></span>
+          <span>Winning: <strong class="text-emerald-400">Keltner Tuned (ATR 2.0)</strong></span>
+        </div>
+      </div>
+
+      <!-- Right Action Controls -->
+      <div class="flex items-center space-x-2.5">
+        <!-- Auth Status Button -->
+        <button id="auth-status-btn" onclick="openAuthModal()" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-dark-card2 border-dark-border text-slate-300 hover:border-emerald-500/50">
+          <span id="auth-status-dot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+          <span id="auth-status-text">Checking Auth...</span>
+          <i data-lucide="key" class="w-3.5 h-3.5 ml-1 text-slate-400"></i>
+        </button>
+
+        <!-- Toggle Terminal Button -->
+        <button onclick="toggleTerminal()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-dark-card2 border border-dark-border hover:border-cyan-500/50 text-slate-300 transition">
+          <i data-lucide="terminal" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <span class="hidden sm:inline">Console</span>
+        </button>
+        
+        <!-- Push to Git -->
+        <button onclick="triggerTask('git_push')" class="p-2 rounded-lg bg-dark-card2 border border-dark-border hover:border-indigo-500/50 text-slate-300 hover:text-indigo-400 transition" title="Auto-Commit & Push to GitHub">
+          <i data-lucide="github" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================= -->
+  <!-- TAB NAVIGATION BAR -->
+  <!-- ========================================================= -->
+  <nav class="border-b border-dark-border bg-dark-bg/95 px-4 lg:px-8">
+    <div class="max-w-7xl mx-auto flex space-x-1 overflow-x-auto py-2 custom-scrollbar">
+      
+      <button onclick="switchTab('actions')" id="tab-btn-actions" class="tab-btn active px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <i data-lucide="layout-grid" class="w-4 h-4"></i>
+        <span>Action Center</span>
+      </button>
+
+      <button onclick="switchTab('recos')" id="tab-btn-recos" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-400 hover:text-slate-200 hover:bg-dark-card">
+        <i data-lucide="sparkles" class="w-4 h-4 text-emerald-400"></i>
+        <span>Recommendations (Reco)</span>
+        <span id="reco-badge-count" class="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-mono font-bold">--</span>
+      </button>
+
+      <button onclick="switchTab('deep-dive')" id="tab-btn-deep-dive" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-400 hover:text-slate-200 hover:bg-dark-card">
+        <i data-lucide="search" class="w-4 h-4 text-cyan-400"></i>
+        <span>Deep Analysis</span>
+      </button>
+
+      <button onclick="switchTab('portfolio')" id="tab-btn-portfolio" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-400 hover:text-slate-200 hover:bg-dark-card">
+        <i data-lucide="briefcase" class="w-4 h-4 text-indigo-400"></i>
+        <span>Portfolio Monitor</span>
+      </button>
+
+      <button onclick="switchTab('backtest')" id="tab-btn-backtest" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-400 hover:text-slate-200 hover:bg-dark-card">
+        <i data-lucide="bar-chart-2" class="w-4 h-4 text-amber-400"></i>
+        <span>Strategy Backtest</span>
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- ========================================================= -->
+  <!-- MAIN CONTENT CONTAINER -->
+  <!-- ========================================================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 space-x-0 space-y-6">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: ACTION CENTER (THE 8 MENU OPTIONS) -->
+    <!-- ========================================== -->
+    <section id="tab-actions" class="tab-content space-y-6">
+      
+      <!-- Top Metrics Overview -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-dark-card border border-dark-border rounded-xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-slate-400 text-xs">
+            <span>Watchlist Universe</span>
+            <i data-lucide="list" class="w-4 h-4 text-cyan-400"></i>
+          </div>
+          <div class="mt-2 text-2xl font-bold font-mono text-white" id="stat-watchlist-count">--</div>
+          <div class="text-[11px] text-slate-500">Active scanned stocks</div>
+        </div>
+
+        <div class="bg-dark-card border border-dark-border rounded-xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-slate-400 text-xs">
+            <span>Portfolio Holdings</span>
+            <i data-lucide="pie-chart" class="w-4 h-4 text-indigo-400"></i>
+          </div>
+          <div class="mt-2 text-2xl font-bold font-mono text-white" id="stat-portfolio-count">--</div>
+          <div class="text-[11px] text-slate-500">Tracked in Portfolio.txt</div>
+        </div>
+
+        <div class="bg-dark-card border border-dark-border rounded-xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-slate-400 text-xs">
+            <span>Historical Results</span>
+            <i data-lucide="folder-check" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div class="mt-2 text-2xl font-bold font-mono text-white" id="stat-results-count">--</div>
+          <div class="text-[11px] text-slate-500">Reports in Results/</div>
+        </div>
+
+        <div class="bg-dark-card border border-dark-border rounded-xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-slate-400 text-xs">
+            <span>Winning Model</span>
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div class="mt-2 text-lg font-bold font-mono text-emerald-400">Keltner Tuned</div>
+          <div class="text-[11px] text-slate-500">ATR 2.0 + EMA 10/21</div>
+        </div>
+      </div>
+
+      <!-- Action Cards Grid -->
+      <div>
+        <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <i data-lucide="zap" class="w-4 h-4 text-emerald-400"></i> Execution Menu
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <!-- Option 1: Dry Run -->
+          <div class="bg-dark-card border border-dark-border hover:border-emerald-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group hover:glow-emerald">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-sm">1</span>
+                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Recommended</span>
+              </div>
+              <h3 class="text-base font-bold text-white group-hover:text-emerald-400 transition">Dry Run Watchlist</h3>
+              <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                Scan all 210+ stocks for today's BUY signals (ADD MORE & NEW BUY) with quality scores and risk caution list.
+              </p>
+            </div>
+            <button onclick="triggerTask('dry_run')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold shadow-lg shadow-emerald-500/20 flex items-center justify-center space-x-2 transition">
+              <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
+              <span>Launch Dry Run</span>
+            </button>
+          </div>
+
+          <!-- Option 7: Full NSE Scan -->
+          <div class="bg-dark-card border border-dark-border hover:border-cyan-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group hover:glow-cyan">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-sm">7</span>
+                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Discovery Engine</span>
+              </div>
+              <h3 class="text-base font-bold text-white group-hover:text-cyan-400 transition">Full NSE Scan</h3>
+              <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                Discovery engine scanning ~1,300 Small & Mid Cap NSE stocks outside your watchlist for fresh breakout momentum.
+              </p>
+            </div>
+            <button onclick="triggerTask('full_nse_scan')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-cyan-500/30 hover:bg-cyan-500/20 text-cyan-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
+              <i data-lucide="compass" class="w-3.5 h-3.5"></i>
+              <span>Scan Full NSE</span>
+            </button>
+          </div>
+
+          <!-- Option 2: Update Data -->
+          <div class="bg-dark-card border border-dark-border hover:border-indigo-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-sm">2</span>
+                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Data Refresh</span>
+              </div>
+              <h3 class="text-base font-bold text-white group-hover:text-indigo-400 transition">Update Historical Data</h3>
+              <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                Incrementally fetch and append latest daily OHLCV candlestick data for all 200+ universe stocks.
+              </p>
+            </div>
+            <button onclick="triggerTask('update_data')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-indigo-500/30 hover:bg-indigo-500/20 text-indigo-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>Refresh Data</span>
+            </button>
+          </div>
+
+          <!-- Option 5: Portfolio Scan -->
+          <div class="bg-dark-card border border-dark-border hover:border-amber-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm">5</span>
+                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Risk Guard</span>
+              </div>
+              <h3 class="text-base font-bold text-white group-hover:text-amber-400 transition">Portfolio Health Scan</h3>
+              <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                Audit active holdings in Portfolio.txt for live P&L and classify into STRONG HOLD, CAUTION, or SELL alerts.
+              </p>
+            </div>
+            <button onclick="triggerTask('portfolio_scan')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-amber-500/30 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
+              <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
+              <span>Audit Portfolio</span>
+            </button>
+          </div>
+
+          <!-- Option 6: Run Backtest -->
+          <div class="bg-dark-card border border-dark-border hover:border-purple-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-sm">6</span>
+                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">Strategy Arena</span>
+              </div>
+              <h3 class="text-base font-bold text-white group-hover:text-purple-400 transition">6-Strategy Backtest</h3>
+              <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                Benchmark all 6 strategies across the stock universe: Net PnL, Win Rate %, Max Drawdown %, and Sharpe Ratio.
+              </p>
+            </div>
+            <button onclick="triggerTask('backtest')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-purple-500/30 hover:bg-purple-500/20 text-purple-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
+              <i data-lucide="award" class="w-3.5 h-3.5"></i>
+              <span>Run Backtest Arena</span>
+            </button>
+          </div>
+
+          <!-- Option 3: Deep Analysis Quick Launch -->
+          <div class="bg-dark-card border border-dark-border hover:border-cyan-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-sm">3</span>
+                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Single Ticker</span>
+              </div>
+              <h3 class="text-base font-bold text-white group-hover:text-cyan-400 transition">Deep Analysis</h3>
+              <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                Execute deep dive technical inspection on any stock (RSI, MACD, KC upper/lower, and volume strength).
+              </p>
+            </div>
+            <button onclick="switchTab('deep-dive')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-cyan-500/30 hover:bg-cyan-500/20 text-cyan-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
+              <i data-lucide="search" class="w-3.5 h-3.5"></i>
+              <span>Open Deep Dive</span>
+            </button>
+          </div>
+
+          <!-- Option 4: Add New Stocks -->
+          <div class="bg-dark-card border border-dark-border hover:border-slate-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="w-8 h-8 rounded-lg bg-slate-500/10 text-slate-400 flex items-center justify-center font-bold text-sm">4</span>
+                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-slate-500/10 text-slate-400 border border-slate-500/20">Importer</span>
+              </div>
+              <h3 class="text-base font-bold text-white group-hover:text-slate-300 transition">Import New Tickers</h3>
+              <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                Import symbols from Newly_added_stocks.txt, download history, and merge into active watchlist.
+              </p>
+            </div>
+            <button onclick="triggerTask('add_stocks')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-slate-600 hover:bg-slate-700/50 text-slate-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+              <span>Process Imports</span>
+            </button>
+          </div>
+
+          <!-- Git Push Utility -->
+          <div class="bg-dark-card border border-dark-border hover:border-indigo-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-sm">🐙</span>
+                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Cloud Backup</span>
+              </div>
+              <h3 class="text-base font-bold text-white group-hover:text-indigo-400 transition">Sync to GitHub</h3>
+              <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                Commit latest code, strategies, and scan results to devopsmastery/tradingbot on GitHub.
+              </p>
+            </div>
+            <button onclick="triggerTask('git_push')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-indigo-500/30 hover:bg-indigo-500/20 text-indigo-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
+              <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i>
+              <span>Push to GitHub</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: RECOMMENDATIONS ("RECO" TAB) -->
+    <!-- ========================================== -->
+    <section id="tab-recos" class="tab-content hidden space-y-6">
+      
+      <!-- Reco Header Bar -->
+      <div class="bg-dark-card border border-dark-border rounded-xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center space-x-2">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i data-lucide="sparkles" class="w-5 h-5 text-emerald-400"></i>
+              Scan Recommendations
+            </h2>
+            <span id="reco-file-badge" class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-mono">Loading...</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-1" id="reco-scan-timestamp">Timestamp: --</p>
+        </div>
+
+        <!-- Quick Copy Buttons -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="copyTickers('excellent')" class="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-lg shadow-emerald-600/20 transition">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copy EXCELLENT Tickers</span>
+          </button>
+
+          <button onclick="copyTickers('all')" class="px-3.5 py-2 rounded-lg bg-dark-card2 border border-dark-border hover:border-slate-500 text-slate-200 text-xs font-semibold flex items-center space-x-1.5 transition">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copy All Tickers</span>
+          </button>
+
+          <!-- History Dropdown -->
+          <div class="relative">
+            <select id="reco-history-select" onchange="loadHistoricalRecoFile(this.value)" class="px-3 py-2 rounded-lg bg-dark-card2 border border-dark-border text-slate-300 text-xs font-mono focus:outline-none focus:border-emerald-500">
+              <option value="">📂 Historical Reports...</option>
+            </select>
+          </div>
+
+          <button onclick="loadLatestRecos()" class="p-2 rounded-lg bg-dark-card2 border border-dark-border hover:text-emerald-400 text-slate-400" title="Refresh Latest Recos">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Reco Summary KPI Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-dark-card border border-dark-border rounded-xl p-4">
+          <div class="text-xs text-slate-400 flex items-center justify-between">
+            <span>Total Recommendations</span>
+            <i data-lucide="target" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div class="text-2xl font-bold font-mono text-white mt-2" id="kpi-total-recos">0</div>
+        </div>
+
+        <div class="bg-dark-card border border-dark-border rounded-xl p-4">
+          <div class="text-xs text-slate-400 flex items-center justify-between">
+            <span>90% / 80% EXCELLENT</span>
+            <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>
+          </div>
+          <div class="text-2xl font-bold font-mono text-emerald-400 mt-2" id="kpi-excellent-recos">0</div>
+        </div>
+
+        <div class="bg-dark-card border border-dark-border rounded-xl p-4">
+          <div class="text-xs text-slate-400 flex items-center justify-between">
+            <span>ADD MORE (Held)</span>
+            <i data-lucide="trending-up" class="w-4 h-4 text-cyan-400"></i>
+          </div>
+          <div class="text-2xl font-bold font-mono text-cyan-400 mt-2" id="kpi-addmore-recos">0</div>
+        </div>
+
+        <div class="bg-dark-card border border-dark-border rounded-xl p-4">
+          <div class="text-xs text-slate-400 flex items-center justify-between">
+            <span>NEW BUY (Fresh)</span>
+            <i data-lucide="plus-circle" class="w-4 h-4 text-indigo-400"></i>
+          </div>
+          <div class="text-2xl font-bold font-mono text-indigo-400 mt-2" id="kpi-newbuy-recos">0</div>
+        </div>
+      </div>
+
+      <!-- NEW BUY SECTION -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            NEW BUY — Fresh Entry Opportunities
+          </h3>
+          <span class="text-xs font-mono text-slate-500" id="newbuy-count-label">0 items</span>
+        </div>
+
+        <div id="new-buy-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- ADD MORE SECTION -->
+      <div class="space-y-3 pt-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span>
+            ADD MORE — Held Stocks with Expanding Momentum
+          </h3>
+          <span class="text-xs font-mono text-slate-500" id="addmore-count-label">0 items</span>
+        </div>
+
+        <div id="add-more-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: DEEP ANALYSIS VIEW -->
+    <!-- ========================================== -->
+    <section id="tab-deep-dive" class="tab-content hidden space-y-6">
+      
+      <!-- Search & Input Box -->
+      <div class="bg-dark-card border border-dark-border rounded-xl p-5">
+        <div class="max-w-2xl mx-auto space-y-4">
+          <div class="text-center">
+            <h2 class="text-xl font-bold text-white">Stock Technical Deep-Dive</h2>
+            <p class="text-xs text-slate-400 mt-1">Multi-indicator audit: Keltner Channels, EMA 10/21, RSI, MACD & Institutional Volume</p>
+          </div>
+
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5"></i>
+              <input type="text" id="deep-dive-input" placeholder="Enter NSE Ticker Symbol (e.g. RPEL, MARKSANS, HAPPYFORGE, HAL)..." 
+                class="w-full bg-dark-card2 border border-dark-border rounded-lg pl-10 pr-4 py-2.5 text-sm font-mono text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 uppercase"
+                onkeydown="if(event.key==='Enter') runDeepDive()">
+            </div>
+            <button onclick="runDeepDive()" class="px-5 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-semibold flex items-center space-x-2 transition">
+              <i data-lucide="cpu" class="w-4 h-4"></i>
+              <span>Analyze</span>
+            </button>
+          </div>
+
+          <!-- Quick pick chips -->
+          <div class="flex flex-wrap items-center justify-center gap-1.5 text-xs text-slate-400">
+            <span>Quick picks:</span>
+            <button onclick="setDeepDiveSymbol('RPEL')" class="px-2.5 py-1 rounded bg-dark-card2 border border-dark-border hover:border-emerald-500 hover:text-emerald-400 font-mono">RPEL</button>
+            <button onclick="setDeepDiveSymbol('MARKSANS')" class="px-2.5 py-1 rounded bg-dark-card2 border border-dark-border hover:border-emerald-500 hover:text-emerald-400 font-mono">MARKSANS</button>
+            <button onclick="setDeepDiveSymbol('HAPPYFORGE')" class="px-2.5 py-1 rounded bg-dark-card2 border border-dark-border hover:border-emerald-500 hover:text-emerald-400 font-mono">HAPPYFORGE</button>
+            <button onclick="setDeepDiveSymbol('WELSPUNLIV')" class="px-2.5 py-1 rounded bg-dark-card2 border border-dark-border hover:border-emerald-500 hover:text-emerald-400 font-mono">WELSPUNLIV</button>
+            <button onclick="setDeepDiveSymbol('HAL')" class="px-2.5 py-1 rounded bg-dark-card2 border border-dark-border hover:border-emerald-500 hover:text-emerald-400 font-mono">HAL</button>
+            <button onclick="setDeepDiveSymbol('PARAS')" class="px-2.5 py-1 rounded bg-dark-card2 border border-dark-border hover:border-emerald-500 hover:text-emerald-400 font-mono">PARAS</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analysis Results Card -->
+      <div id="deep-dive-results" class="hidden space-y-6">
+        <!-- Will be dynamically populated -->
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: PORTFOLIO MONITOR -->
+    <!-- ========================================== -->
+    <section id="tab-portfolio" class="tab-content hidden space-y-6">
+      
+      <!-- Portfolio Overview Header -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-dark-card border border-dark-border rounded-xl p-4">
+          <div class="text-xs text-slate-400">Total Invested</div>
+          <div class="text-xl font-bold font-mono text-white mt-1" id="port-total-inv">₹0.00</div>
+        </div>
+
+        <div class="bg-dark-card border border-dark-border rounded-xl p-4">
+          <div class="text-xs text-slate-400">Current Value</div>
+          <div class="text-xl font-bold font-mono text-white mt-1" id="port-total-cur">₹0.00</div>
+        </div>
+
+        <div class="bg-dark-card border border-dark-border rounded-xl p-4">
+          <div class="text-xs text-slate-400">Net Unrealized P&L</div>
+          <div class="text-xl font-bold font-mono mt-1" id="port-total-pnl">₹0.00</div>
+        </div>
+
+        <div class="bg-dark-card border border-dark-border rounded-xl p-4">
+          <div class="text-xs text-slate-400">Risk Alerts</div>
+          <div class="text-sm font-bold font-mono mt-1 text-slate-300" id="port-risk-summary">--</div>
+        </div>
+      </div>
+
+      <!-- Holdings Table -->
+      <div class="bg-dark-card border border-dark-border rounded-xl overflow-hidden">
+        <div class="p-4 border-b border-dark-border flex items-center justify-between">
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <i data-lucide="layers" class="w-4 h-4 text-indigo-400"></i> Active Holdings (Portfolio.txt)
+          </h3>
+          <button onclick="loadPortfolioData()" class="px-3 py-1.5 rounded-lg bg-dark-card2 border border-dark-border text-xs text-slate-300 hover:text-emerald-400">
+            Refresh Holdings
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-dark-card2/80 text-slate-400 uppercase text-[11px] border-b border-dark-border">
+              <tr>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Symbol</th>
+                <th class="py-3 px-4 text-right">Quantity</th>
+                <th class="py-3 px-4 text-right">Avg Cost</th>
+                <th class="py-3 px-4 text-right">CMP</th>
+                <th class="py-3 px-4 text-right">Invested</th>
+                <th class="py-3 px-4 text-right">Current Value</th>
+                <th class="py-3 px-4 text-right">P&L %</th>
+                <th class="py-3 px-4 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="portfolio-table-body" class="divide-y divide-dark-border text-slate-300">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: STRATEGY BACKTEST LEADERBOARD -->
+    <!-- ========================================== -->
+    <section id="tab-backtest" class="tab-content hidden space-y-6">
+      
+      <div class="bg-dark-card border border-dark-border rounded-xl p-5 flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i data-lucide="award" class="w-5 h-5 text-amber-400"></i>
+            6-Strategy Backtest Arena
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Benchmarked over historical daily candles across the entire test universe</p>
+        </div>
+
+        <button onclick="triggerTask('backtest')" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center space-x-2 transition">
+          <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
+          <span>Re-Run All Backtests</span>
+        </button>
+      </div>
+
+      <!-- Backtest Leaderboard Table -->
+      <div class="bg-dark-card border border-dark-border rounded-xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-dark-card2 text-slate-400 uppercase text-[11px] border-b border-dark-border">
+              <tr>
+                <th class="py-3 px-4">Rank / Strategy</th>
+                <th class="py-3 px-4 text-right">Total Net PnL</th>
+                <th class="py-3 px-4 text-right">Avg PnL %</th>
+                <th class="py-3 px-4 text-right">Total Trades</th>
+                <th class="py-3 px-4 text-right">Win Rate %</th>
+                <th class="py-3 px-4 text-right">Max Drawdown %</th>
+                <th class="py-3 px-4 text-right">Sharpe Ratio</th>
+              </tr>
+            </thead>
+            <tbody id="backtest-table-body" class="divide-y divide-dark-border text-slate-300">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================================= -->
+  <!-- COLLAPSIBLE LIVE TERMINAL DRAWER -->
+  <!-- ========================================================= -->
+  <aside id="terminal-drawer" class="fixed bottom-0 left-0 right-0 z-30 bg-dark-card/95 backdrop-blur border-t border-dark-border shadow-2xl transition-all duration-300 h-64 flex flex-col">
+    <!-- Terminal Header -->
+    <div class="px-4 py-2 bg-dark-card2 border-b border-dark-border flex items-center justify-between text-xs font-mono">
+      <div class="flex items-center space-x-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+        <span class="font-bold text-white">Live Execution Console</span>
+        <span id="terminal-status-tag" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400">Idle</span>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button onclick="clearTerminalLogs()" class="p-1 text-slate-400 hover:text-white" title="Clear Console">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+        </button>
+        <button onclick="stopActiveTask()" id="term-stop-btn" class="hidden px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500/30 text-[10px] font-bold">
+          STOP TASK
+        </button>
+        <button onclick="toggleTerminal()" class="p-1 text-slate-400 hover:text-white">
+          <i data-lucide="chevron-down" class="w-4 h-4" id="terminal-toggle-icon"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Terminal Output Area -->
+    <div id="terminal-output" class="flex-1 p-3 overflow-y-auto font-mono text-[11px] leading-relaxed text-slate-300 custom-scrollbar space-y-0.5 bg-black/40">
+      <div class="text-slate-500">System online. Ready for command execution.</div>
+    </div>
+  </aside>
+
+  <!-- ========================================================= -->
+  <!-- FYERS AUTH MODAL -->
+  <!-- ========================================================= -->
+  <div id="auth-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-dark-card border border-dark-border rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+      
+      <div class="flex items-center justify-between border-b border-dark-border pb-4">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+            <i data-lucide="key" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Daily Fyers Authentication</h3>
+            <p class="text-xs text-slate-400">Refresh session token for today's trading operations</p>
+          </div>
+        </div>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Step 1: Open Login URL -->
+      <div class="bg-dark-card2 border border-dark-border rounded-xl p-4 space-y-3">
+        <div class="flex items-center justify-between text-xs font-semibold text-slate-300">
+          <span>Step 1: Log in on Fyers Portal</span>
+          <span class="text-emerald-400 font-mono">1-Click</span>
+        </div>
+        <p class="text-xs text-slate-400">Click below to open Fyers login in a new tab and authenticate with your account credentials.</p>
+        <a id="fyers-login-link" href="#" target="_blank" class="w-full py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center justify-center space-x-2 transition shadow-lg shadow-emerald-600/20">
+          <i data-lucide="external-link" class="w-4 h-4"></i>
+          <span>Open Fyers Login Portal</span>
+        </a>
+      </div>
+
+      <!-- Step 2: Paste Redirected URL / Auth Code -->
+      <div class="space-y-3">
+        <div class="text-xs font-semibold text-slate-300">Step 2: Paste Redirect URL or Auth Code</div>
+        <p class="text-xs text-slate-400">After logging in, copy the URL from your browser address bar (or just the auth_code) and paste it below:</p>
+        <textarea id="auth-code-input" rows="2" placeholder="Paste full redirected URL or auth_code here..." 
+          class="w-full bg-dark-card2 border border-dark-border rounded-lg p-3 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"></textarea>
+      </div>
+
+      <!-- Status Alert Feedback -->
+      <div id="auth-feedback-box" class="hidden p-3 rounded-lg text-xs font-mono"></div>
+
+      <!-- Modal Footer Action -->
+      <div class="flex space-x-3 pt-2">
+        <button onclick="closeAuthModal()" class="flex-1 py-2.5 rounded-lg bg-dark-card2 border border-dark-border text-slate-300 text-xs font-semibold hover:bg-slate-800 transition">
+          Cancel
+        </button>
+        <button onclick="submitAuthCode()" id="auth-verify-btn" class="flex-1 py-2.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold flex items-center justify-center space-x-2 transition shadow-lg shadow-emerald-500/20">
+          <i data-lucide="check-circle" class="w-4 h-4"></i>
+          <span>Verify & Save Token</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- JAVASCRIPT APP ENGINE -->
+  <!-- ========================================================= -->
+  <script>
+    // State management
+    let latestRecosData = null;
+    let terminalOpen = true;
+    let eventSource = null;
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      fetchStatus();
+      loadLatestRecos();
+      loadRecosHistory();
+      loadPortfolioData();
+      loadBacktestResults();
+      initLogStream();
+
+      // Clock ticker
+      setInterval(updateClock, 1000);
+      updateClock();
+
+      // Periodic health check every 10s
+      setInterval(fetchStatus, 10000);
+    });
+
+    function updateClock() {
+      const now = new Date();
+      const options = { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+      document.getElementById('live-datetime').textContent = now.toLocaleDateString('en-GB', options);
+    }
+
+    // -------------------------------------------------------------
+    // Tab Switching
+    // -------------------------------------------------------------
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('active', 'bg-emerald-500/10', 'text-emerald-400', 'border', 'border-emerald-500/20');
+        el.classList.add('text-slate-400');
+      });
+
+      const activeTab = document.getElementById(`tab-${tabId}`);
+      const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+
+      if (activeTab) activeTab.classList.remove('hidden');
+      if (activeBtn) {
+        activeBtn.classList.add('active', 'bg-emerald-500/10', 'text-emerald-400', 'border', 'border-emerald-500/20');
+        activeBtn.classList.remove('text-slate-400');
+      }
+      lucide.createIcons();
+    }
+
+    // -------------------------------------------------------------
+    // Status & Auth API
+    // -------------------------------------------------------------
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+
+        // Update counts
+        document.getElementById('stat-watchlist-count').textContent = data.counts.watchlist || 0;
+        document.getElementById('stat-portfolio-count').textContent = data.counts.portfolio || 0;
+        document.getElementById('stat-results-count').textContent = data.counts.results_files || 0;
+
+        // Update token badge
+        const dot = document.getElementById('auth-status-dot');
+        const text = document.getElementById('auth-status-text');
+
+        if (data.token_valid) {
+          dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+          text.textContent = 'Token Active';
+        } else {
+          dot.className = 'w-2 h-2 rounded-full bg-rose-500 animate-ping';
+          text.textContent = 'Auth Expired';
+        }
+
+        // Task running indicator
+        const taskBadge = document.getElementById('task-indicator');
+        const termStopBtn = document.getElementById('term-stop-btn');
+        const termStatusTag = document.getElementById('terminal-status-tag');
+
+        if (data.is_task_running) {
+          taskBadge.classList.remove('hidden');
+          taskBadge.classList.add('flex');
+          document.getElementById('active-task-name').textContent = data.active_task || 'Running...';
+          termStopBtn.classList.remove('hidden');
+          termStatusTag.className = 'text-[10px] px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold';
+          termStatusTag.textContent = 'EXECUTING';
+        } else {
+          taskBadge.classList.add('hidden');
+          taskBadge.classList.remove('flex');
+          termStopBtn.classList.add('hidden');
+          termStatusTag.className = 'text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400';
+          termStatusTag.textContent = 'IDLE';
+        }
+      } catch (err) {
+        console.error('Status fetch error:', err);
+      }
+    }
+
+    async function openAuthModal() {
+      const modal = document.getElementById('auth-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      try {
+        const res = await fetch('/api/auth/url');
+        const data = await res.json();
+        document.getElementById('fyers-login-link').href = data.login_url;
+      } catch (e) {
+        console.error('Error fetching auth URL:', e);
+      }
+    }
+
+    function closeAuthModal() {
+      const modal = document.getElementById('auth-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.getElementById('auth-feedback-box').classList.add('hidden');
+    }
+
+    async function submitAuthCode() {
+      const input = document.getElementById('auth-code-input').value.trim();
+      const feedback = document.getElementById('auth-feedback-box');
+      const btn = document.getElementById('auth-verify-btn');
+
+      if (!input) {
+        feedback.className = 'p-3 rounded-lg text-xs font-mono bg-rose-500/10 text-rose-400 border border-rose-500/20';
+        feedback.textContent = 'Please paste your redirect URL or auth code.';
+        feedback.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Verifying...</span>';
+      lucide.createIcons();
+
+      try {
+        const res = await fetch('/api/auth/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ auth_input: input })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          feedback.className = 'p-3 rounded-lg text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+          feedback.textContent = '✅ ' + data.message;
+          feedback.classList.remove('hidden');
+          fetchStatus();
+          setTimeout(closeAuthModal, 1500);
+        } else {
+          feedback.className = 'p-3 rounded-lg text-xs font-mono bg-rose-500/10 text-rose-400 border border-rose-500/20';
+          feedback.textContent = '❌ ' + (data.detail || 'Verification failed.');
+          feedback.classList.remove('hidden');
+        }
+      } catch (err) {
+        feedback.className = 'p-3 rounded-lg text-xs font-mono bg-rose-500/10 text-rose-400 border border-rose-500/20';
+        feedback.textContent = '❌ Network error: ' + err.message;
+        feedback.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i><span>Verify & Save Token</span>';
+        lucide.createIcons();
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Task Execution & SSE Log Streaming
+    // -------------------------------------------------------------
+    async function triggerTask(action, symbol = null, ltp = null) {
+      // Ensure terminal is open when task starts
+      if (!terminalOpen) toggleTerminal();
+
+      try {
+        const payload = { action };
+        if (symbol) payload.symbol = symbol;
+        if (ltp) payload.ltp = parseFloat(ltp);
+
+        const res = await fetch('/api/tasks/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          appendLogLine(`⚠️ Error starting task: ${data.detail}`);
+        } else {
+          fetchStatus();
+        }
+      } catch (err) {
+        appendLogLine(`❌ Failed to trigger task: ${err.message}`);
+      }
+    }
+
+    async function stopActiveTask() {
+      try {
+        await fetch('/api/tasks/stop', { method: 'POST' });
+        appendLogLine('⚠️ Signal sent to terminate task.');
+        fetchStatus();
+      } catch (e) {
+        console.error('Error stopping task:', e);
+      }
+    }
+
+    function initLogStream() {
+      if (eventSource) eventSource.close();
+      eventSource = new EventSource('/api/tasks/stream');
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.line) {
+            appendLogLine(data.line);
+          }
+          if (data.running !== undefined) {
+            // Task status updated
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      eventSource.onerror = () => {
+        setTimeout(initLogStream, 3000);
+      };
+    }
+
+    function appendLogLine(line) {
+      const output = document.getElementById('terminal-output');
+      const div = document.createElement('div');
+      
+      // Color-code log lines
+      if (line.includes('EXCELLENT') || line.includes('SUCCESS') || line.includes('BUY') || line.includes('OK')) {
+        div.className = 'text-emerald-400';
+      } else if (line.includes('CAUTION') || line.includes('WARNING')) {
+        div.className = 'text-amber-400';
+      } else if (line.includes('ERROR') || line.includes('FAILED') || line.includes('SELL')) {
+        div.className = 'text-rose-400';
+      } else if (line.includes('START') || line.includes('Phase')) {
+        div.className = 'text-cyan-400 font-bold';
+      } else {
+        div.className = 'text-slate-300';
+      }
+
+      div.textContent = line;
+      output.appendChild(div);
+      output.scrollTop = output.scrollHeight;
+
+      // Check if task finished to auto-refresh recos
+      if (line.includes('Results saved: Results/')) {
+        setTimeout(loadLatestRecos, 1000);
+      }
+    }
+
+    function clearTerminalLogs() {
+      document.getElementById('terminal-output').innerHTML = '<div class="text-slate-500">Console cleared.</div>';
+    }
+
+    function toggleTerminal() {
+      const drawer = document.getElementById('terminal-drawer');
+      const icon = document.getElementById('terminal-toggle-icon');
+      
+      terminalOpen = !terminalOpen;
+      if (terminalOpen) {
+        drawer.style.height = '16rem';
+        icon.style.transform = 'rotate(0deg)';
+      } else {
+        drawer.style.height = '2.5rem';
+        icon.style.transform = 'rotate(180deg)';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Recommendations (Reco) Engine
+    // -------------------------------------------------------------
+    async function loadLatestRecos() {
+      try {
+        const res = await fetch('/api/recos/latest');
+        const data = await res.json();
+        latestRecosData = data;
+        renderRecosView(data);
+      } catch (e) {
+        console.error('Error loading latest recos:', e);
+      }
+    }
+
+    async function loadRecosHistory() {
+      try {
+        const res = await fetch('/api/recos/history');
+        const data = await res.json();
+        const select = document.getElementById('reco-history-select');
+        select.innerHTML = '<option value="">📂 Historical Reports...</option>';
+        data.files.forEach(f => {
+          const opt = document.createElement('option');
+          opt.value = f.filename;
+          opt.textContent = `${f.filename} (${f.counts.total_recos} recos)`;
+          select.appendChild(opt);
+        });
+      } catch (e) {
+        console.error('Error loading history:', e);
+      }
+    }
+
+    async function loadHistoricalRecoFile(filename) {
+      if (!filename) return;
+      try {
+        const res = await fetch(`/api/recos/file?filename=${encodeURIComponent(filename)}`);
+        const data = await res.json();
+        latestRecosData = data;
+        renderRecosView(data);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderRecosView(data) {
+      if (!data || !data.has_results) return;
+
+      document.getElementById('reco-file-badge').textContent = data.filename;
+      document.getElementById('reco-scan-timestamp').textContent = `Generated on: ${data.date_formatted}`;
+      document.getElementById('reco-badge-count').textContent = data.counts.total_recos;
+
+      // KPIs
+      document.getElementById('kpi-total-recos').textContent = data.counts.total_recos;
+      document.getElementById('kpi-excellent-recos').textContent = data.counts.excellent;
+      document.getElementById('kpi-addmore-recos').textContent = data.counts.add_more;
+      document.getElementById('kpi-newbuy-recos').textContent = data.counts.new_buy;
+
+      document.getElementById('newbuy-count-label').textContent = `${data.new_buy.length} setups`;
+      document.getElementById('addmore-count-label').textContent = `${data.add_more.length} setups`;
+
+      // Render NEW BUY cards
+      const nbContainer = document.getElementById('new-buy-container');
+      nbContainer.innerHTML = '';
+      if (data.new_buy.length === 0) {
+        nbContainer.innerHTML = '<div class="col-span-3 text-xs text-slate-500 py-4 text-center">No new buy opportunities in this report.</div>';
+      } else {
+        data.new_buy.forEach((item, idx) => {
+          nbContainer.appendChild(createRecoCard(item, idx + 1, 'NEW_BUY'));
+        });
+      }
+
+      // Render ADD MORE cards
+      const amContainer = document.getElementById('add-more-container');
+      amContainer.innerHTML = '';
+      if (data.add_more.length === 0) {
+        amContainer.innerHTML = '<div class="col-span-3 text-xs text-slate-500 py-4 text-center">No held stocks with momentum in this report.</div>';
+      } else {
+        data.add_more.forEach((item, idx) => {
+          amContainer.appendChild(createRecoCard(item, idx + 1, 'ADD_MORE'));
+        });
+      }
+
+      lucide.createIcons();
+    }
+
+    function createRecoCard(item, rank, type) {
+      const card = document.createElement('div');
+      const isExcellent = item.score >= 80;
+      const borderClass = isExcellent ? 'border-emerald-500/40 bg-dark-card hover:border-emerald-400 glow-emerald' : 'border-dark-border bg-dark-card hover:border-slate-500';
+      const scoreBadgeClass = isExcellent ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30';
+      
+      card.className = `border rounded-xl p-4 flex flex-col justify-between transition-all ${borderClass}`;
+      card.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-mono text-slate-500">#${rank}</span>
+              <h4 class="text-base font-bold text-white font-mono tracking-tight">${item.symbol}</h4>
+            </div>
+            <span class="text-[11px] font-mono font-bold px-2 py-0.5 rounded border ${scoreBadgeClass}">
+              ${item.score}% ${item.label}
+            </span>
+          </div>
+
+          <!-- Quality Score Bar -->
+          <div class="mt-3 space-y-1">
+            <div class="flex justify-between text-[11px] font-mono text-slate-400">
+              <span>Quality Score</span>
+              <span class="font-bold text-white">${item.score}/100</span>
+            </div>
+            <div class="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+              <div class="h-full ${isExcellent ? 'bg-emerald-500' : 'bg-cyan-500'}" style="width: ${item.score}%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-dark-border/60 flex items-center justify-between">
+          <span class="text-[11px] font-mono text-slate-400">${item.fyers_symbol}</span>
+          <button onclick="inspectSymbol('${item.symbol}')" class="px-2.5 py-1 rounded bg-dark-card2 hover:bg-slate-700 text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 transition flex items-center space-x-1">
+            <i data-lucide="search" class="w-3 h-3"></i>
+            <span>Deep Dive</span>
+          </button>
+        </div>
+      `;
+      return card;
+    }
+
+    function copyTickers(type) {
+      if (!latestRecosData) return;
+      const textToCopy = type === 'excellent' 
+        ? latestRecosData.excellent_tickers_formatted 
+        : latestRecosData.all_tickers_formatted;
+
+      if (!textToCopy) {
+        alert('No tickers available to copy.');
+        return;
+      }
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        alert(`✅ Copied ${type.toUpperCase()} tickers to clipboard in NSE:SYMBOL, format!`);
+      });
+    }
+
+    function inspectSymbol(sym) {
+      switchTab('deep-dive');
+      setDeepDiveSymbol(sym);
+      runDeepDive();
+    }
+
+    // -------------------------------------------------------------
+    // Deep Analysis View
+    // -------------------------------------------------------------
+    function setDeepDiveSymbol(sym) {
+      document.getElementById('deep-dive-input').value = sym;
+    }
+
+    async function runDeepDive() {
+      const sym = document.getElementById('deep-dive-input').value.trim().toUpperCase();
+      if (!sym) return;
+
+      const container = document.getElementById('deep-dive-results');
+      container.innerHTML = '<div class="p-8 text-center text-slate-400 font-mono text-xs"><i data-lucide="loader" class="w-6 h-6 animate-spin mx-auto mb-2 text-cyan-400"></i>Computing multi-indicator models for ' + sym + '...</div>';
+      container.classList.remove('hidden');
+      lucide.createIcons();
+
+      try {
+        const res = await fetch(`/api/deep-analysis?symbol=${encodeURIComponent(sym)}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          container.innerHTML = `<div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono">❌ ${data.detail || 'Analysis failed'}</div>`;
+          return;
+        }
+
+        const isBull = data.is_bullish_trend;
+        const isKCBreak = data.is_kc_breakout;
+
+        container.innerHTML = `
+          <div class="bg-dark-card border border-dark-border rounded-xl p-6 space-y-6">
+            
+            <!-- Header Result -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-5 border-b border-dark-border gap-3">
+              <div>
+                <div class="flex items-center space-x-3">
+                  <h3 class="text-2xl font-bold font-mono text-white">${data.fyers_symbol}</h3>
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold font-mono ${data.strength_score >= 4 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'}">
+                    ${data.status_tag} (${data.strength_score}/${data.max_score})
+                  </span>
+                </div>
+                <p class="text-xs text-slate-400 font-mono mt-1">Date: ${data.date} • Conclusion: <strong class="text-white">${data.conclusion}</strong></p>
+              </div>
+
+              <div class="text-right">
+                <div class="text-xs text-slate-400">Latest Close Price</div>
+                <div class="text-2xl font-bold font-mono text-white">₹${data.close.toLocaleString('en-IN')}</div>
+              </div>
+            </div>
+
+            <!-- Indicator Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              
+              <!-- Trend & EMA -->
+              <div class="bg-dark-card2 p-4 rounded-xl border border-dark-border space-y-2">
+                <div class="text-xs text-slate-400 flex items-center justify-between">
+                  <span>Trend & Momentum</span>
+                  <i data-lucide="trending-up" class="w-4 h-4 ${isBull ? 'text-emerald-400' : 'text-rose-400'}"></i>
+                </div>
+                <div class="text-base font-bold font-mono ${isBull ? 'text-emerald-400' : 'text-rose-400'}">
+                  ${isBull ? 'BULLISH (EMA10 > EMA21)' : 'BEARISH (EMA10 < EMA21)'}
+                </div>
+                <div class="text-xs font-mono text-slate-400 space-y-0.5">
+                  <div>EMA 10: <strong class="text-white">₹${data.ema_10}</strong></div>
+                  <div>EMA 21: <strong class="text-white">₹${data.ema_21}</strong></div>
+                </div>
+              </div>
+
+              <!-- RSI & MACD -->
+              <div class="bg-dark-card2 p-4 rounded-xl border border-dark-border space-y-2">
+                <div class="text-xs text-slate-400 flex items-center justify-between">
+                  <span>RSI & MACD</span>
+                  <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i>
+                </div>
+                <div class="text-base font-bold font-mono text-white">
+                  RSI: <span class="${data.rsi_14 > 70 ? 'text-amber-400' : (data.rsi_14 < 30 ? 'text-emerald-400' : 'text-cyan-400')}">${data.rsi_14}</span>
+                </div>
+                <div class="text-xs font-mono text-slate-400 space-y-0.5">
+                  <div>MACD: <strong class="text-white">${data.macd}</strong></div>
+                  <div>Hist: <strong class="${data.macd_hist > 0 ? 'text-emerald-400' : 'text-rose-400'}">${data.macd_hist > 0 ? '+' : ''}${data.macd_hist}</strong></div>
+                </div>
+              </div>
+
+              <!-- Keltner Channels -->
+              <div class="bg-dark-card2 p-4 rounded-xl border border-dark-border space-y-2">
+                <div class="text-xs text-slate-400 flex items-center justify-between">
+                  <span>Keltner Channel</span>
+                  <i data-lucide="layers" class="w-4 h-4 text-purple-400"></i>
+                </div>
+                <div class="text-base font-bold font-mono ${isKCBreak ? 'text-emerald-400' : 'text-slate-300'}">
+                  ${isKCBreak ? '🚀 UPPER BREAKOUT' : (data.is_kc_breakdown ? '⚠️ LOWER BREAKDOWN' : 'INSIDE CHANNEL')}
+                </div>
+                <div class="text-xs font-mono text-slate-400 space-y-0.5">
+                  <div>KC Upper: <strong class="text-white">₹${data.kc_upper}</strong></div>
+                  <div>KC Mid: <strong class="text-white">₹${data.kc_mid}</strong></div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Volume & Strength Summary -->
+            <div class="p-4 rounded-xl bg-slate-900/60 border border-dark-border flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs">
+              <div>
+                <span>Traded Volume: <strong class="text-white">${data.volume.toLocaleString('en-IN')}</strong></span>
+                <span class="mx-2">•</span>
+                <span>20-day Avg: <strong class="text-white">${data.avg_volume.toLocaleString('en-IN')}</strong></span>
+                <span class="mx-2">•</span>
+                <span>Volume Ratio: <strong class="${data.vol_ratio >= 1.5 ? 'text-emerald-400 font-bold' : 'text-slate-300'}">${data.vol_ratio}x</strong></span>
+              </div>
+
+              <button onclick="triggerTask('dry_run')" class="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition">
+                Back to Dry Run
+              </button>
+            </div>
+
+          </div>
+        `;
+        lucide.createIcons();
+      } catch (err) {
+        container.innerHTML = `<div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono">❌ Network Error: ${err.message}</div>`;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Portfolio Holdings View
+    // -------------------------------------------------------------
+    async function loadPortfolioData() {
+      try {
+        const res = await fetch('/api/portfolio');
+        const data = await res.json();
+
+        if (data.summary) {
+          document.getElementById('port-total-inv').textContent = `₹${(data.summary.total_invested || 0).toLocaleString('en-IN')}`;
+          document.getElementById('port-total-cur').textContent = `₹${(data.summary.total_current || 0).toLocaleString('en-IN')}`;
+          
+          const pnlEl = document.getElementById('port-total-pnl');
+          const isProfit = (data.summary.total_pnl || 0) >= 0;
+          pnlEl.className = `text-xl font-bold font-mono mt-1 ${isProfit ? 'text-emerald-400' : 'text-rose-400'}`;
+          pnlEl.textContent = `${isProfit ? '+' : ''}₹${(data.summary.total_pnl || 0).toLocaleString('en-IN')} (${data.summary.total_pnl_pct}%)`;
+
+          document.getElementById('port-risk-summary').innerHTML = `
+            <span class="text-emerald-400">${data.summary.strong_holds} Holds</span> • 
+            <span class="text-amber-400">${data.summary.cautions} Cautions</span> • 
+            <span class="text-rose-400">${data.summary.sells} Sells</span>
+          `;
+        }
+
+        const tbody = document.getElementById('portfolio-table-body');
+        tbody.innerHTML = '';
+
+        if (!data.holdings || data.holdings.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="9" class="p-4 text-center text-slate-500">No holdings found in Portfolio.txt.</td></tr>';
+          return;
+        }
+
+        data.holdings.forEach(h => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-dark-card2/50 transition';
+          
+          let statusBadge = 'bg-slate-800 text-slate-400';
+          if (h.status === 'STRONG HOLD') statusBadge = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold';
+          if (h.status === 'CAUTION') statusBadge = 'bg-amber-500/10 text-amber-400 border border-amber-500/30 font-bold';
+          if (h.status === 'SELL') statusBadge = 'bg-rose-500/10 text-rose-400 border border-rose-500/30 font-bold';
+
+          const pnlColor = h.pnl_pct >= 0 ? 'text-emerald-400' : 'text-rose-400';
+
+          tr.innerHTML = `
+            <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[10px] ${statusBadge}">${h.status}</span></td>
+            <td class="py-3 px-4 font-bold text-white">${h.symbol}</td>
+            <td class="py-3 px-4 text-right">${h.qty}</td>
+            <td class="py-3 px-4 text-right">₹${h.avg_cost.toFixed(2)}</td>
+            <td class="py-3 px-4 text-right font-bold">₹${h.cmp.toFixed(2)}</td>
+            <td class="py-3 px-4 text-right">₹${h.invested.toLocaleString('en-IN')}</td>
+            <td class="py-3 px-4 text-right font-bold">₹${h.current_val.toLocaleString('en-IN')}</td>
+            <td class="py-3 px-4 text-right font-bold ${pnlColor}">${h.pnl_pct >= 0 ? '+' : ''}${h.pnl_pct.toFixed(1)}%</td>
+            <td class="py-3 px-4 text-center">
+              <button onclick="inspectSymbol('${h.symbol}')" class="text-slate-400 hover:text-cyan-400" title="Inspect">
+                <i data-lucide="search" class="w-3.5 h-3.5 inline"></i>
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        lucide.createIcons();
+      } catch (e) {
+        console.error('Error loading portfolio:', e);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Backtest Leaderboard View
+    // -------------------------------------------------------------
+    async function loadBacktestResults() {
+      try {
+        const res = await fetch('/api/backtest/results');
+        const data = await res.json();
+        const tbody = document.getElementById('backtest-table-body');
+        tbody.innerHTML = '';
+
+        if (!data.has_results || !data.strategies) {
+          tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500">No backtest records found. Run Option 6 to generate.</td></tr>';
+          return;
+        }
+
+        data.strategies.forEach((strat, idx) => {
+          const tr = document.createElement('tr');
+          const isWinner = idx === 0;
+          tr.className = isWinner ? 'bg-emerald-500/5 hover:bg-emerald-500/10 font-bold' : 'hover:bg-dark-card2/50';
+
+          const pnlColor = strat.PnL >= 0 ? 'text-emerald-400' : 'text-rose-400';
+
+          tr.innerHTML = `
+            <td class="py-3 px-4 flex items-center space-x-2">
+              <span class="w-5 h-5 rounded-full ${isWinner ? 'bg-amber-400 text-dark-bg font-bold' : 'bg-slate-800 text-slate-400'} flex items-center justify-center text-[10px]">
+                ${idx + 1}
+              </span>
+              <span class="${isWinner ? 'text-emerald-400' : 'text-white'}">${strat.Strategy} ${isWinner ? '🏆' : ''}</span>
+            </td>
+            <td class="py-3 px-4 text-right ${pnlColor}">₹${strat.PnL.toLocaleString('en-IN')}</td>
+            <td class="py-3 px-4 text-right ${pnlColor}">${strat['PnL %']}%</td>
+            <td class="py-3 px-4 text-right">${strat['Total Trades']}</td>
+            <td class="py-3 px-4 text-right ${strat['Win Rate %'] >= 25 ? 'text-emerald-400 font-bold' : ''}">${strat['Win Rate %']}%</td>
+            <td class="py-3 px-4 text-right text-rose-400">${strat['Max Drawdown %']}%</td>
+            <td class="py-3 px-4 text-right">${strat['Sharpe Ratio']}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error('Error loading backtest:', e);
+      }
+    }
+  </script>
+</body>
+</html>
