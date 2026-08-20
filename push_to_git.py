@@ -52,13 +52,11 @@ def push_to_git():
     
     # Check if there are actually changes to commit
     status_result = subprocess.run("git status --porcelain", shell=True, capture_output=True, text=True)
-    if not status_result.stdout.strip():
-        print("No changes to commit. Working tree clean.")
-        print("\nDone! Repository is up to date.")
-        sys.exit(0)
-
-    commit_msg = f"Auto-commit: Trading Strategy updates on {timestamp}"
-    run_command(f'git commit -m "{commit_msg}"')
+    if status_result.stdout.strip():
+        commit_msg = f"Auto-commit: Trading Strategy updates on {timestamp}"
+        run_command(f'git commit -m "{commit_msg}"')
+    else:
+        print("No new local file changes to commit. Proceeding to push existing commits.")
 
     # 5. Push to Github
     print("\n[4/4] Pushing to GitHub (origin main)...")
