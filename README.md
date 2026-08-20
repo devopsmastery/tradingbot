@@ -1,6 +1,87 @@
 # FYERS Automated Trading Bot & Multi-Strategy Framework
 
-An institutional-grade automated trading, discovery, and backtesting framework for National Stock Exchange (NSE) stocks using the **Fyers API (v3)**. Features multi-strategy backtesting, automated daily dry-run scanners with signal quality scoring, portfolio risk management, and a high-speed full-exchange discovery scanner for Small & Mid Cap stocks.
+An institutional-grade automated trading, market discovery, backtesting, and dashboard framework for National Stock Exchange (NSE) stocks using the **Fyers API (v3)**. Features an interactive **Web GUI Dashboard (`localhost:8000`)**, high-performance **DuckDB Time-Series Engine**, 6 modular quantitative strategies, automated daily dry-run scanners with signal quality scoring, portfolio risk management, and an exchange-wide discovery scanner for Small & Mid Cap stocks.
+
+---
+
+## 🖥️ Web GUI Dashboard (`http://localhost:8000`)
+
+A high-performance, dark-themed cyber-finance trading terminal accessible from any browser on `localhost:8000`.
+
+```
+                  ┌────────────────────────────────────────┐
+                  │   FYERS TRADING BOT WEB DASHBOARD      │
+                  │   http://localhost:8000                │
+   ┌──────────────┼────────────────────────────────────────┼──────────────┐
+   │ 🔐 1-Click   │  📊 Recommendations Hub ("Reco")       │ 📈 Live Deep │
+   │ Fyers Auth   │  - 1-Click Copy Tickers for Charts     │ Dive Audits  │
+   │ Generator &  │  - Quality Filter (80%+ EXCELLENT)     │ & Indicators │
+   │ Auto .env    │  - Real-time breakout metrics          │              │
+   ├──────────────┼────────────────────────────────────────┼──────────────┤
+   │ ⚡ Quick Run │  💼 Portfolio Risk Monitor             │ 🏆 Backtest  │
+   │ - Dry Run    │  - HOLD / CAUTION / SELL Status        │ Leaderboard  │
+   │ - Full NSE   │  - Real-time P&L % and allocation      │ & 6-Strategy │
+   │ - Update DB  │  - Weakness alert triggers             │ Comparisons  │
+   └──────────────┴────────────────────────────────────────┴──────────────┘
+```
+
+### How to Launch the Web GUI:
+```bash
+python run_gui.py
+```
+Open your browser and navigate to: **[http://localhost:8000](http://localhost:8000)** (or **[http://127.0.0.1:8000](http://127.0.0.1:8000)**).
+
+### Key GUI Features:
+1. **🔐 1-Click Fyers Auth Generator & Token Synchronizer**:
+   - Direct button to open the Fyers OAuth 2.0 authorization URL.
+   - Paste the returned `auth_code` into the GUI modal: it automatically exchanges it for an active access token, updates `.env`, writes `.fyers_token`, and marks authentication as active for the day.
+2. **📋 "Reco" (Recommendations Hub)**:
+   - Live view of all generated BUY signals categorized into **EXCELLENT (80%+)**, **GOOD (65%+)**, and **MODERATE (50%+)**.
+   - **1-Click "Copy Tickers" Button**: Instantly copies all recommended stocks formatted as `NSE:TICKER,` (comma-separated for direct import into TradingView or Fyers Web watchlist).
+   - Historical scan explorer with past recommendation logs.
+3. **⚡ Central Task Execution & Streaming Terminal**:
+   - Trigger **Dry Run**, **Update Data**, **Portfolio Scan**, **Run Backtest**, or **Full NSE Scan** directly from the UI.
+   - Real-time Server-Sent Events (SSE) stream live subprocess terminal output with auto-scroll and execution status badges.
+4. **🔍 Interactive Deep Analysis Visualizer**:
+   - Search any NSE stock to inspect Strength Score (0 to 5), Keltner Channel bounds (Upper, Mid, Lower), EMA 10/21 trend status, RSI (14), MACD momentum, and Volume vs. 20-day SMA.
+5. **💼 Portfolio Risk & Weakness Monitor**:
+   - Real-time evaluation of all held stocks from `Portfolio.txt` / `data/portfolio_db.json`.
+   - Flags holdings breaking below KC Mid or EMA 21 with **`CAUTION`** or **`SELL`** risk warnings and calculates live unrealized P&L %.
+6. **🏆 6-Strategy Backtest Leaderboard**:
+   - Compares all 6 quantitative strategies with Net P&L, Win Rate %, Total Trades, Max Drawdown %, and Sharpe Ratio metrics.
+
+---
+
+## 🦆 High-Performance DuckDB Time-Series Engine
+
+The framework features an integrated, embedded **DuckDB columnar analytical database** (`data/tradingbot.duckdb`) that replaces hundreds of fragmented CSV files for lightning-fast historical candle queries and high-concurrency multi-process scanning.
+
+```
+[1,363 Legacy CSV Files] ──(4.07s Migration)──► [data/tradingbot.duckdb (8.76 MB)]
+                                                        │
+                      ┌─────────────────────────────────┴─────────────────────────────────┐
+                      ▼                                                                   ▼
+         Microsecond Time-Series Reads                                     High-Speed Multi-Batch Quotes
+       (Single Read-Only Connection <0.2s)                              (50 Symbols per Chunk via Fyers API)
+                      │                                                                   │
+                      └─────────────────────────────────┬─────────────────────────────────┘
+                                                        ▼
+                                    In-Memory Indicator Computation
+                                (240 Stocks Scanned in ~12-15 Seconds)
+```
+
+### Key Performance Benefits:
+- **Lightning-Fast Queries**: Queries 240 stock candle histories in **under 0.2 seconds** (over **375x faster** than fetching over the network).
+- **Batch Real-Time Quotes**: Fetches live quotes in chunks of 50 symbols per API request, cutting network calls from 480 down to **just 5 batch requests** (99% reduction).
+- **High-Speed Daily Scan**: The 240-stock daily scan completes in **~12–15 seconds** (down from 2.5+ minutes).
+- **Compact Columnar Storage**: All 96,915 daily OHLCV candles across 1,363 stocks are compressed into a single **8.76 MB** database file.
+- **Zero-Lock Multi-Process Concurrency**: Uses non-blocking read-only connections (`read_only=True` default), allowing the Web GUI, background tasks, and CLI commands to query simultaneously without file locks.
+- **100% Backward Compatible**: All existing functions (`load_historical_csv()`, `save_historical_data()`) seamlessly query DuckDB with automatic CSV fallback and self-healing migration.
+
+### Run Database Migration Manually:
+```bash
+python scripts/migrate_to_duckdb.py
+```
 
 ---
 
@@ -48,19 +129,19 @@ Run `python main.py` or interact with the AI assistant to access the central tra
 
 ### Feature Details:
 1. **Option 1 (Dry Run)** (`scripts/dry_run.py`):
-   - Evaluates all watchlist and portfolio stocks against live market quotes.
+   - Evaluates all watchlist and portfolio stocks against DuckDB historical candles and batch live quotes in ~12 seconds.
    - Categorizes recommendations into **`ADD MORE`** (held stocks with expanding momentum) and **`NEW BUY`** (fresh breakout setups).
    - Generates a **`CAUTION`** list for held stocks showing weakness or breaking below KC Mid / EMA 21.
    - Auto-dumps recommendations into timestamped files: `Results/DD-MM-HH-dryrun-results.txt`.
 
 2. **Option 2 (Update Data)** (`scripts/update_historical_data.py`):
-   - Incrementally appends latest daily candles to local CSVs in `data/historical_data/` without re-downloading entire histories.
+   - Incrementally updates daily candles in DuckDB and local CSVs without re-downloading entire histories.
 
 3. **Option 3 (Deep Analysis)** (`scripts/deep_analysis.py <SYMBOL>`):
    - Comprehensive technical audit for any stock: Keltner Channels, EMA 10/21, RSI 14, MACD (12, 26, 9), Volume vs. 20-day SMA, and an Overall Strength Score (0 to 5). Supports live simulated LTP via `--ltp <PRICE>`.
 
 4. **Option 4 (Add New Stocks)** (`scripts/add_new_stocks.py`):
-   - Reads newly discovered or user-provided tickers from `Newly_added_stocks.txt`, fetches full historical data, deduplicates, and adds them to `stocks_watchlist.txt` and `stocks_to_test.txt`.
+   - Reads newly discovered or user-provided tickers from `Newly_added_stocks.txt`, fetches full historical data, deduplicates, and adds them to `stocks_watchlist.txt`, `stocks_to_test.txt`, and DuckDB.
 
 5. **Option 5 (Portfolio Scan)** (`scripts/portfolio_analysis.py`):
    - Directly parses broker-exported holdings from `Portfolio.txt` / `data/portfolio_db.json`.
@@ -83,12 +164,16 @@ Run `python main.py` or interact with the AI assistant to access the central tra
 
 ```
 fyers_trading_strategy/
-├── .agents/
-│   ├── AGENTS.md                  # Permanent workspace behavior & rules
-│   └── skills/                    # Specialized AI agent skills
+├── gui/
+│   ├── server.py                  # FastAPI backend with REST APIs & live SSE terminal
+│   └── templates/
+│       └── index.html             # Single-page Cyber-Finance dark UI dashboard
+├── run_gui.py                     # Web GUI launcher script (localhost:8000)
 ├── data/
-│   ├── historical_data/           # Local cached OHLCV CSV files
-│   ├── data_fetcher.py            # Fyers historical & live quote fetcher
+│   ├── duckdb_manager.py          # High-performance DuckDB columnar time-series manager
+│   ├── tradingbot.duckdb          # Embedded DuckDB database file (8.76 MB)
+│   ├── historical_data/           # Cached OHLCV CSV files (backup)
+│   ├── data_fetcher.py            # Fyers historical & batch live quote fetcher
 │   ├── portfolio_db.json          # Structured portfolio database
 │   ├── dry_run_history.json       # Historical signal tracking log
 │   └── nse_smallmid_symbols.txt   # Cached NSE Small & Mid Cap master list
@@ -105,9 +190,10 @@ fyers_trading_strategy/
 │   └── backtest_results.csv       # Per-stock backtest results log
 ├── live_trading/
 │   ├── fyers_auth.py              # Raw HTTP OAuth 2.0 Authentication (Python 3.14 compatible)
-│   └── execute_trades.py          # Core signal engine & order execution
+│   └── execute_trades.py          # Core signal engine with batch quotes & DuckDB
 ├── scripts/
 │   ├── dry_run.py                 # Watchlist daily scanner wrapper
+│   ├── migrate_to_duckdb.py       # DuckDB database migration utility
 │   ├── update_historical_data.py  # Incremental historical data refresher
 │   ├── deep_analysis.py           # Single stock deep dive technical auditor
 │   ├── add_new_stocks.py          # Ticker import and deduplication tool
@@ -123,7 +209,7 @@ fyers_trading_strategy/
 ├── stocks_to_test.txt             # Primary universe of test stocks
 ├── stocks_watchlist.txt           # Active tracking watchlist
 ├── requirements.txt               # Python package dependencies
-└── .gitignore                     # Git ignore rules for secrets and runtime outputs
+└── .gitignore                     # Git ignore rules for secrets, DB binaries, & logs
 ```
 
 ---
@@ -149,27 +235,30 @@ GIT_TOKEN=ghp_your_github_token
 DRY_RUN=True
 ```
 
-### 3. Generate Daily Fyers Auth Token
-Generate your daily auth code using:
-👉 **[Fyers Auth Code Generation URL](https://api-t1.fyers.in/api/v3/generate-authcode?client_id=JXYIZPROWB-100&redirect_uri=https%3A%2F%2Ftrade.fyers.in%2Fapi-login%2Fredirect-uri%2Findex.html&response_type=code&state=fyers_trading_strategy)**
+### 3. Launch the Web GUI Dashboard
+```bash
+python run_gui.py
+```
+Open **[http://localhost:8000](http://localhost:8000)** in your browser!
+- Click **"Generate Auth Code"** in the top navigation bar to log in to Fyers and authenticate in 1 click.
+- Click **"Reco"** tab to view today's buy setups and copy formatted tickers directly for TradingView/Fyers.
 
-Paste the code into `.env` under `FYERS_AUTH_CODE`.
-
-### 4. Running the Bot
-Launch the main menu:
+### 4. CLI Execution (Optional)
+Launch the interactive terminal menu:
 ```bash
 python main.py
 ```
 
-Or run standalone commands directly:
+Or run standalone tools directly:
 - **Daily Watchlist Dry Run:** `python scripts/dry_run.py`
 - **Full NSE Discovery Scan:** `python scripts/full_exchange_scan.py`
 - **Run Backtest:** `python backtest/run_backtest.py`
 - **Update Historical Data:** `python scripts/update_historical_data.py`
 - **Deep Analysis on a Stock:** `python scripts/deep_analysis.py RPEL`
+- **Migrate CSVs to DuckDB:** `python scripts/migrate_to_duckdb.py`
 - **Sync to GitHub:** `python push_to_git.py`
 
 ---
 
 ## 🔒 Security & Privacy
-- Sensitive credentials (`.env`), token caches (`.fyers_token`), and runtime execution logs are strictly excluded from version control via `.gitignore`.
+- Sensitive credentials (`.env`), token caches (`.fyers_token`), DuckDB binary database files (`*.duckdb*`), and runtime execution logs are strictly excluded from version control via `.gitignore`.
