@@ -37,6 +37,10 @@ from data.data_fetcher import (
     save_historical_data, HISTORICAL_DATA_DIR, append_live_quote,
     load_historical_csv, fetch_batch_quotes, apply_live_quote
 )
+from data.watchlist_manager import (
+    get_active_watchlist, get_sell_watchlist, get_test_stocks,
+    add_to_active_watchlist, move_to_sell_watchlist
+)
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STOCKS_FILE = os.path.join(PROJECT_DIR, "stocks_to_test.txt")
@@ -427,40 +431,49 @@ def main():
     portfolio = load_portfolio()
 
     # ---- Build scanning universe ----
-    main_stocks = read_stocks(STOCKS_FILE)
-    watchlist_stocks = []
-    if os.path.exists(WATCHLIST_FILE):
-        watchlist_stocks = read_stocks(WATCHLIST_FILE)
+    watchlist_mode = os.getenv("WATCHLIST_MODE", "active").lower()
 
-    # Track source tag for display
-    stock_source = {}
-    for s in main_stocks:
-        stock_source[s] = "MAIN"
-    for s in watchlist_stocks:
-        if s not in stock_source:
-            stock_source[s] = "WATCHLIST"
+    if watchlist_mode == "sell":
+        sell_stocks = get_sell_watchlist()
+        if not sell_stocks:
+            print(colored("  [INFO] No stocks currently in Sell Watchlist.", Colors.YELLOW))
+            print(colored("  To populate Sell Watchlist, run a regular Dry Run and move SELL stocks.\n", Colors.DIM))
+            return
+        all_stocks = sell_stocks
+        stock_source = {s: "SELL_WATCHLIST" for s in all_stocks}
+        print(f"\n  Scanning {colored(str(len(all_stocks)), Colors.BOLD)} stocks from {colored('SELL WATCHLIST', Colors.YELLOW)} (Weakness & Recovery Audit)\n")
+    else:
+        main_stocks = get_test_stocks()
+        watchlist_stocks = get_active_watchlist()
 
-    # Merge and deduplicate (preserving order)
-    all_stocks = list(dict.fromkeys(main_stocks + watchlist_stocks))
+        # Track source tag for display
+        stock_source = {}
+        for s in main_stocks:
+            stock_source[s] = "MAIN"
+        for s in watchlist_stocks:
+            if s not in stock_source:
+                stock_source[s] = "ACTIVE_WATCHLIST"
 
-    # Ensure every portfolio holding is included even if not in scan lists
-    # so ADD MORE signals are never missed
-    for ps in portfolio.keys():
-        if ps not in stock_source:
-            stock_source[ps] = "PORTFOLIO"
-            all_stocks.append(ps)
+        # Merge and deduplicate (preserving order)
+        all_stocks = list(dict.fromkeys(main_stocks + watchlist_stocks))
 
-    if not all_stocks:
-        print(colored("No stocks found to scan.", Colors.RED))
-        return
+        # Ensure every portfolio holding is included even if not in scan lists
+        # so ADD MORE signals are never missed
+        for ps in portfolio.keys():
+            if ps not in stock_source:
+                stock_source[ps] = "PORTFOLIO"
+                all_stocks.append(ps)
 
-    main_count  = len(main_stocks)
-    wl_count    = len([s for s in all_stocks if stock_source.get(s) == "WATCHLIST"])
-    port_extra  = len([s for s in all_stocks if stock_source.get(s) == "PORTFOLIO"])
-    held_in_scan = len([s for s in all_stocks if s in portfolio and stock_source.get(s) != "PORTFOLIO"])
+        if not all_stocks:
+            print(colored("No stocks found to scan in Active Watchlist.", Colors.RED))
+            return
 
-    print(f"\n  Scanning {colored(str(len(all_stocks)), Colors.BOLD)} stocks -- "
-          f"{main_count} main . {wl_count} watchlist . {port_extra} portfolio-only\n")
+        main_count  = len(main_stocks)
+        wl_count    = len([s for s in all_stocks if stock_source.get(s) == "ACTIVE_WATCHLIST"])
+        port_extra  = len([s for s in all_stocks if stock_source.get(s) == "PORTFOLIO"])
+
+        print(f"\n  Scanning {colored(str(len(all_stocks)), Colors.BOLD)} stocks ({colored('ACTIVE WATCHLIST', Colors.GREEN)}) -- "
+              f"{main_count} main . {wl_count} watchlist . {port_extra} portfolio-only\n")
 
     # Fetch live positions only in live mode (not needed for dry run)
     # Fetch live positions only in live mode (not needed for dry run)
@@ -656,11 +669,14 @@ def main():
     history_file = os.path.join(PROJECT_DIR, "data", "dry_run_history.json")
     today_str    = datetime.now().strftime('%Y-%m-%d')
 
-    # Save to Results/dd-mm-hh-dryrun-results.txt
+    # Save to Results/dd-mm-hh-dryrun-results.txt or sellscan-results.txt
     results_dir = os.path.join(PROJECT_DIR, "Results")
     os.makedirs(results_dir, exist_ok=True)
     now = datetime.now()
-    results_filename = f"{now.strftime('%d-%m-%H')}-dryrun-results.txt"
+    if watchlist_mode == "sell":
+        results_filename = f"{now.strftime('%d-%m-%H')}-sellscan-results.txt"
+    else:
+        results_filename = f"{now.strftime('%d-%m-%H')}-dryrun-results.txt"
     results_filepath = os.path.join(results_dir, results_filename)
 
     try:
@@ -686,6 +702,13 @@ def main():
             for idx, (raw_sym, score) in enumerate(excellent_good_new_buy, 1):
                 label = quality_label(score, plain=True)
                 lines.append(f"{idx}. {raw_sym} — {score}% {label}")
+            lines.append("")
+
+        if sell_signals:
+            lines.append("CAUTION / SELL:")
+            for idx, (fyers_sym, raw_sym, close, held_qty, score, reasons) in enumerate(sell_signals, 1):
+                reason_str = " . ".join(reasons) if reasons else "Weakness"
+                lines.append(f"{idx}. {raw_sym} — {score}% SELL (held {held_qty} @ Rs.{close:.2f}) > {reason_str}")
 
         with open(results_filepath, "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")

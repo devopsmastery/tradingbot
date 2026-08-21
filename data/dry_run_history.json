@@ -4026,5 +4026,35 @@
                 "score": 70
             }
         ]
+    },
+    {
+        "date": "2026-08-21",
+        "buy_signals": [],
+        "sell_signals": [
+            {
+                "symbol": "ADANIENSOL",
+                "close": 1553.3,
+                "qty": 190,
+                "score": 50
+            },
+            {
+                "symbol": "APS-SM",
+                "close": 250.0,
+                "qty": 250,
+                "score": 50
+            },
+            {
+                "symbol": "POCL",
+                "close": 505.4,
+                "qty": 459,
+                "score": 70
+            },
+            {
+                "symbol": "TIGERLOGS-BE",
+                "close": 25.5,
+                "qty": 11740,
+                "score": 70
+            }
+        ]
     }
 ]

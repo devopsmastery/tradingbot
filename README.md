@@ -37,17 +37,23 @@ Open your browser and navigate to: **[http://localhost:8000](http://localhost:80
    - Paste the returned `auth_code` into the GUI modal: it automatically exchanges it for an active access token, updates `.env`, writes `.fyers_token`, and marks authentication as active for the day.
 2. **📋 "Reco" (Recommendations Hub)**:
    - Live view of all generated BUY signals categorized into **EXCELLENT (80%+)**, **GOOD (65%+)**, and **MODERATE (50%+)**.
-   - **1-Click "Copy Tickers" Button**: Instantly copies all recommended stocks formatted as `NSE:TICKER,` (comma-separated for direct import into TradingView or Fyers Web watchlist).
-   - Historical scan explorer with past recommendation logs.
-3. **⚡ Central Task Execution & Streaming Terminal**:
-   - Trigger **Dry Run**, **Update Data**, **Portfolio Scan**, **Run Backtest**, or **Full NSE Scan** directly from the UI.
+   - **⭐ 1-Click "Add Excellent to Watch" Button**: Automatically adds all 80%+ Excellent candidate stocks from Dry Run or Full NSE Scan into the **Active Watchlist** (`stocks_watchlist.txt`) and fetches their history into DuckDB.
+   - **📈 Direct Chart Access**: Every recommendation tile features a dedicated **Chart** button next to **Deep Dive** for instant TradingView / Fyers Web chart analysis.
+   - **🔻 CAUTION / SELL Section**: Flags held stocks showing weakness and allows 1-click moving of all SELL stocks into the **Sell Watchlist**.
+3. **📑 Watchlists Manager**:
+   - Clean visual separation between **🟢 Active Watchlist** (scanned in daily dry runs) and **🔴 Sell Watchlist** (stocks that broke down or triggered exits).
+   - Manage, search, restore, and remove symbols with 1 click.
+4. **📉 Dedicated Sell Watchlist Scanner**:
+   - Separate scan trigger to audit only stocks in the Sell Watchlist to identify recovery breakouts or persistent weakness.
+5. **⚡ Central Task Execution & Streaming Terminal**:
+   - Trigger **Dry Run**, **Scan Sell Watchlist**, **Update Data**, **Portfolio Scan**, **Run Backtest**, or **Full NSE Scan** directly from the UI.
    - Real-time Server-Sent Events (SSE) stream live subprocess terminal output with auto-scroll and execution status badges.
-4. **🔍 Interactive Deep Analysis Visualizer**:
+6. **🔍 Interactive Deep Analysis Visualizer**:
    - Search any NSE stock to inspect Strength Score (0 to 5), Keltner Channel bounds (Upper, Mid, Lower), EMA 10/21 trend status, RSI (14), MACD momentum, and Volume vs. 20-day SMA.
-5. **💼 Portfolio Risk & Weakness Monitor**:
+7. **💼 Portfolio Risk & Weakness Monitor**:
    - Real-time evaluation of all held stocks from `Portfolio.txt` / `data/portfolio_db.json`.
    - Flags holdings breaking below KC Mid or EMA 21 with **`CAUTION`** or **`SELL`** risk warnings and calculates live unrealized P&L %.
-6. **🏆 6-Strategy Backtest Leaderboard**:
+8. **🏆 6-Strategy Backtest Leaderboard**:
    - Compares all 6 quantitative strategies with Net P&L, Win Rate %, Total Trades, Max Drawdown %, and Sharpe Ratio metrics.
 
 ---

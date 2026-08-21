@@ -65,6 +65,12 @@
     .glow-cyan {
       box-shadow: 0 0 20px -5px rgba(6, 182, 212, 0.3);
     }
+    .glow-amber {
+      box-shadow: 0 0 20px -5px rgba(245, 158, 11, 0.3);
+    }
+    .glow-rose {
+      box-shadow: 0 0 20px -5px rgba(244, 63, 94, 0.3);
+    }
     @keyframes pulse-slow {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.4; }
@@ -155,6 +161,12 @@
         <span id="reco-badge-count" class="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-mono font-bold">--</span>
       </button>
 
+      <button onclick="switchTab('watchlists')" id="tab-btn-watchlists" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-400 hover:text-slate-200 hover:bg-dark-card">
+        <i data-lucide="bookmark-check" class="w-4 h-4 text-emerald-400"></i>
+        <span>Watchlists</span>
+        <span id="nav-active-wl-count" class="px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300 text-xs font-mono">--</span>
+      </button>
+
       <button onclick="switchTab('deep-dive')" id="tab-btn-deep-dive" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 text-slate-400 hover:text-slate-200 hover:bg-dark-card">
         <i data-lucide="search" class="w-4 h-4 text-cyan-400"></i>
         <span>Deep Analysis</span>
@@ -187,11 +199,20 @@
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div class="bg-dark-card border border-dark-border rounded-xl p-4 flex flex-col justify-between">
           <div class="flex items-center justify-between text-slate-400 text-xs">
-            <span>Watchlist Universe</span>
-            <i data-lucide="list" class="w-4 h-4 text-cyan-400"></i>
+            <span>Active Watchlist</span>
+            <i data-lucide="list" class="w-4 h-4 text-emerald-400"></i>
           </div>
           <div class="mt-2 text-2xl font-bold font-mono text-white" id="stat-watchlist-count">--</div>
-          <div class="text-[11px] text-slate-500">Active scanned stocks</div>
+          <div class="text-[11px] text-slate-500">Scanned in daily dry runs</div>
+        </div>
+
+        <div class="bg-dark-card border border-dark-border rounded-xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-slate-400 text-xs">
+            <span>Sell Watchlist</span>
+            <i data-lucide="shield-alert" class="w-4 h-4 text-amber-400"></i>
+          </div>
+          <div class="mt-2 text-2xl font-bold font-mono text-amber-400" id="stat-sell-watchlist-count">--</div>
+          <div class="text-[11px] text-slate-500">Weakness & exit candidates</div>
         </div>
 
         <div class="bg-dark-card border border-dark-border rounded-xl p-4 flex flex-col justify-between">
@@ -205,20 +226,11 @@
 
         <div class="bg-dark-card border border-dark-border rounded-xl p-4 flex flex-col justify-between">
           <div class="flex items-center justify-between text-slate-400 text-xs">
-            <span>Historical Results</span>
-            <i data-lucide="folder-check" class="w-4 h-4 text-emerald-400"></i>
+            <span>DuckDB Database</span>
+            <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i>
           </div>
-          <div class="mt-2 text-2xl font-bold font-mono text-white" id="stat-results-count">--</div>
-          <div class="text-[11px] text-slate-500">Reports in Results/</div>
-        </div>
-
-        <div class="bg-dark-card border border-dark-border rounded-xl p-4 flex flex-col justify-between">
-          <div class="flex items-center justify-between text-slate-400 text-xs">
-            <span>Winning Model</span>
-            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
-          </div>
-          <div class="mt-2 text-lg font-bold font-mono text-emerald-400">Keltner Tuned</div>
-          <div class="text-[11px] text-slate-500">ATR 2.0 + EMA 10/21</div>
+          <div class="mt-2 text-lg font-bold font-mono text-cyan-400">1,363 Stocks</div>
+          <div class="text-[11px] text-slate-500">Microsecond queries active</div>
         </div>
       </div>
 
@@ -230,21 +242,39 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           
-          <!-- Option 1: Dry Run -->
+          <!-- Option 1: Dry Run (Active Watchlist) -->
           <div class="bg-dark-card border border-dark-border hover:border-emerald-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group hover:glow-emerald">
             <div>
               <div class="flex items-center justify-between mb-3">
                 <span class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-sm">1</span>
-                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Recommended</span>
+                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Active List</span>
               </div>
-              <h3 class="text-base font-bold text-white group-hover:text-emerald-400 transition">Dry Run Watchlist</h3>
+              <h3 class="text-base font-bold text-white group-hover:text-emerald-400 transition">Dry Run (Active Watch)</h3>
               <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
-                Scan all 210+ stocks for today's BUY signals (ADD MORE & NEW BUY) with quality scores and risk caution list.
+                Scan all active watchlist & portfolio stocks for today's BUY recommendations with quality scores.
               </p>
             </div>
             <button onclick="triggerTask('dry_run')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold shadow-lg shadow-emerald-500/20 flex items-center justify-center space-x-2 transition">
               <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
-              <span>Launch Dry Run</span>
+              <span>Scan Active Watchlist</span>
+            </button>
+          </div>
+
+          <!-- Option 1B: Scan Sell Watchlist -->
+          <div class="bg-dark-card border border-dark-border hover:border-amber-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group hover:glow-amber">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm">📉</span>
+                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Weakness Audit</span>
+              </div>
+              <h3 class="text-base font-bold text-white group-hover:text-amber-400 transition">Scan Sell Watchlist</h3>
+              <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                Audit stocks moved to Sell Watchlist to check if any are bottoming out, consolidating, or showing recovery signals.
+              </p>
+            </div>
+            <button onclick="triggerTask('scan_sell_watchlist')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-amber-500/30 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
+              <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
+              <span>Audit Sell Watchlist</span>
             </button>
           </div>
 
@@ -253,50 +283,50 @@
             <div>
               <div class="flex items-center justify-between mb-3">
                 <span class="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-sm">7</span>
-                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Discovery Engine</span>
+                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Discovery</span>
               </div>
               <h3 class="text-base font-bold text-white group-hover:text-cyan-400 transition">Full NSE Scan</h3>
               <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
-                Discovery engine scanning ~1,300 Small & Mid Cap NSE stocks outside your watchlist for fresh breakout momentum.
+                Exchange-wide discovery scanner across ~1,300 Small & Mid Cap stocks for fresh multi-bagger breakout setups.
               </p>
             </div>
-            <button onclick="triggerTask('full_nse_scan')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-cyan-500/30 hover:bg-cyan-500/20 text-cyan-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
+            <button onclick="triggerTask('full_nse_scan')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-semibold shadow-lg shadow-cyan-500/20 flex items-center justify-center space-x-2 transition">
               <i data-lucide="compass" class="w-3.5 h-3.5"></i>
-              <span>Scan Full NSE</span>
+              <span>Scan Entire NSE Universe</span>
             </button>
           </div>
 
-          <!-- Option 2: Update Data -->
-          <div class="bg-dark-card border border-dark-border hover:border-indigo-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group">
+          <!-- Option 2: Update Historical Data -->
+          <div class="bg-dark-card border border-dark-border hover:border-blue-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group">
             <div>
               <div class="flex items-center justify-between mb-3">
-                <span class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-sm">2</span>
-                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Data Refresh</span>
+                <span class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-sm">2</span>
+                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Data Sync</span>
               </div>
-              <h3 class="text-base font-bold text-white group-hover:text-indigo-400 transition">Update Historical Data</h3>
+              <h3 class="text-base font-bold text-white group-hover:text-blue-400 transition">Update Data (DuckDB)</h3>
               <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
-                Incrementally fetch and append latest daily OHLCV candlestick data for all 200+ universe stocks.
+                Incrementally download latest daily candles and sync into DuckDB without re-fetching entire histories.
               </p>
             </div>
-            <button onclick="triggerTask('update_data')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-indigo-500/30 hover:bg-indigo-500/20 text-indigo-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
+            <button onclick="triggerTask('update_data')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-blue-500/30 hover:bg-blue-500/20 text-blue-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
               <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-              <span>Refresh Data</span>
+              <span>Sync DuckDB Data</span>
             </button>
           </div>
 
           <!-- Option 5: Portfolio Scan -->
-          <div class="bg-dark-card border border-dark-border hover:border-amber-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group">
+          <div class="bg-dark-card border border-dark-border hover:border-rose-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group">
             <div>
               <div class="flex items-center justify-between mb-3">
-                <span class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm">5</span>
-                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Risk Guard</span>
+                <span class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center font-bold text-sm">5</span>
+                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">Risk Guard</span>
               </div>
-              <h3 class="text-base font-bold text-white group-hover:text-amber-400 transition">Portfolio Health Scan</h3>
+              <h3 class="text-base font-bold text-white group-hover:text-rose-400 transition">Portfolio Audit</h3>
               <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
-                Audit active holdings in Portfolio.txt for live P&L and classify into STRONG HOLD, CAUTION, or SELL alerts.
+                Evaluates every held stock for HOLD / CAUTION / SELL status, profit & loss, and trailing stop triggers.
               </p>
             </div>
-            <button onclick="triggerTask('portfolio_scan')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-amber-500/30 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
+            <button onclick="triggerTask('portfolio_scan')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-rose-500/30 hover:bg-rose-500/20 text-rose-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
               <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
               <span>Audit Portfolio</span>
             </button>
@@ -356,24 +386,6 @@
             </button>
           </div>
 
-          <!-- Git Push Utility -->
-          <div class="bg-dark-card border border-dark-border hover:border-indigo-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group">
-            <div>
-              <div class="flex items-center justify-between mb-3">
-                <span class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-sm">🐙</span>
-                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Cloud Backup</span>
-              </div>
-              <h3 class="text-base font-bold text-white group-hover:text-indigo-400 transition">Sync to GitHub</h3>
-              <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
-                Commit latest code, strategies, and scan results to devopsmastery/tradingbot on GitHub.
-              </p>
-            </div>
-            <button onclick="triggerTask('git_push')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-indigo-500/30 hover:bg-indigo-500/20 text-indigo-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
-              <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i>
-              <span>Push to GitHub</span>
-            </button>
-          </div>
-
         </div>
       </div>
 
@@ -397,16 +409,18 @@
           <p class="text-xs text-slate-400 mt-1" id="reco-scan-timestamp">Timestamp: --</p>
         </div>
 
-        <!-- Quick Copy Buttons -->
+        <!-- Action Buttons -->
         <div class="flex flex-wrap items-center gap-2">
-          <button onclick="copyTickers('excellent')" class="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-lg shadow-emerald-600/20 transition">
-            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-            <span>Copy EXCELLENT Tickers</span>
+          <!-- Primary: Add Excellent to Watchlist -->
+          <button onclick="addExcellentToWatchlist()" class="px-3.5 py-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-lg shadow-emerald-600/20 transition">
+            <i data-lucide="star" class="w-3.5 h-3.5 fill-current text-amber-300"></i>
+            <span>Add Excellent to Watch</span>
           </button>
 
-          <button onclick="copyTickers('all')" class="px-3.5 py-2 rounded-lg bg-dark-card2 border border-dark-border hover:border-slate-500 text-slate-200 text-xs font-semibold flex items-center space-x-1.5 transition">
-            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-            <span>Copy All Tickers</span>
+          <!-- Copy Tickers Dropdown/Button -->
+          <button onclick="copyTickers('excellent')" class="px-3 py-2 rounded-lg bg-dark-card2 border border-dark-border hover:border-emerald-500/50 text-slate-300 text-xs font-medium flex items-center space-x-1.5 transition" title="Copy formatted as NSE:TICKER,">
+            <i data-lucide="copy" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Copy Tickers</span>
           </button>
 
           <!-- History Dropdown -->
@@ -487,10 +501,135 @@
         </div>
       </div>
 
+      <!-- CAUTION / SELL SECTION -->
+      <div class="space-y-3 pt-4" id="caution-sell-section">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-rose-400 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+            CAUTION / SELL — Stocks Showing Breakdown & Weakness
+          </h3>
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-mono text-slate-500" id="cautionsell-count-label">0 items</span>
+            <button onclick="moveAllSellToSellWatchlist()" class="px-2.5 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center space-x-1 transition">
+              <i data-lucide="arrow-down-circle" class="w-3.5 h-3.5"></i>
+              <span>Move All SELL to Sell Watchlist</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="caution-sell-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
     </section>
 
     <!-- ========================================== -->
-    <!-- TAB 3: DEEP ANALYSIS VIEW -->
+    <!-- TAB 3: WATCHLISTS MANAGER -->
+    <!-- ========================================== -->
+    <section id="tab-watchlists" class="tab-content hidden space-y-6">
+      
+      <!-- Watchlists Header -->
+      <div class="bg-dark-card border border-dark-border rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i data-lucide="bookmark-check" class="w-5 h-5 text-emerald-400"></i>
+            Watchlists Manager
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Active Watchlist (scanned daily) vs Sell Watchlist (weakness candidates)</p>
+        </div>
+
+        <!-- Add stock input -->
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <input type="text" id="manual-add-symbol" placeholder="Add symbol (e.g. SUBEXLTD)..." 
+            class="bg-dark-card2 border border-dark-border rounded-lg px-3 py-1.5 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 uppercase"
+            onkeydown="if(event.key==='Enter') manualAddSymbol()">
+          <button onclick="manualAddSymbol()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center space-x-1 shadow-lg shadow-emerald-600/20 transition">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Add</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Two-Column Watchlist Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- ACTIVE WATCHLIST -->
+        <div class="bg-dark-card border border-emerald-500/30 rounded-xl p-5 space-y-4 glow-emerald">
+          <div class="flex items-center justify-between border-b border-dark-border pb-3">
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+              <h3 class="text-base font-bold text-white">Active Watchlist</h3>
+              <span id="active-wl-count-badge" class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-mono font-bold">0</span>
+            </div>
+            <button onclick="triggerTask('dry_run')" class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center space-x-1 transition">
+              <i data-lucide="play" class="w-3 h-3 fill-current"></i>
+              <span>Scan Active</span>
+            </button>
+          </div>
+
+          <div class="relative">
+            <input type="text" id="active-wl-filter" placeholder="Filter active stocks..." oninput="renderWatchlistsTables()"
+              class="w-full bg-dark-card2 border border-dark-border rounded-lg pl-8 pr-3 py-1.5 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5"></i>
+          </div>
+
+          <div class="max-h-96 overflow-y-auto custom-scrollbar border border-dark-border rounded-lg">
+            <table class="w-full text-left text-xs font-mono">
+              <thead class="bg-dark-card2 text-slate-400 uppercase text-[10px] sticky top-0">
+                <tr>
+                  <th class="py-2 px-3">Symbol</th>
+                  <th class="py-2 px-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="active-wl-tbody" class="divide-y divide-dark-border text-slate-300">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SELL WATCHLIST -->
+        <div class="bg-dark-card border border-amber-500/30 rounded-xl p-5 space-y-4 glow-amber">
+          <div class="flex items-center justify-between border-b border-dark-border pb-3">
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+              <h3 class="text-base font-bold text-white">Sell Watchlist</h3>
+              <span id="sell-wl-count-badge" class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-mono font-bold">0</span>
+            </div>
+            <button onclick="triggerTask('scan_sell_watchlist')" class="px-3 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold flex items-center space-x-1 transition">
+              <i data-lucide="shield-alert" class="w-3 h-3"></i>
+              <span>Audit Sell Watch</span>
+            </button>
+          </div>
+
+          <div class="relative">
+            <input type="text" id="sell-wl-filter" placeholder="Filter sell stocks..." oninput="renderWatchlistsTables()"
+              class="w-full bg-dark-card2 border border-dark-border rounded-lg pl-8 pr-3 py-1.5 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-500">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5"></i>
+          </div>
+
+          <div class="max-h-96 overflow-y-auto custom-scrollbar border border-dark-border rounded-lg">
+            <table class="w-full text-left text-xs font-mono">
+              <thead class="bg-dark-card2 text-slate-400 uppercase text-[10px] sticky top-0">
+                <tr>
+                  <th class="py-2 px-3">Symbol</th>
+                  <th class="py-2 px-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="sell-wl-tbody" class="divide-y divide-dark-border text-slate-300">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: DEEP ANALYSIS VIEW -->
     <!-- ========================================== -->
     <section id="tab-deep-dive" class="tab-content hidden space-y-6">
       
@@ -505,7 +644,7 @@
           <div class="flex gap-2">
             <div class="relative flex-1">
               <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5"></i>
-              <input type="text" id="deep-dive-input" placeholder="Enter NSE Ticker Symbol (e.g. RPEL, MARKSANS, HAPPYFORGE, HAL)..." 
+              <input type="text" id="deep-dive-input" placeholder="Enter NSE Ticker Symbol (e.g. SUBEXLTD, RPEL, MARKSANS, HAL)..." 
                 class="w-full bg-dark-card2 border border-dark-border rounded-lg pl-10 pr-4 py-2.5 text-sm font-mono text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 uppercase"
                 onkeydown="if(event.key==='Enter') runDeepDive()">
             </div>
@@ -518,75 +657,55 @@
           <!-- Quick pick chips -->
           <div class="flex flex-wrap items-center justify-center gap-1.5 text-xs text-slate-400">
             <span>Quick picks:</span>
-            <button onclick="setDeepDiveSymbol('RPEL')" class="px-2.5 py-1 rounded bg-dark-card2 border border-dark-border hover:border-emerald-500 hover:text-emerald-400 font-mono">RPEL</button>
-            <button onclick="setDeepDiveSymbol('MARKSANS')" class="px-2.5 py-1 rounded bg-dark-card2 border border-dark-border hover:border-emerald-500 hover:text-emerald-400 font-mono">MARKSANS</button>
-            <button onclick="setDeepDiveSymbol('HAPPYFORGE')" class="px-2.5 py-1 rounded bg-dark-card2 border border-dark-border hover:border-emerald-500 hover:text-emerald-400 font-mono">HAPPYFORGE</button>
-            <button onclick="setDeepDiveSymbol('WELSPUNLIV')" class="px-2.5 py-1 rounded bg-dark-card2 border border-dark-border hover:border-emerald-500 hover:text-emerald-400 font-mono">WELSPUNLIV</button>
-            <button onclick="setDeepDiveSymbol('HAL')" class="px-2.5 py-1 rounded bg-dark-card2 border border-dark-border hover:border-emerald-500 hover:text-emerald-400 font-mono">HAL</button>
-            <button onclick="setDeepDiveSymbol('PARAS')" class="px-2.5 py-1 rounded bg-dark-card2 border border-dark-border hover:border-emerald-500 hover:text-emerald-400 font-mono">PARAS</button>
+            <button onclick="setDeepDiveSymbol('SUBEXLTD'); runDeepDive()" class="px-2 py-0.5 rounded bg-dark-card2 hover:text-cyan-400 font-mono">SUBEXLTD</button>
+            <button onclick="setDeepDiveSymbol('RPEL'); runDeepDive()" class="px-2 py-0.5 rounded bg-dark-card2 hover:text-cyan-400 font-mono">RPEL</button>
+            <button onclick="setDeepDiveSymbol('MARKSANS'); runDeepDive()" class="px-2 py-0.5 rounded bg-dark-card2 hover:text-cyan-400 font-mono">MARKSANS</button>
+            <button onclick="setDeepDiveSymbol('HAPPYFORGE'); runDeepDive()" class="px-2 py-0.5 rounded bg-dark-card2 hover:text-cyan-400 font-mono">HAPPYFORGE</button>
+            <button onclick="setDeepDiveSymbol('HAL'); runDeepDive()" class="px-2 py-0.5 rounded bg-dark-card2 hover:text-cyan-400 font-mono">HAL</button>
           </div>
         </div>
       </div>
 
-      <!-- Analysis Results Card -->
-      <div id="deep-dive-results" class="hidden space-y-6">
-        <!-- Will be dynamically populated -->
+      <!-- Deep Dive Results Container -->
+      <div id="deep-dive-results" class="hidden">
+        <!-- Dynamically rendered -->
       </div>
 
     </section>
 
     <!-- ========================================== -->
-    <!-- TAB 4: PORTFOLIO MONITOR -->
+    <!-- TAB 5: PORTFOLIO HOLDINGS & RISK MONITOR -->
     <!-- ========================================== -->
     <section id="tab-portfolio" class="tab-content hidden space-y-6">
       
-      <!-- Portfolio Overview Header -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="bg-dark-card border border-dark-border rounded-xl p-4">
-          <div class="text-xs text-slate-400">Total Invested</div>
-          <div class="text-xl font-bold font-mono text-white mt-1" id="port-total-inv">₹0.00</div>
+      <div class="bg-dark-card border border-dark-border rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i data-lucide="briefcase" class="w-5 h-5 text-indigo-400"></i>
+            Portfolio Risk & Momentum Monitor
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Real-time risk scoring, P&L tracking, and stop-loss supervision</p>
         </div>
 
-        <div class="bg-dark-card border border-dark-border rounded-xl p-4">
-          <div class="text-xs text-slate-400">Current Value</div>
-          <div class="text-xl font-bold font-mono text-white mt-1" id="port-total-cur">₹0.00</div>
-        </div>
-
-        <div class="bg-dark-card border border-dark-border rounded-xl p-4">
-          <div class="text-xs text-slate-400">Net Unrealized P&L</div>
-          <div class="text-xl font-bold font-mono mt-1" id="port-total-pnl">₹0.00</div>
-        </div>
-
-        <div class="bg-dark-card border border-dark-border rounded-xl p-4">
-          <div class="text-xs text-slate-400">Risk Alerts</div>
-          <div class="text-sm font-bold font-mono mt-1 text-slate-300" id="port-risk-summary">--</div>
-        </div>
+        <button onclick="triggerTask('portfolio_scan')" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center space-x-2 transition">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span>Run Portfolio Audit</span>
+        </button>
       </div>
 
-      <!-- Holdings Table -->
+      <!-- Portfolio Table -->
       <div class="bg-dark-card border border-dark-border rounded-xl overflow-hidden">
-        <div class="p-4 border-b border-dark-border flex items-center justify-between">
-          <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <i data-lucide="layers" class="w-4 h-4 text-indigo-400"></i> Active Holdings (Portfolio.txt)
-          </h3>
-          <button onclick="loadPortfolioData()" class="px-3 py-1.5 rounded-lg bg-dark-card2 border border-dark-border text-xs text-slate-300 hover:text-emerald-400">
-            Refresh Holdings
-          </button>
-        </div>
-
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs font-mono">
-            <thead class="bg-dark-card2/80 text-slate-400 uppercase text-[11px] border-b border-dark-border">
+            <thead class="bg-dark-card2 text-slate-400 uppercase text-[11px] border-b border-dark-border">
               <tr>
-                <th class="py-3 px-4">Status</th>
                 <th class="py-3 px-4">Symbol</th>
                 <th class="py-3 px-4 text-right">Quantity</th>
                 <th class="py-3 px-4 text-right">Avg Cost</th>
-                <th class="py-3 px-4 text-right">CMP</th>
-                <th class="py-3 px-4 text-right">Invested</th>
-                <th class="py-3 px-4 text-right">Current Value</th>
+                <th class="py-3 px-4 text-right">Current Price</th>
                 <th class="py-3 px-4 text-right">P&L %</th>
-                <th class="py-3 px-4 text-center">Action</th>
+                <th class="py-3 px-4 text-center">Status</th>
+                <th class="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody id="portfolio-table-body" class="divide-y divide-dark-border text-slate-300">
@@ -599,7 +718,7 @@
     </section>
 
     <!-- ========================================== -->
-    <!-- TAB 5: STRATEGY BACKTEST LEADERBOARD -->
+    <!-- TAB 6: STRATEGY BACKTEST LEADERBOARD -->
     <!-- ========================================== -->
     <section id="tab-backtest" class="tab-content hidden space-y-6">
       
@@ -740,6 +859,7 @@
   <script>
     // State management
     let latestRecosData = null;
+    let watchlistsData = { active_watchlist: [], sell_watchlist: [] };
     let terminalOpen = true;
     let eventSource = null;
 
@@ -749,6 +869,7 @@
       fetchStatus();
       loadLatestRecos();
       loadRecosHistory();
+      loadWatchlistsData();
       loadPortfolioData();
       loadBacktestResults();
       initLogStream();
@@ -799,41 +920,45 @@
         // Update counts
         document.getElementById('stat-watchlist-count').textContent = data.counts.watchlist || 0;
         document.getElementById('stat-portfolio-count').textContent = data.counts.portfolio || 0;
-        document.getElementById('stat-results-count').textContent = data.counts.results_files || 0;
+        document.getElementById('nav-active-wl-count').textContent = data.counts.watchlist || 0;
 
-        // Update token badge
-        const dot = document.getElementById('auth-status-dot');
-        const text = document.getElementById('auth-status-text');
-
-        if (data.token_valid) {
-          dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
-          text.textContent = 'Token Active';
-        } else {
-          dot.className = 'w-2 h-2 rounded-full bg-rose-500 animate-ping';
-          text.textContent = 'Auth Expired';
-        }
-
-        // Task running indicator
-        const taskBadge = document.getElementById('task-indicator');
-        const termStopBtn = document.getElementById('term-stop-btn');
-        const termStatusTag = document.getElementById('terminal-status-tag');
+        // Task indicator
+        const indicator = document.getElementById('task-indicator');
+        const activeName = document.getElementById('active-task-name');
+        const termTag = document.getElementById('terminal-status-tag');
+        const termStop = document.getElementById('term-stop-btn');
 
         if (data.is_task_running) {
-          taskBadge.classList.remove('hidden');
-          taskBadge.classList.add('flex');
-          document.getElementById('active-task-name').textContent = data.active_task || 'Running...';
-          termStopBtn.classList.remove('hidden');
-          termStatusTag.className = 'text-[10px] px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold';
-          termStatusTag.textContent = 'EXECUTING';
+          indicator.classList.remove('hidden');
+          indicator.classList.add('flex');
+          activeName.textContent = data.active_task || 'Task Running';
+          termTag.textContent = 'RUNNING';
+          termTag.className = 'text-[10px] px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 font-bold';
+          termStop.classList.remove('hidden');
         } else {
-          taskBadge.classList.add('hidden');
-          taskBadge.classList.remove('flex');
-          termStopBtn.classList.add('hidden');
-          termStatusTag.className = 'text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400';
-          termStatusTag.textContent = 'IDLE';
+          indicator.classList.add('hidden');
+          indicator.classList.remove('flex');
+          termTag.textContent = 'Idle';
+          termTag.className = 'text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400';
+          termStop.classList.add('hidden');
         }
-      } catch (err) {
-        console.error('Status fetch error:', err);
+
+        // Auth button state
+        const authBtn = document.getElementById('auth-status-btn');
+        const authDot = document.getElementById('auth-status-dot');
+        const authTxt = document.getElementById('auth-status-text');
+
+        if (data.token_valid) {
+          authDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+          authTxt.textContent = 'Fyers Connected';
+          authBtn.className = 'flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-dark-card2 border-emerald-500/30 text-emerald-400';
+        } else {
+          authDot.className = 'w-2 h-2 rounded-full bg-amber-400';
+          authTxt.textContent = 'Generate Auth Code';
+          authBtn.className = 'flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-amber-500/10 border-amber-500/40 text-amber-300 hover:bg-amber-500/20';
+        }
+      } catch (e) {
+        console.error('Failed to fetch status:', e);
       }
     }
 
@@ -841,14 +966,16 @@
       const modal = document.getElementById('auth-modal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
-
+      
+      const link = document.getElementById('fyers-login-link');
       try {
         const res = await fetch('/api/auth/url');
         const data = await res.json();
-        document.getElementById('fyers-login-link').href = data.login_url;
+        link.href = data.login_url;
       } catch (e) {
-        console.error('Error fetching auth URL:', e);
+        console.error(e);
       }
+      lucide.createIcons();
     }
 
     function closeAuthModal() {
@@ -856,6 +983,7 @@
       modal.classList.add('hidden');
       modal.classList.remove('flex');
       document.getElementById('auth-feedback-box').classList.add('hidden');
+      document.getElementById('auth-code-input').value = '';
     }
 
     async function submitAuthCode() {
@@ -864,8 +992,8 @@
       const btn = document.getElementById('auth-verify-btn');
 
       if (!input) {
-        feedback.className = 'p-3 rounded-lg text-xs font-mono bg-rose-500/10 text-rose-400 border border-rose-500/20';
-        feedback.textContent = 'Please paste your redirect URL or auth code.';
+        feedback.className = 'p-3 rounded-lg text-xs font-mono bg-rose-500/10 border border-rose-500/30 text-rose-400';
+        feedback.textContent = '❌ Please paste the redirect URL or auth_code.';
         feedback.classList.remove('hidden');
         return;
       }
@@ -883,19 +1011,19 @@
         const data = await res.json();
 
         if (res.ok) {
-          feedback.className = 'p-3 rounded-lg text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
-          feedback.textContent = '✅ ' + data.message;
+          feedback.className = 'p-3 rounded-lg text-xs font-mono bg-emerald-500/10 border border-emerald-500/30 text-emerald-400';
+          feedback.textContent = `✅ ${data.message} (${data.token_preview})`;
           feedback.classList.remove('hidden');
           fetchStatus();
           setTimeout(closeAuthModal, 1500);
         } else {
-          feedback.className = 'p-3 rounded-lg text-xs font-mono bg-rose-500/10 text-rose-400 border border-rose-500/20';
-          feedback.textContent = '❌ ' + (data.detail || 'Verification failed.');
+          feedback.className = 'p-3 rounded-lg text-xs font-mono bg-rose-500/10 border border-rose-500/30 text-rose-400';
+          feedback.textContent = `❌ ${data.detail || 'Authentication failed'}`;
           feedback.classList.remove('hidden');
         }
-      } catch (err) {
-        feedback.className = 'p-3 rounded-lg text-xs font-mono bg-rose-500/10 text-rose-400 border border-rose-500/20';
-        feedback.textContent = '❌ Network error: ' + err.message;
+      } catch (e) {
+        feedback.className = 'p-3 rounded-lg text-xs font-mono bg-rose-500/10 border border-rose-500/30 text-rose-400';
+        feedback.textContent = `❌ Network Error: ${e}`;
         feedback.classList.remove('hidden');
       } finally {
         btn.disabled = false;
@@ -905,41 +1033,36 @@
     }
 
     // -------------------------------------------------------------
-    // Task Execution & SSE Log Streaming
+    // Task Execution & Live Terminal SSE
     // -------------------------------------------------------------
     async function triggerTask(action, symbol = null, ltp = null) {
-      // Ensure terminal is open when task starts
+      // Ensure terminal is open
       if (!terminalOpen) toggleTerminal();
 
       try {
-        const payload = { action };
-        if (symbol) payload.symbol = symbol;
-        if (ltp) payload.ltp = parseFloat(ltp);
-
         const res = await fetch('/api/tasks/run', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({ action, symbol, ltp })
         });
         const data = await res.json();
-
-        if (!res.ok) {
-          appendLogLine(`⚠️ Error starting task: ${data.detail}`);
-        } else {
+        
+        if (res.ok) {
           fetchStatus();
+        } else {
+          alert(`Error: ${data.detail || 'Could not start task'}`);
         }
-      } catch (err) {
-        appendLogLine(`❌ Failed to trigger task: ${err.message}`);
+      } catch (e) {
+        alert(`Request failed: ${e}`);
       }
     }
 
     async function stopActiveTask() {
       try {
         await fetch('/api/tasks/stop', { method: 'POST' });
-        appendLogLine('⚠️ Signal sent to terminate task.');
         fetchStatus();
       } catch (e) {
-        console.error('Error stopping task:', e);
+        console.error(e);
       }
     }
 
@@ -952,9 +1075,6 @@
           const data = JSON.parse(event.data);
           if (data.line) {
             appendLogLine(data.line);
-          }
-          if (data.running !== undefined) {
-            // Task status updated
           }
         } catch (e) {
           console.error(e);
@@ -987,9 +1107,10 @@
       output.appendChild(div);
       output.scrollTop = output.scrollHeight;
 
-      // Check if task finished to auto-refresh recos
+      // Auto-refresh recommendations or watchlists on completion
       if (line.includes('Results saved: Results/')) {
         setTimeout(loadLatestRecos, 1000);
+        setTimeout(loadWatchlistsData, 1000);
       }
     }
 
@@ -1092,6 +1213,21 @@
         });
       }
 
+      // Render CAUTION / SELL cards
+      const csContainer = document.getElementById('caution-sell-container');
+      const csSection = document.getElementById('caution-sell-section');
+      csContainer.innerHTML = '';
+
+      if (data.caution_sell && data.caution_sell.length > 0) {
+        csSection.classList.remove('hidden');
+        document.getElementById('cautionsell-count-label').textContent = `${data.caution_sell.length} items`;
+        data.caution_sell.forEach((item, idx) => {
+          csContainer.appendChild(createCautionCard(item, idx + 1));
+        });
+      } else {
+        csSection.classList.add('hidden');
+      }
+
       lucide.createIcons();
     }
 
@@ -1128,13 +1264,158 @@
 
         <div class="mt-4 pt-3 border-t border-dark-border/60 flex items-center justify-between">
           <span class="text-[11px] font-mono text-slate-400">${item.fyers_symbol}</span>
-          <button onclick="inspectSymbol('${item.symbol}')" class="px-2.5 py-1 rounded bg-dark-card2 hover:bg-slate-700 text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 transition flex items-center space-x-1">
-            <i data-lucide="search" class="w-3 h-3"></i>
-            <span>Deep Dive</span>
-          </button>
+          <div class="flex items-center space-x-1.5">
+            <button onclick="openChart('${item.fyers_symbol}')" class="px-2.5 py-1 rounded bg-dark-card2 hover:bg-emerald-500/20 text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 border border-dark-border hover:border-emerald-500/40 transition flex items-center space-x-1" title="Open Fyers / TradingView Chart">
+              <i data-lucide="candlestick-chart" class="w-3.5 h-3.5"></i>
+              <span>Chart</span>
+            </button>
+            <button onclick="inspectSymbol('${item.symbol}')" class="px-2.5 py-1 rounded bg-dark-card2 hover:bg-cyan-500/20 text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 border border-dark-border hover:border-cyan-500/40 transition flex items-center space-x-1" title="Deep Dive Technical Audit">
+              <i data-lucide="search" class="w-3.5 h-3.5"></i>
+              <span>Deep Dive</span>
+            </button>
+          </div>
         </div>
       `;
       return card;
+    }
+
+    function createCautionCard(item, rank) {
+      const card = document.createElement('div');
+      card.className = 'border border-rose-500/30 bg-dark-card rounded-xl p-4 flex flex-col justify-between transition-all hover:border-rose-400 glow-rose';
+      
+      const reasonText = item.reasons && item.reasons.length > 0 ? item.reasons.join(' • ') : 'Breakdown below support / KC Mid';
+
+      card.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-mono text-slate-500">#${rank}</span>
+              <h4 class="text-base font-bold text-white font-mono tracking-tight">${item.symbol}</h4>
+            </div>
+            <span class="text-[11px] font-mono font-bold px-2 py-0.5 rounded border bg-rose-500/10 text-rose-400 border-rose-500/30">
+              ${item.score}% SELL
+            </span>
+          </div>
+
+          <p class="text-xs text-rose-300/80 mt-2 line-clamp-2 leading-relaxed">
+            ${reasonText}
+          </p>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-dark-border/60 flex items-center justify-between">
+          <button onclick="moveSymbolToSellWatchlist('${item.symbol}')" class="px-2 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-[11px] font-semibold text-rose-400 border border-rose-500/30 transition flex items-center space-x-1" title="Drop from Active and move to Sell Watchlist">
+            <i data-lucide="arrow-down-circle" class="w-3 h-3"></i>
+            <span>Move to Sell</span>
+          </button>
+          
+          <div class="flex items-center space-x-1.5">
+            <button onclick="openChart('${item.fyers_symbol}')" class="px-2 py-1 rounded bg-dark-card2 hover:bg-emerald-500/20 text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 border border-dark-border transition flex items-center space-x-1" title="Open Chart">
+              <i data-lucide="candlestick-chart" class="w-3 h-3"></i>
+              <span>Chart</span>
+            </button>
+            <button onclick="inspectSymbol('${item.symbol}')" class="px-2 py-1 rounded bg-dark-card2 hover:bg-cyan-500/20 text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 border border-dark-border transition flex items-center space-x-1">
+              <i data-lucide="search" class="w-3 h-3"></i>
+              <span>Deep Dive</span>
+            </button>
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    function openChart(fyersSymbol) {
+      if (!fyersSymbol) return;
+      const coreSym = fyersSymbol.replace('NSE:', '').replace('-EQ', '').replace('-BE', '').replace('-SM', '').replace('-ST', '');
+      const tvUrl = `https://in.tradingview.com/chart/?symbol=NSE:${encodeURIComponent(coreSym)}`;
+      window.open(tvUrl, '_blank');
+    }
+
+    async function addExcellentToWatchlist() {
+      if (!latestRecosData || !latestRecosData.excellent_symbols || latestRecosData.excellent_symbols.length === 0) {
+        alert('No Excellent (80%+) setups in the current report.');
+        return;
+      }
+
+      const syms = latestRecosData.excellent_symbols;
+      try {
+        const res = await fetch('/api/watchlist/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbols: syms, target: 'active' })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          alert(`⭐ Successfully added ${data.added.length} Excellent stocks to Active Watchlist!\n(Total Active: ${data.active_count})`);
+          loadWatchlistsData();
+          fetchStatus();
+        } else {
+          alert(`Error: ${data.detail || 'Failed to add to watchlist'}`);
+        }
+      } catch (e) {
+        alert(`Request failed: ${e}`);
+      }
+    }
+
+    async function moveAllSellToSellWatchlist() {
+      if (!latestRecosData || !latestRecosData.sell_symbols || latestRecosData.sell_symbols.length === 0) {
+        alert('No SELL / Caution stocks in the current report.');
+        return;
+      }
+
+      const syms = latestRecosData.sell_symbols;
+      try {
+        const res = await fetch('/api/watchlist/move-to-sell', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbols: syms })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          alert(`🔻 Moved ${data.moved.length} SELL stocks to Sell Watchlist!\n(Active: ${data.active_count}, Sell: ${data.sell_count})`);
+          loadWatchlistsData();
+          fetchStatus();
+        }
+      } catch (e) {
+        alert(`Request failed: ${e}`);
+      }
+    }
+
+    async function moveSymbolToSellWatchlist(sym) {
+      try {
+        const res = await fetch('/api/watchlist/move-to-sell', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbols: [sym] })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert(`Moved ${sym} to Sell Watchlist.`);
+          loadWatchlistsData();
+          fetchStatus();
+        }
+      } catch (e) {
+        alert(`Request failed: ${e}`);
+      }
+    }
+
+    async function moveSymbolToActiveWatchlist(sym) {
+      try {
+        const res = await fetch('/api/watchlist/move-to-active', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbols: [sym] })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert(`Restored ${sym} to Active Watchlist.`);
+          loadWatchlistsData();
+          fetchStatus();
+        }
+      } catch (e) {
+        alert(`Request failed: ${e}`);
+      }
     }
 
     function copyTickers(type) {
@@ -1157,6 +1438,148 @@
       switchTab('deep-dive');
       setDeepDiveSymbol(sym);
       runDeepDive();
+    }
+
+    // -------------------------------------------------------------
+    // Watchlists Management Engine
+    // -------------------------------------------------------------
+    async function loadWatchlistsData() {
+      try {
+        const res = await fetch('/api/watchlist');
+        const data = await res.json();
+        watchlistsData = data;
+
+        document.getElementById('active-wl-count-badge').textContent = data.active_count || 0;
+        document.getElementById('sell-wl-count-badge').textContent = data.sell_count || 0;
+        document.getElementById('stat-watchlist-count').textContent = data.active_count || 0;
+        document.getElementById('stat-sell-watchlist-count').textContent = data.sell_count || 0;
+        document.getElementById('nav-active-wl-count').textContent = data.active_count || 0;
+
+        renderWatchlistsTables();
+      } catch (e) {
+        console.error('Error loading watchlists:', e);
+      }
+    }
+
+    function renderWatchlistsTables() {
+      const activeFilter = (document.getElementById('active-wl-filter').value || '').trim().toUpperCase();
+      const sellFilter = (document.getElementById('sell-wl-filter').value || '').trim().toUpperCase();
+
+      // Render Active Table
+      const activeTbody = document.getElementById('active-wl-tbody');
+      activeTbody.innerHTML = '';
+      const filteredActive = (watchlistsData.active_watchlist || []).filter(s => !activeFilter || s.includes(activeFilter));
+
+      if (filteredActive.length === 0) {
+        activeTbody.innerHTML = '<tr><td colspan="2" class="py-3 px-3 text-center text-slate-500">No active stocks match filter</td></tr>';
+      } else {
+        filteredActive.forEach(sym => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-dark-card2/60 transition';
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 font-bold text-white flex items-center space-x-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>${sym}</span>
+            </td>
+            <td class="py-2.5 px-3 text-right">
+              <div class="flex items-center justify-end space-x-1.5">
+                <button onclick="openChart('NSE:${sym}')" class="px-2 py-0.5 rounded bg-dark-card hover:bg-emerald-500/20 text-emerald-400 text-[10px] font-semibold border border-dark-border" title="Chart">
+                  Chart
+                </button>
+                <button onclick="inspectSymbol('${sym}')" class="px-2 py-0.5 rounded bg-dark-card hover:bg-cyan-500/20 text-cyan-400 text-[10px] font-semibold border border-dark-border" title="Audit">
+                  Audit
+                </button>
+                <button onclick="moveSymbolToSellWatchlist('${sym}')" class="px-2 py-0.5 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-[10px] font-semibold border border-rose-500/30" title="Move to Sell Watchlist">
+                  To Sell
+                </button>
+                <button onclick="removeSymbolFromWatchlist('${sym}', 'active')" class="p-1 text-slate-500 hover:text-rose-400" title="Remove completely">
+                  <i data-lucide="trash-2" class="w-3 h-3"></i>
+                </button>
+              </div>
+            </td>
+          `;
+          activeTbody.appendChild(tr);
+        });
+      }
+
+      // Render Sell Table
+      const sellTbody = document.getElementById('sell-wl-tbody');
+      sellTbody.innerHTML = '';
+      const filteredSell = (watchlistsData.sell_watchlist || []).filter(s => !sellFilter || s.includes(sellFilter));
+
+      if (filteredSell.length === 0) {
+        sellTbody.innerHTML = '<tr><td colspan="2" class="py-3 px-3 text-center text-slate-500">No sell watchlist stocks</td></tr>';
+      } else {
+        filteredSell.forEach(sym => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-dark-card2/60 transition';
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 font-bold text-amber-300 flex items-center space-x-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+              <span>${sym}</span>
+            </td>
+            <td class="py-2.5 px-3 text-right">
+              <div class="flex items-center justify-end space-x-1.5">
+                <button onclick="openChart('NSE:${sym}')" class="px-2 py-0.5 rounded bg-dark-card hover:bg-emerald-500/20 text-emerald-400 text-[10px] font-semibold border border-dark-border" title="Chart">
+                  Chart
+                </button>
+                <button onclick="inspectSymbol('${sym}')" class="px-2 py-0.5 rounded bg-dark-card hover:bg-cyan-500/20 text-cyan-400 text-[10px] font-semibold border border-dark-border" title="Audit">
+                  Audit
+                </button>
+                <button onclick="moveSymbolToActiveWatchlist('${sym}')" class="px-2 py-0.5 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-[10px] font-semibold border border-emerald-500/30" title="Restore to Active">
+                  Restore
+                </button>
+                <button onclick="removeSymbolFromWatchlist('${sym}', 'sell')" class="p-1 text-slate-500 hover:text-rose-400" title="Remove completely">
+                  <i data-lucide="trash-2" class="w-3 h-3"></i>
+                </button>
+              </div>
+            </td>
+          `;
+          sellTbody.appendChild(tr);
+        });
+      }
+
+      lucide.createIcons();
+    }
+
+    async function manualAddSymbol() {
+      const input = document.getElementById('manual-add-symbol');
+      const val = input.value.trim().toUpperCase();
+      if (!val) return;
+
+      const syms = val.split(/[\s,]+/).filter(Boolean);
+      try {
+        const res = await fetch('/api/watchlist/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbols: syms, target: 'active' })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          input.value = '';
+          loadWatchlistsData();
+          fetchStatus();
+        }
+      } catch (e) {
+        alert(e);
+      }
+    }
+
+    async function removeSymbolFromWatchlist(sym, target) {
+      try {
+        const res = await fetch('/api/watchlist/remove', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbols: [sym], target: target })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          loadWatchlistsData();
+          fetchStatus();
+        }
+      } catch (e) {
+        alert(e);
+      }
     }
 
     // -------------------------------------------------------------
@@ -1202,9 +1625,15 @@
                 <p class="text-xs text-slate-400 font-mono mt-1">Date: ${data.date} • Conclusion: <strong class="text-white">${data.conclusion}</strong></p>
               </div>
 
-              <div class="text-right">
-                <div class="text-xs text-slate-400">Latest Close Price</div>
-                <div class="text-2xl font-bold font-mono text-white">₹${data.close.toLocaleString('en-IN')}</div>
+              <div class="flex items-center space-x-4">
+                <button onclick="openChart('${data.fyers_symbol}')" class="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center space-x-1.5 transition">
+                  <i data-lucide="candlestick-chart" class="w-4 h-4"></i>
+                  <span>Open Chart</span>
+                </button>
+                <div class="text-right">
+                  <div class="text-xs text-slate-400">Latest Close Price</div>
+                  <div class="text-2xl font-bold font-mono text-white">₹${data.close.toLocaleString('en-IN')}</div>
+                </div>
               </div>
             </div>
 
@@ -1248,7 +1677,7 @@
                   <i data-lucide="layers" class="w-4 h-4 text-purple-400"></i>
                 </div>
                 <div class="text-base font-bold font-mono ${isKCBreak ? 'text-emerald-400' : 'text-slate-300'}">
-                  ${isKCBreak ? '🚀 UPPER BREAKOUT' : (data.is_kc_breakdown ? '⚠️ LOWER BREAKDOWN' : 'INSIDE CHANNEL')}
+                  ${isKCBreak ? 'BREAKOUT (Above KC Upper)' : (data.is_kc_breakdown ? 'BREAKDOWN (Below KC Lower)' : 'INSIDE CHANNELS')}
                 </div>
                 <div class="text-xs font-mono text-slate-400 space-y-0.5">
                   <div>KC Upper: <strong class="text-white">₹${data.kc_upper}</strong></div>
@@ -1258,98 +1687,64 @@
 
             </div>
 
-            <!-- Volume & Strength Summary -->
-            <div class="p-4 rounded-xl bg-slate-900/60 border border-dark-border flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs">
-              <div>
-                <span>Traded Volume: <strong class="text-white">${data.volume.toLocaleString('en-IN')}</strong></span>
-                <span class="mx-2">•</span>
-                <span>20-day Avg: <strong class="text-white">${data.avg_volume.toLocaleString('en-IN')}</strong></span>
-                <span class="mx-2">•</span>
-                <span>Volume Ratio: <strong class="${data.vol_ratio >= 1.5 ? 'text-emerald-400 font-bold' : 'text-slate-300'}">${data.vol_ratio}x</strong></span>
-              </div>
-
-              <button onclick="triggerTask('dry_run')" class="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition">
-                Back to Dry Run
-              </button>
-            </div>
-
           </div>
         `;
         lucide.createIcons();
-      } catch (err) {
-        container.innerHTML = `<div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono">❌ Network Error: ${err.message}</div>`;
+      } catch (e) {
+        container.innerHTML = `<div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono">❌ Error: ${e}</div>`;
       }
     }
 
     // -------------------------------------------------------------
-    // Portfolio Holdings View
+    // Portfolio Data
     // -------------------------------------------------------------
     async function loadPortfolioData() {
       try {
         const res = await fetch('/api/portfolio');
         const data = await res.json();
-
-        if (data.summary) {
-          document.getElementById('port-total-inv').textContent = `₹${(data.summary.total_invested || 0).toLocaleString('en-IN')}`;
-          document.getElementById('port-total-cur').textContent = `₹${(data.summary.total_current || 0).toLocaleString('en-IN')}`;
-          
-          const pnlEl = document.getElementById('port-total-pnl');
-          const isProfit = (data.summary.total_pnl || 0) >= 0;
-          pnlEl.className = `text-xl font-bold font-mono mt-1 ${isProfit ? 'text-emerald-400' : 'text-rose-400'}`;
-          pnlEl.textContent = `${isProfit ? '+' : ''}₹${(data.summary.total_pnl || 0).toLocaleString('en-IN')} (${data.summary.total_pnl_pct}%)`;
-
-          document.getElementById('port-risk-summary').innerHTML = `
-            <span class="text-emerald-400">${data.summary.strong_holds} Holds</span> • 
-            <span class="text-amber-400">${data.summary.cautions} Cautions</span> • 
-            <span class="text-rose-400">${data.summary.sells} Sells</span>
-          `;
-        }
-
         const tbody = document.getElementById('portfolio-table-body');
         tbody.innerHTML = '';
 
         if (!data.holdings || data.holdings.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="9" class="p-4 text-center text-slate-500">No holdings found in Portfolio.txt.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-slate-500">No holdings found in Portfolio.txt</td></tr>';
           return;
         }
 
-        data.holdings.forEach(h => {
+        data.holdings.forEach(item => {
           const tr = document.createElement('tr');
+          const isProfitable = item.pnl_pct >= 0;
+          const statusClass = item.status === 'SELL' ? 'bg-rose-500/10 text-rose-400 border-rose-500/30' : (item.status === 'CAUTION' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30');
+
           tr.className = 'hover:bg-dark-card2/50 transition';
-          
-          let statusBadge = 'bg-slate-800 text-slate-400';
-          if (h.status === 'STRONG HOLD') statusBadge = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold';
-          if (h.status === 'CAUTION') statusBadge = 'bg-amber-500/10 text-amber-400 border border-amber-500/30 font-bold';
-          if (h.status === 'SELL') statusBadge = 'bg-rose-500/10 text-rose-400 border border-rose-500/30 font-bold';
-
-          const pnlColor = h.pnl_pct >= 0 ? 'text-emerald-400' : 'text-rose-400';
-
           tr.innerHTML = `
-            <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[10px] ${statusBadge}">${h.status}</span></td>
-            <td class="py-3 px-4 font-bold text-white">${h.symbol}</td>
-            <td class="py-3 px-4 text-right">${h.qty}</td>
-            <td class="py-3 px-4 text-right">₹${h.avg_cost.toFixed(2)}</td>
-            <td class="py-3 px-4 text-right font-bold">₹${h.cmp.toFixed(2)}</td>
-            <td class="py-3 px-4 text-right">₹${h.invested.toLocaleString('en-IN')}</td>
-            <td class="py-3 px-4 text-right font-bold">₹${h.current_val.toLocaleString('en-IN')}</td>
-            <td class="py-3 px-4 text-right font-bold ${pnlColor}">${h.pnl_pct >= 0 ? '+' : ''}${h.pnl_pct.toFixed(1)}%</td>
+            <td class="py-3 px-4 font-bold text-white">${item.symbol}</td>
+            <td class="py-3 px-4 text-right">${item.qty}</td>
+            <td class="py-3 px-4 text-right">₹${item.avg_cost.toFixed(2)}</td>
+            <td class="py-3 px-4 text-right">₹${item.current_price.toFixed(2)}</td>
+            <td class="py-3 px-4 text-right font-bold ${isProfitable ? 'text-emerald-400' : 'text-rose-400'}">
+              ${isProfitable ? '+' : ''}${item.pnl_pct.toFixed(2)}%
+            </td>
             <td class="py-3 px-4 text-center">
-              <button onclick="inspectSymbol('${h.symbol}')" class="text-slate-400 hover:text-cyan-400" title="Inspect">
-                <i data-lucide="search" class="w-3.5 h-3.5 inline"></i>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusClass}">${item.status}</span>
+            </td>
+            <td class="py-3 px-4 text-right space-x-1.5">
+              <button onclick="openChart('${item.fyers_symbol || item.symbol}')" class="px-2 py-1 rounded bg-dark-card2 hover:bg-emerald-500/20 text-emerald-400 text-xs font-semibold transition" title="Open Chart">
+                Chart
+              </button>
+              <button onclick="inspectSymbol('${item.symbol}')" class="px-2 py-1 rounded bg-dark-card2 hover:bg-slate-700 text-cyan-400 text-xs font-semibold transition">
+                Audit
               </button>
             </td>
           `;
           tbody.appendChild(tr);
         });
-
-        lucide.createIcons();
       } catch (e) {
-        console.error('Error loading portfolio:', e);
+        console.error('Failed to load portfolio:', e);
       }
     }
 
     // -------------------------------------------------------------
-    // Backtest Leaderboard View
+    // Backtest Results
     // -------------------------------------------------------------
     async function loadBacktestResults() {
       try {
@@ -1358,36 +1753,32 @@
         const tbody = document.getElementById('backtest-table-body');
         tbody.innerHTML = '';
 
-        if (!data.has_results || !data.strategies) {
-          tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500">No backtest records found. Run Option 6 to generate.</td></tr>';
+        if (!data.leaderboard || data.leaderboard.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-slate-500">No backtest records found. Run backtest to populate.</td></tr>';
           return;
         }
 
-        data.strategies.forEach((strat, idx) => {
+        data.leaderboard.forEach(item => {
           const tr = document.createElement('tr');
-          const isWinner = idx === 0;
-          tr.className = isWinner ? 'bg-emerald-500/5 hover:bg-emerald-500/10 font-bold' : 'hover:bg-dark-card2/50';
-
-          const pnlColor = strat.PnL >= 0 ? 'text-emerald-400' : 'text-rose-400';
-
+          const isWinner = item.rank === 1;
+          tr.className = `hover:bg-dark-card2/50 transition ${isWinner ? 'bg-emerald-500/5' : ''}`;
           tr.innerHTML = `
-            <td class="py-3 px-4 flex items-center space-x-2">
-              <span class="w-5 h-5 rounded-full ${isWinner ? 'bg-amber-400 text-dark-bg font-bold' : 'bg-slate-800 text-slate-400'} flex items-center justify-center text-[10px]">
-                ${idx + 1}
-              </span>
-              <span class="${isWinner ? 'text-emerald-400' : 'text-white'}">${strat.Strategy} ${isWinner ? '🏆' : ''}</span>
+            <td class="py-3 px-4 font-bold ${isWinner ? 'text-emerald-400' : 'text-white'}">
+              #${item.rank} ${item.strategy_name} ${isWinner ? '🏆' : ''}
             </td>
-            <td class="py-3 px-4 text-right ${pnlColor}">₹${strat.PnL.toLocaleString('en-IN')}</td>
-            <td class="py-3 px-4 text-right ${pnlColor}">${strat['PnL %']}%</td>
-            <td class="py-3 px-4 text-right">${strat['Total Trades']}</td>
-            <td class="py-3 px-4 text-right ${strat['Win Rate %'] >= 25 ? 'text-emerald-400 font-bold' : ''}">${strat['Win Rate %']}%</td>
-            <td class="py-3 px-4 text-right text-rose-400">${strat['Max Drawdown %']}%</td>
-            <td class="py-3 px-4 text-right">${strat['Sharpe Ratio']}</td>
+            <td class="py-3 px-4 text-right font-bold ${item.total_net_pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+              ₹${item.total_net_pnl.toLocaleString('en-IN')}
+            </td>
+            <td class="py-3 px-4 text-right">${item.avg_pnl_pct.toFixed(2)}%</td>
+            <td class="py-3 px-4 text-right">${item.total_trades}</td>
+            <td class="py-3 px-4 text-right font-bold text-white">${item.win_rate_pct.toFixed(1)}%</td>
+            <td class="py-3 px-4 text-right text-rose-400">${item.max_drawdown_pct.toFixed(1)}%</td>
+            <td class="py-3 px-4 text-right text-cyan-400 font-bold">${item.sharpe_ratio.toFixed(2)}</td>
           `;
           tbody.appendChild(tr);
         });
       } catch (e) {
-        console.error('Error loading backtest:', e);
+        console.error('Failed to load backtests:', e);
       }
     }
   </script>

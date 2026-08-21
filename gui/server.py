@@ -259,6 +259,7 @@ def run_task(req: RunTaskRequest):
 
     action_map = {
         "dry_run": ("Dry Run Watchlist Scanner", [sys.executable, "-u", os.path.join(PROJECT_DIR, "scripts", "dry_run.py")]),
+        "scan_sell_watchlist": ("Scan Sell Watchlist", [sys.executable, "-u", os.path.join(PROJECT_DIR, "scripts", "dry_run.py"), "--sell-watchlist"]),
         "update_data": ("Update Historical Data", [sys.executable, "-u", os.path.join(PROJECT_DIR, "scripts", "update_historical_data.py")]),
         "portfolio_scan": ("Portfolio Holdings Scan", [sys.executable, "-u", os.path.join(PROJECT_DIR, "scripts", "portfolio_analysis.py")]),
         "backtest": ("Run 6-Strategy Backtest", [sys.executable, "-u", os.path.join(PROJECT_DIR, "backtest", "run_backtest.py")]),
@@ -323,6 +324,51 @@ async def stream_logs():
 
 
 # -------------------------------------------------------------
+# Watchlist Management Endpoints
+# -------------------------------------------------------------
+
+@app.get("/api/watchlist")
+def get_watchlist_api():
+    """Returns summary of Active Watchlist, Sell Watchlist, and Test Stocks."""
+    from data.watchlist_manager import get_watchlist_summary
+    return get_watchlist_summary()
+
+
+class WatchlistModifyRequest(BaseModel):
+    symbols: List[str]
+    target: Optional[str] = "active"
+
+
+@app.post("/api/watchlist/add")
+def add_to_watchlist_api(req: WatchlistModifyRequest):
+    """Adds symbols to the active watchlist and fetches history if needed."""
+    from data.watchlist_manager import add_to_active_watchlist
+    res = add_to_active_watchlist(req.symbols)
+    return res
+
+
+@app.post("/api/watchlist/move-to-sell")
+def move_to_sell_api(req: WatchlistModifyRequest):
+    """Moves symbols from active watchlist to sell watchlist."""
+    from data.watchlist_manager import move_to_sell_watchlist
+    return move_to_sell_watchlist(req.symbols)
+
+
+@app.post("/api/watchlist/move-to-active")
+def move_to_active_api(req: WatchlistModifyRequest):
+    """Restores symbols from sell watchlist to active watchlist."""
+    from data.watchlist_manager import move_to_active_watchlist
+    return move_to_active_watchlist(req.symbols)
+
+
+@app.post("/api/watchlist/remove")
+def remove_from_watchlist_api(req: WatchlistModifyRequest):
+    """Removes symbols from active or sell watchlist."""
+    from data.watchlist_manager import remove_from_watchlist
+    return remove_from_watchlist(req.symbols, target=req.target or "active")
+
+
+# -------------------------------------------------------------
 # Recommendations (Reco) & Results Endpoints
 # -------------------------------------------------------------
 
@@ -341,6 +387,7 @@ def parse_results_txt(filepath: str) -> dict:
     add_more = []
     new_buy = []
     discoveries = []
+    caution_sell = []
 
     for line in lines:
         if line.startswith("ADD MORE:"):
@@ -352,25 +399,43 @@ def parse_results_txt(filepath: str) -> dict:
         elif line.startswith("DISCOVERY BUY SIGNALS:"):
             current_section = "DISCOVERY"
             continue
+        elif line.startswith("CAUTION / SELL:") or line.startswith("CAUTION:"):
+            current_section = "CAUTION_SELL"
+            continue
 
-        match = re.match(r"^\d+\.\s+([A-Z0-9_\-\&]+)\s+[—\-]\s+(\d+)%\s+([A-Z]+)", line)
-        if match:
-            sym, score, label = match.groups()
-            item = {
-                "symbol": sym,
-                "fyers_symbol": f"NSE:{sym}",
-                "score": int(score),
-                "label": label
-            }
-            if current_section == "ADD_MORE":
-                add_more.append(item)
-            elif current_section == "NEW_BUY":
-                new_buy.append(item)
-            elif current_section == "DISCOVERY":
-                discoveries.append(item)
+        if current_section in ["ADD_MORE", "NEW_BUY", "DISCOVERY"]:
+            match = re.match(r"^\d+\.\s+([A-Z0-9_\-\&]+)\s+[—\-]\s+(\d+)%\s+([A-Z]+)", line)
+            if match:
+                sym, score, label = match.groups()
+                item = {
+                    "symbol": sym,
+                    "fyers_symbol": f"NSE:{sym}",
+                    "score": int(score),
+                    "label": label
+                }
+                if current_section == "ADD_MORE":
+                    add_more.append(item)
+                elif current_section == "NEW_BUY":
+                    new_buy.append(item)
+                elif current_section == "DISCOVERY":
+                    discoveries.append(item)
+        elif current_section == "CAUTION_SELL":
+            # Format: 1. ADANIENSOL — 50% SELL (held 190 @ Rs.1548.50) > Price below KC mid-line
+            m = re.match(r"^\d+\.\s+([A-Z0-9_\-\&]+)\s+[—\-]\s+(?:(\d+)%\s+)?(?:SELL|CAUTION)(?:\s+\(held\s+(\d+)\s+@\s+Rs\.([\d\.]+)\))?(?:\s+>\s+(.*))?", line)
+            if m:
+                sym, score, qty, price, reasons = m.groups()
+                caution_sell.append({
+                    "symbol": sym,
+                    "fyers_symbol": f"NSE:{sym}",
+                    "score": int(score) if score else 50,
+                    "held_qty": int(qty) if qty else 0,
+                    "price": float(price) if price else 0.0,
+                    "reasons": reasons.split(" . ") if reasons else ["Price below KC mid-line / EMA breakdown"]
+                })
 
     all_symbols = [x["symbol"] for x in add_more + new_buy + discoveries]
     excellent_symbols = [x["symbol"] for x in add_more + new_buy + discoveries if x["score"] >= 80]
+    sell_symbols = [x["symbol"] for x in caution_sell]
 
     all_tickers_str = ",\n".join(f"NSE:{s}" for s in all_symbols)
     excellent_tickers_str = ",\n".join(f"NSE:{s}" for s in excellent_symbols)
@@ -383,15 +448,19 @@ def parse_results_txt(filepath: str) -> dict:
         "add_more": add_more,
         "new_buy": new_buy,
         "discoveries": discoveries,
+        "caution_sell": caution_sell,
         "counts": {
             "total_recos": len(add_more) + len(new_buy) + len(discoveries),
             "add_more": len(add_more),
             "new_buy": len(new_buy),
             "discoveries": len(discoveries),
-            "excellent": len(excellent_symbols)
+            "excellent": len(excellent_symbols),
+            "caution_sell": len(caution_sell)
         },
         "all_tickers_formatted": all_tickers_str,
         "excellent_tickers_formatted": excellent_tickers_str,
+        "excellent_symbols": excellent_symbols,
+        "sell_symbols": sell_symbols,
         "raw_text": content
     }
 
