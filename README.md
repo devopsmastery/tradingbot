@@ -114,55 +114,62 @@ The framework includes 6 modular Backtrader strategies located in `strategies/`:
 
 ---
 
-## 🤖 Interactive 8-Option Trading Menu
+## 🤖 Interactive 9-Option Trading Menu
 
-Run `python main.py` or interact with the AI assistant to access the central trading dashboard:
+Run `python main.py` or interact with the Web Dashboard / CLI to access the central trading engine:
 
 ```
 =============================================================
     FYERS TRADING BOT
 ==============================================================
   What would you like to do next?
-  1.  Dry Run            Scan your watchlist -> today's BUY recommendations
-  2.  Update Data        Refresh historical data for all stocks
-  3.  Deep Analysis      Deep-dive on a specific stock
-  4.  Add New Stocks     Import tickers from Newly_added_stocks.txt
-  5.  Portfolio Scan     HOLD / CAUTION / SELL status of your holdings
-  6.  Run Backtest       Compare all 6 strategies across the stock universe
-  7.  Full NSE Scan      Discover BUY signals from ALL small+mid cap NSE stocks
-  8.  Exit
+  1.  Dry Run (Active)   Scan your Active Watchlist -> today's BUY recommendations
+  2.  Scan Sell Watch    Audit stocks in Sell Watchlist for recovery/weakness
+  3.  Update Data        Refresh historical data for all stocks in DuckDB
+  4.  Deep Analysis      Deep-dive on a specific stock
+  5.  Add New Stocks     Import tickers from Newly_added_stocks.txt
+  6.  Portfolio Scan     HOLD / CAUTION / SELL status of your holdings
+  7.  Run Backtest       Compare all 6 strategies across the stock universe
+  8.  Full NSE Scan      Discover BUY signals from ALL small+mid cap NSE stocks
+  9.  Exit
 ```
 
 ### Feature Details:
-1. **Option 1 (Dry Run)** (`scripts/dry_run.py`):
-   - Evaluates all watchlist and portfolio stocks against DuckDB historical candles and batch live quotes in ~12 seconds.
+1. **Option 1 (Dry Run - Active Watchlist)** (`scripts/dry_run.py`):
+   - Evaluates all **Active Watchlist** (`stocks_watchlist.txt`) and portfolio stocks against DuckDB historical candles and batch live quotes in ~12 seconds.
    - Categorizes recommendations into **`ADD MORE`** (held stocks with expanding momentum) and **`NEW BUY`** (fresh breakout setups).
    - Generates a **`CAUTION`** list for held stocks showing weakness or breaking below KC Mid / EMA 21.
    - Auto-dumps recommendations into timestamped files: `Results/DD-MM-HH-dryrun-results.txt`.
 
-2. **Option 2 (Update Data)** (`scripts/update_historical_data.py`):
+2. **Option 2 (Scan Sell Watchlist)** (`scripts/dry_run.py --sell-watchlist`):
+   - Dedicated weakness and recovery audit scanning exclusively the **Sell Watchlist** (`stocks_sell_watchlist.txt`).
+   - Identifies whether dropped stocks are finding support, consolidating, or breaking out into fresh recovery buy signals.
+   - Auto-dumps findings into: `Results/DD-MM-HH-sellscan-results.txt`.
+
+3. **Option 3 (Update Data)** (`scripts/update_historical_data.py`):
    - Incrementally updates daily candles in DuckDB and local CSVs without re-downloading entire histories.
 
-3. **Option 3 (Deep Analysis)** (`scripts/deep_analysis.py <SYMBOL>`):
+4. **Option 4 (Deep Analysis)** (`scripts/deep_analysis.py <SYMBOL>`):
    - Comprehensive technical audit for any stock: Keltner Channels, EMA 10/21, RSI 14, MACD (12, 26, 9), Volume vs. 20-day SMA, and an Overall Strength Score (0 to 5). Supports live simulated LTP via `--ltp <PRICE>`.
 
-4. **Option 4 (Add New Stocks)** (`scripts/add_new_stocks.py`):
+5. **Option 5 (Add New Stocks)** (`scripts/add_new_stocks.py`):
    - Reads newly discovered or user-provided tickers from `Newly_added_stocks.txt`, fetches full historical data, deduplicates, and adds them to `stocks_watchlist.txt`, `stocks_to_test.txt`, and DuckDB.
 
-5. **Option 5 (Portfolio Scan)** (`scripts/portfolio_analysis.py`):
+6. **Option 6 (Portfolio Scan)** (`scripts/portfolio_analysis.py`):
    - Directly parses broker-exported holdings from `Portfolio.txt` / `data/portfolio_db.json`.
    - Computes unrealized P&L % and tags every holding with real-time risk status: **`STRONG HOLD`**, **`CAUTION`**, or **`SELL`**.
 
-6. **Option 6 (Run Backtest)** (`backtest/run_backtest.py`):
+7. **Option 7 (Run Backtest)** (`backtest/run_backtest.py`):
    - Runs a comparative backtest across all 6 strategies on the full stock universe.
    - Generates performance tables (Net PnL, PnL %, Total Trades, Win Rate %, Max Drawdown %, Sharpe Ratio) and saves per-stock trade logs to `backtest/backtest_results.csv`.
 
-7. **Option 7 (Full NSE Scan)** (`scripts/full_exchange_scan.py`):
+8. **Option 8 (Full NSE Scan)** (`scripts/full_exchange_scan.py`):
    - **Exchange-wide Discovery Engine**: Downloads Fyers official NSE Cash Market symbol master (~2,000+ listings).
    - **Phase 1 (Filtering)**: Filters for EQ segment + Small Cap (tier 2.0-2.9) & Mid Cap (tier 3.0-3.4) (~1,300 stocks), excluding already tracked symbols. Fetches live quote batches to pre-filter stocks trading near 52-week highs with volume liquidity.
    - **Phase 2 (Strategy Evaluation)**: Analyzes pre-filtered candidates against the Keltner Tuned strategy and auto-saves discovery hits to `Results/DD-MM-HH-nsescan-results.txt`.
+   - **1-Click Active Watchlist Sync**: Transfer discovered Excellent candidates straight to `stocks_watchlist.txt` with the Web GUI's **"⭐ Add Excellent to Watch"** button.
 
-8. **Option 8 (Exit)**: Clean exit.
+9. **Option 9 (Exit)**: Clean exit.
 
 ---
 
@@ -171,11 +178,12 @@ Run `python main.py` or interact with the AI assistant to access the central tra
 ```
 fyers_trading_strategy/
 ├── gui/
-│   ├── server.py                  # FastAPI backend with REST APIs & live SSE terminal
+│   ├── server.py                  # FastAPI backend with REST APIs, Watchlist CRUD & live SSE terminal
 │   └── templates/
-│       └── index.html             # Single-page Cyber-Finance dark UI dashboard
+│       └── index.html             # Single-page Cyber-Finance dark UI dashboard with Charts & Watchlists
 ├── run_gui.py                     # Web GUI launcher script (localhost:8000)
 ├── data/
+│   ├── watchlist_manager.py       # Active & Sell Watchlist atomic manager module
 │   ├── duckdb_manager.py          # High-performance DuckDB columnar time-series manager
 │   ├── tradingbot.duckdb          # Embedded DuckDB database file (8.76 MB)
 │   ├── historical_data/           # Cached OHLCV CSV files (backup)
@@ -196,9 +204,9 @@ fyers_trading_strategy/
 │   └── backtest_results.csv       # Per-stock backtest results log
 ├── live_trading/
 │   ├── fyers_auth.py              # Raw HTTP OAuth 2.0 Authentication (Python 3.14 compatible)
-│   └── execute_trades.py          # Core signal engine with batch quotes & DuckDB
+│   └── execute_trades.py          # Core signal engine with batch quotes, DuckDB & Watchlist modes
 ├── scripts/
-│   ├── dry_run.py                 # Watchlist daily scanner wrapper
+│   ├── dry_run.py                 # Watchlist scanner wrapper (supports --sell-watchlist)
 │   ├── migrate_to_duckdb.py       # DuckDB database migration utility
 │   ├── update_historical_data.py  # Incremental historical data refresher
 │   ├── deep_analysis.py           # Single stock deep dive technical auditor
@@ -213,7 +221,8 @@ fyers_trading_strategy/
 ├── Portfolio.txt                  # Broker-exported portfolio holdings file
 ├── Newly_added_stocks.txt         # Staging file for importing new tickers
 ├── stocks_to_test.txt             # Primary universe of test stocks
-├── stocks_watchlist.txt           # Active tracking watchlist
+├── stocks_watchlist.txt           # Active tracking watchlist (scanned daily)
+├── stocks_sell_watchlist.txt      # Sell/Weakness watchlist (audit scan)
 ├── requirements.txt               # Python package dependencies
 └── .gitignore                     # Git ignore rules for secrets, DB binaries, & logs
 ```
