@@ -305,13 +305,19 @@
               </div>
               <h3 class="text-base font-bold text-white group-hover:text-blue-400 transition">Update Data (DuckDB)</h3>
               <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
-                Incrementally download latest daily candles and sync into DuckDB without re-fetching entire histories.
+                Sync latest candles for existing stocks, or add new symbols and fetch their full history into DuckDB.
               </p>
             </div>
-            <button onclick="triggerTask('update_data')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-blue-500/30 hover:bg-blue-500/20 text-blue-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
-              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-              <span>Sync DuckDB Data</span>
-            </button>
+            <div class="mt-5 flex flex-col space-y-2">
+              <button onclick="triggerTask('update_data')" class="w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-blue-500/30 hover:bg-blue-500/20 text-blue-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                <span>Sync Existing DuckDB</span>
+              </button>
+              <button onclick="openAddStocksModal()" class="w-full py-2 px-4 rounded-lg bg-dark-card2 border border-emerald-500/20 hover:bg-emerald-500/10 text-emerald-300 text-[11px] font-semibold flex items-center justify-center space-x-2 transition">
+                <i data-lucide="plus" class="w-3 h-3"></i>
+                <span>Add & Sync New Stocks</span>
+              </button>
+            </div>
           </div>
 
           <!-- Option 5: Portfolio Scan -->
@@ -369,20 +375,20 @@
           </div>
 
           <!-- Option 4: Add New Stocks -->
-          <div class="bg-dark-card border border-dark-border hover:border-slate-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group">
+          <div class="bg-dark-card border border-dark-border hover:border-emerald-500/40 rounded-xl p-5 flex flex-col justify-between transition-all group hover:glow-emerald">
             <div>
               <div class="flex items-center justify-between mb-3">
-                <span class="w-8 h-8 rounded-lg bg-slate-500/10 text-slate-400 flex items-center justify-center font-bold text-sm">4</span>
-                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-slate-500/10 text-slate-400 border border-slate-500/20">Importer</span>
+                <span class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-sm">4</span>
+                <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Importer</span>
               </div>
-              <h3 class="text-base font-bold text-white group-hover:text-slate-300 transition">Import New Tickers</h3>
+              <h3 class="text-base font-bold text-white group-hover:text-emerald-400 transition">Add New Stocks</h3>
               <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
-                Import symbols from Newly_added_stocks.txt, download history, and merge into active watchlist.
+                Paste stock symbols to add to Active Watchlist, fetch historical data, and sync into DuckDB.
               </p>
             </div>
-            <button onclick="triggerTask('add_stocks')" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-dark-card2 border border-slate-600 hover:bg-slate-700/50 text-slate-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
+            <button onclick="openAddStocksModal()" class="mt-5 w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold shadow-lg shadow-emerald-500/20 flex items-center justify-center space-x-2 transition">
               <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
-              <span>Process Imports</span>
+              <span>Add New Stocks</span>
             </button>
           </div>
 
@@ -854,8 +860,61 @@
   </div>
 
   <!-- ========================================================= -->
-  <!-- JAVASCRIPT APP ENGINE -->
+  <!-- ADD NEW STOCKS MODAL -->
   <!-- ========================================================= -->
+  <div id="add-stocks-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-dark-card border border-dark-border rounded-2xl max-w-xl w-full p-6 space-y-5 shadow-2xl">
+      
+      <div class="flex items-center justify-between border-b border-dark-border pb-4">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Add New Stocks to Active Watchlist</h3>
+            <p class="text-xs text-slate-400">Paste symbols below → Stage → Fetch History → Auto-add to Active Watchlist & DuckDB</p>
+          </div>
+        </div>
+        <button onclick="closeAddStocksModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Symbol Input Area -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-semibold text-slate-300">Enter NSE Stock Symbols</span>
+          <span class="text-slate-400 font-mono">One per line, or comma / space separated</span>
+        </div>
+        <textarea id="add-stocks-input" rows="6" 
+          placeholder="SUBEXLTD&#10;RPEL&#10;MARKSANS&#10;HAPPYFORGE&#10;HAL, BHEL, NTPC"
+          class="w-full bg-dark-card2 border border-dark-border rounded-lg p-3 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 uppercase custom-scrollbar"></textarea>
+        <p class="text-[11px] text-slate-500">
+          Symbols will be deduplicated against your existing Active Watchlist, Sell Watchlist, and test stocks.
+          New symbols are staged in <code class="text-emerald-400">Newly_added_stocks.txt</code>, then imported with history download.
+        </p>
+      </div>
+
+      <!-- Status Feedback -->
+      <div id="add-stocks-feedback" class="hidden p-3 rounded-lg text-xs font-mono"></div>
+
+      <!-- Modal Footer Actions -->
+      <div class="flex space-x-3 pt-2">
+        <button onclick="closeAddStocksModal()" class="flex-1 py-2.5 rounded-lg bg-dark-card2 border border-dark-border text-slate-300 text-xs font-semibold hover:bg-slate-800 transition">
+          Cancel
+        </button>
+        <button onclick="submitNewStocks()" id="add-stocks-submit-btn" class="flex-1 py-2.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold flex items-center justify-center space-x-2 transition shadow-lg shadow-emerald-500/20">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Stage & Import Stocks</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- JAVASCRIPT APP ENGINE -->
+  <!-- =========================================================  -->
   <script>
     // State management
     let latestRecosData = null;
@@ -959,6 +1018,96 @@
         }
       } catch (e) {
         console.error('Failed to fetch status:', e);
+      }
+    }
+
+    // ==========================================
+    // ADD NEW STOCKS MODAL
+    // ==========================================
+
+    function openAddStocksModal() {
+      const modal = document.getElementById('add-stocks-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.getElementById('add-stocks-input').value = '';
+      document.getElementById('add-stocks-feedback').classList.add('hidden');
+      document.getElementById('add-stocks-submit-btn').disabled = false;
+      lucide.createIcons();
+    }
+
+    function closeAddStocksModal() {
+      const modal = document.getElementById('add-stocks-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function submitNewStocks() {
+      const input = document.getElementById('add-stocks-input').value.trim();
+      const feedback = document.getElementById('add-stocks-feedback');
+      const submitBtn = document.getElementById('add-stocks-submit-btn');
+
+      if (!input) {
+        feedback.className = 'p-3 rounded-lg text-xs font-mono bg-rose-500/10 border border-rose-500/30 text-rose-300';
+        feedback.innerHTML = '⚠️ Please enter at least one stock symbol.';
+        feedback.classList.remove('hidden');
+        return;
+      }
+
+      // Disable button during processing
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="animate-pulse">Staging symbols...</span>';
+      feedback.className = 'p-3 rounded-lg text-xs font-mono bg-blue-500/10 border border-blue-500/30 text-blue-300';
+      feedback.innerHTML = '⏳ Staging symbols & checking for duplicates...';
+      feedback.classList.remove('hidden');
+
+      try {
+        // Step 1: Stage symbols to Newly_added_stocks.txt
+        const stageRes = await fetch('/api/stocks/stage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbols_text: input })
+        });
+
+        if (!stageRes.ok) {
+          const err = await stageRes.json();
+          throw new Error(err.detail || 'Staging failed');
+        }
+
+        const stageData = await stageRes.json();
+
+        // Build feedback message
+        let msg = '';
+        if (stageData.staged_count > 0) {
+          msg += `✅ <strong>${stageData.staged_count}</strong> new symbols staged: <span class="text-emerald-400">${stageData.staged.join(', ')}</span><br>`;
+        }
+        if (stageData.already_tracked_count > 0) {
+          msg += `⚠️ ${stageData.already_tracked_count} already tracked: <span class="text-amber-300">${stageData.already_tracked.join(', ')}</span><br>`;
+        }
+        if (stageData.already_staged && stageData.already_staged.length > 0) {
+          msg += `ℹ️ ${stageData.already_staged.length} already staged: <span class="text-slate-400">${stageData.already_staged.join(', ')}</span><br>`;
+        }
+
+        if (stageData.staged_count === 0) {
+          feedback.className = 'p-3 rounded-lg text-xs font-mono bg-amber-500/10 border border-amber-500/30 text-amber-300';
+          feedback.innerHTML = msg + '<br>No new symbols to import.';
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i data-lucide="download" class="w-4 h-4"></i><span>Stage & Import Stocks</span>';
+          lucide.createIcons();
+          return;
+        }
+
+        // Step 2: Trigger the add_stocks task to fetch history + add to active watchlist
+        feedback.innerHTML = msg + '<br>⏳ Triggering import task (fetching history & adding to Active Watchlist)...';
+        
+        closeAddStocksModal();
+        triggerTask('add_stocks');
+
+      } catch (err) {
+        feedback.className = 'p-3 rounded-lg text-xs font-mono bg-rose-500/10 border border-rose-500/30 text-rose-300';
+        feedback.innerHTML = `❌ Error: ${err.message}`;
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i data-lucide="download" class="w-4 h-4"></i><span>Stage & Import Stocks</span>';
+        lucide.createIcons();
       }
     }
 

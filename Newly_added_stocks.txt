@@ -1,1 +1,1 @@
-# Active Stocks List
+# Newly Added Stocks - Paste symbols here (one per line)

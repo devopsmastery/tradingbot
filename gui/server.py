@@ -368,6 +368,82 @@ def remove_from_watchlist_api(req: WatchlistModifyRequest):
     return remove_from_watchlist(req.symbols, target=req.target or "active")
 
 
+class StageNewStocksRequest(BaseModel):
+    symbols_text: str
+
+
+@app.post("/api/stocks/stage")
+def stage_new_stocks(req: StageNewStocksRequest):
+    """
+    Accepts raw text of symbols (one per line or comma/space separated),
+    appends unique ones to Newly_added_stocks.txt, and returns the count.
+    Does NOT trigger the import task — the UI should call /api/tasks/run
+    with action='add_stocks' separately after this.
+    """
+    from data.watchlist_manager import clean_symbol, get_active_watchlist, get_sell_watchlist
+
+    raw = req.symbols_text.strip()
+    if not raw:
+        raise HTTPException(status_code=400, detail="No symbols provided")
+
+    # Parse: split on newlines, commas, spaces, tabs
+    import re as _re
+    tokens = _re.split(r'[\s,;\n\r]+', raw)
+    parsed = []
+    for t in tokens:
+        cs = clean_symbol(t)
+        if cs and cs not in parsed:
+            parsed.append(cs)
+
+    if not parsed:
+        raise HTTPException(status_code=400, detail="No valid symbols found in input")
+
+    # Check duplicates against existing watchlists
+    active = set(get_active_watchlist())
+    sell = set(get_sell_watchlist())
+    existing = active | sell
+
+    new_only = [s for s in parsed if s not in existing]
+    already_tracked = [s for s in parsed if s in existing]
+
+    # Append to Newly_added_stocks.txt (preserving existing content)
+    staging_file = os.path.join(PROJECT_DIR, "Newly_added_stocks.txt")
+    existing_staged = set()
+    if os.path.exists(staging_file):
+        with open(staging_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    existing_staged.add(clean_symbol(line))
+
+    truly_new = [s for s in new_only if s not in existing_staged]
+
+    if truly_new:
+        with open(staging_file, "a", encoding="utf-8") as f:
+            for sym in truly_new:
+                f.write(f"{sym}\n")
+
+    return {
+        "success": True,
+        "staged": truly_new,
+        "staged_count": len(truly_new),
+        "already_tracked": already_tracked,
+        "already_tracked_count": len(already_tracked),
+        "already_staged": [s for s in new_only if s in existing_staged],
+        "total_parsed": len(parsed),
+        "message": f"Staged {len(truly_new)} new symbols. {len(already_tracked)} already tracked."
+    }
+
+
+@app.get("/api/stocks/staged")
+def get_staged_stocks():
+    """Returns the current contents of Newly_added_stocks.txt."""
+    from data.watchlist_manager import read_symbols_from_file
+    staging_file = os.path.join(PROJECT_DIR, "Newly_added_stocks.txt")
+    symbols = read_symbols_from_file(staging_file)
+    return {"symbols": symbols, "count": len(symbols)}
+
+
 # -------------------------------------------------------------
 # Recommendations (Reco) & Results Endpoints
 # -------------------------------------------------------------
