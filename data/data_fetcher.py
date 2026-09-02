@@ -115,14 +115,15 @@ def fetch_historical_data(
 
 
 from data.duckdb_manager import (
-    save_candles, load_candles, has_symbol, get_latest_candle_date, get_candle_count, DB_PATH
+    save_candles, upsert_candles, load_candles, has_symbol,
+    get_latest_candle_date, get_candle_count, DB_PATH
 )
 
 
-def save_historical_data(symbol: str, df: pd.DataFrame, write_csv: bool = True) -> str:
+def save_historical_data(symbol: str, df: pd.DataFrame, write_csv: bool = False) -> str:
     """
-    Saves a DataFrame into DuckDB (and optionally as CSV for backup).
-    Maintains full backward compatibility.
+    Saves a DataFrame directly into DuckDB.
+    DuckDB is the primary source of truth; write_csv defaults to False to eliminate legacy disk I/O.
     """
     # 1. Save directly into DuckDB
     try:
@@ -130,24 +131,33 @@ def save_historical_data(symbol: str, df: pd.DataFrame, write_csv: bool = True) 
     except Exception as e:
         print(f"  Warning: DuckDB save failed for {symbol}: {e}")
 
-    # 2. Save CSV as backup
-    clean_name = symbol.replace(":", "_").replace("-", "_")
-    file_path = os.path.join(HISTORICAL_DATA_DIR, f"{clean_name}.csv")
+    # 2. Legacy CSV only if explicitly requested
     if write_csv:
         try:
+            clean_name = symbol.replace(":", "_").replace("-", "_")
+            file_path = os.path.join(HISTORICAL_DATA_DIR, f"{clean_name}.csv")
             os.makedirs(HISTORICAL_DATA_DIR, exist_ok=True)
             df.to_csv(file_path)
+            return file_path
         except Exception:
             pass
-    return file_path
+    return symbol
+
+
+def upsert_historical_data(symbol: str, df: pd.DataFrame, con: Optional[Any] = None) -> int:
+    """
+    Directly upserts incremental EOD candles into DuckDB without reading or deleting existing history.
+    Does not touch legacy CSV files.
+    """
+    return upsert_candles(symbol, df, con=con)
 
 
 def load_historical_csv(symbol: str, con: Optional[Any] = None) -> pd.DataFrame:
     """
     Loads historical candlestick data for a symbol.
-    First loads from DuckDB; if not found, falls back to CSV and auto-migrates into DuckDB.
+    First loads directly from DuckDB; if not found, falls back to legacy CSV and auto-migrates once.
     """
-    # 1. Try loading from DuckDB
+    # 1. Primary: Try loading from DuckDB
     try:
         df = load_candles(symbol, con=con)
         if not df.empty:
@@ -155,34 +165,38 @@ def load_historical_csv(symbol: str, con: Optional[Any] = None) -> pd.DataFrame:
     except FileNotFoundError:
         pass
 
-    # 2. Fallback to legacy CSV file
+    # 2. Fallback to legacy CSV file (one-time migration)
     clean_name = symbol.replace(":", "_").replace("-", "_")
     file_path = os.path.join(HISTORICAL_DATA_DIR, f"{clean_name}.csv")
     if os.path.exists(file_path):
         try:
             df = pd.read_csv(file_path, index_col="Date", parse_dates=True)
             if not df.empty:
-                save_candles(symbol, df, con=con)
+                save_candles(symbol, df, con=con, overwrite=True)
                 return df
         except Exception:
             pass
 
-    raise FileNotFoundError(f"No cached data in DuckDB or CSV for {symbol}. Run fetch first.")
+    raise FileNotFoundError(f"No cached data in DuckDB for {symbol}. Run fetch first.")
+
+
+# Modern alias for code readability
+load_historical_data = load_historical_csv
 
 
 def get_data_for_symbol(symbol: str, access_token: str = None, days: int = 365) -> pd.DataFrame:
     """
     Returns historical data for a symbol.
-    First checks DuckDB / CSV; if not found, fetches from Fyers API and stores in DuckDB.
+    First checks DuckDB; if not found, fetches from Fyers API and stores directly in DuckDB.
     """
     fyers_symbol = to_fyers_symbol(symbol)
     try:
-        return load_historical_csv(fyers_symbol)
+        return load_historical_data(fyers_symbol)
     except FileNotFoundError:
         if access_token is None:
             raise ValueError(f"No cached data for {symbol} and no access_token provided to fetch.")
         df = fetch_historical_data(fyers_symbol, access_token, days=days)
-        save_historical_data(fyers_symbol, df)
+        save_historical_data(fyers_symbol, df, write_csv=False)
         return df
 
 

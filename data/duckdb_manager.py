@@ -73,10 +73,16 @@ def normalize_symbol_candidates(symbol: str) -> List[str]:
     return list(dict.fromkeys(candidates))
 
 
-def save_candles(symbol: str, df: pd.DataFrame, con: Optional[duckdb.DuckDBPyConnection] = None) -> int:
+def save_candles(
+    symbol: str,
+    df: pd.DataFrame,
+    con: Optional[duckdb.DuckDBPyConnection] = None,
+    overwrite: bool = True
+) -> int:
     """
     Saves or updates candlestick data for a symbol in DuckDB.
-    Opens a write connection only for the duration of the write and closes it immediately.
+    - overwrite=True: cleans up candidate aliases before inserting full history.
+    - overwrite=False: directly inserts/replaces new candles without deleting prior history.
     """
     if df is None or df.empty:
         return 0
@@ -131,9 +137,10 @@ def save_candles(symbol: str, df: pd.DataFrame, con: Optional[duckdb.DuckDBPyCon
         close_con = True
 
     try:
-        candidates = normalize_symbol_candidates(sym)
-        placeholders = ", ".join(["?"] * len(candidates))
-        con.execute(f"DELETE FROM candles WHERE symbol IN ({placeholders})", candidates)
+        if overwrite:
+            candidates = normalize_symbol_candidates(sym)
+            placeholders = ", ".join(["?"] * len(candidates))
+            con.execute(f"DELETE FROM candles WHERE symbol IN ({placeholders})", candidates)
         
         con.register("temp_df_view", temp_df)
         con.execute("""
@@ -145,6 +152,18 @@ def save_candles(symbol: str, df: pd.DataFrame, con: Optional[duckdb.DuckDBPyCon
     finally:
         if close_con:
             con.close()
+
+
+def upsert_candles(
+    symbol: str,
+    df: pd.DataFrame,
+    con: Optional[duckdb.DuckDBPyConnection] = None
+) -> int:
+    """
+    Directly upserts incremental EOD candles into DuckDB without reading or deleting existing history.
+    Uses native INSERT OR REPLACE on PRIMARY KEY (symbol, timestamp).
+    """
+    return save_candles(symbol, df, con=con, overwrite=False)
 
 
 def load_candles(symbol: str, con: Optional[duckdb.DuckDBPyConnection] = None) -> pd.DataFrame:

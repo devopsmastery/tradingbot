@@ -15,6 +15,9 @@ from data.data_fetcher import (
     read_stocks, get_access_token, fetch_historical_data,
     save_historical_data, to_fyers_symbol, STOCKS_FILE
 )
+from data.duckdb_manager import (
+    get_latest_candle_date, get_candle_count
+)
 from data.watchlist_manager import (
     add_to_active_watchlist, get_active_watchlist,
     get_sell_watchlist, get_test_stocks, clean_symbol,
@@ -79,10 +82,19 @@ def add_new_stocks():
     for i, symbol in enumerate(unique_new, 1):
         fyers_symbol = to_fyers_symbol(symbol)
         print(f"  [{i:3d}/{len(unique_new)}] {fyers_symbol:25s}", end=" ")
+
+        # Check if DuckDB already has recent history for this symbol
+        existing_latest = get_latest_candle_date(fyers_symbol)
+        if existing_latest is not None:
+            count = get_candle_count(fyers_symbol)
+            print(f"⚡ Already in DuckDB ({count} candles, latest: {existing_latest.strftime('%d-%b-%Y')})")
+            success += 1
+            continue
+
         try:
             df = fetch_historical_data(fyers_symbol, access_token, days=365)
-            save_historical_data(fyers_symbol, df)
-            print(f"✅ {len(df)} rows saved")
+            save_historical_data(fyers_symbol, df, write_csv=False)
+            print(f"✅ {len(df)} rows saved to DuckDB")
             success += 1
         except Exception as e:
             err_msg = str(e)[:50]

@@ -11,7 +11,7 @@ import sys
 import io
 import time
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # Force UTF-8 output for Windows cp1252 compatibility
 if sys.stdout.encoding != 'utf-8':
@@ -22,10 +22,12 @@ if sys.stdout.encoding != 'utf-8':
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from live_trading.fyers_auth import get_access_token
+import duckdb
+import requests
+
 from data.data_fetcher import (
     read_stocks,
     to_fyers_symbol,
-    save_historical_data,
     fetch_historical_data,
     STOCKS_FILE,
     HISTORY_URL,
@@ -36,9 +38,11 @@ from data.duckdb_manager import (
     init_db,
     normalize_symbol_candidates,
     load_candles,
+    save_candles,
+    upsert_candles,
+    DB_PATH,
 )
 from data.watchlist_manager import get_active_watchlist, get_sell_watchlist
-import requests
 
 
 WATCHLIST_FILE = os.path.join(os.path.dirname(STOCKS_FILE), "stocks_watchlist.txt")
@@ -68,7 +72,7 @@ def probe_last_trading_date(access_token: str) -> datetime:
     if data.get("s") == "ok" and data.get("candles"):
         last_epoch = data["candles"][-1][0]
         # Fyers daily candle epochs are UTC midnight — same as DuckDB storage
-        last_date = datetime.utcfromtimestamp(last_epoch)
+        last_date = datetime.fromtimestamp(last_epoch, timezone.utc).replace(tzinfo=None)
         return last_date.replace(hour=0, minute=0, second=0, microsecond=0)
     elif data.get("s") == "error":
         msg = data.get("message", "Unknown error")
@@ -206,50 +210,50 @@ def main():
     failed = []
     counter = 0
 
-    # Process stocks needing incremental updates
-    for symbol, fyers_symbol, latest in needs_update:
-        counter += 1
-        start_fetch = latest + timedelta(days=1)
-        days_behind = (last_trading_day.date() - latest.date()).days
-        print(f"  [{counter:3d}/{total_to_process}] {fyers_symbol:25s} "
-              f"last={latest.strftime('%d-%b')} ({days_behind}d behind) ", end="")
+    # Open single write connection for the entire batch to eliminate connection churn
+    write_con = duckdb.connect(DB_PATH, read_only=False)
 
-        try:
-            new_df = fetch_missing_data(fyers_symbol, access_token, start_fetch, today)
-            if not new_df.empty:
-                try:
-                    existing_df = load_candles(fyers_symbol)
-                    combined_df = pd.concat([existing_df, new_df])
-                    combined_df = combined_df[~combined_df.index.duplicated(keep='last')]
-                    combined_df.sort_index(inplace=True)
-                except FileNotFoundError:
-                    combined_df = new_df
-                save_historical_data(fyers_symbol, combined_df)
-                print(f"  +{len(new_df)} rows")
+    try:
+        # Process stocks needing incremental updates: Direct EOD candle upsert into DuckDB
+        for symbol, fyers_symbol, latest in needs_update:
+            counter += 1
+            start_fetch = latest + timedelta(days=1)
+            days_behind = (last_trading_day.date() - latest.date()).days
+            print(f"  [{counter:3d}/{total_to_process}] {fyers_symbol:25s} "
+                  f"last={latest.strftime('%d-%b')} ({days_behind}d behind) ", end="")
+
+            try:
+                new_df = fetch_missing_data(fyers_symbol, access_token, start_fetch, today)
+                if not new_df.empty:
+                    # Direct, pure EOD upsert into DuckDB (zero CSV read/write, zero existing candle re-reads)
+                    upsert_candles(fyers_symbol, new_df, con=write_con)
+                    print(f"  +{len(new_df)} rows (DuckDB)")
+                    updated_count += 1
+                else:
+                    print(f"  (no new data)")
+                    skipped_count += 1
+            except Exception as e:
+                print(f"  FAILED: {str(e)[:40]}")
+                failed.append(symbol)
+
+            time.sleep(0.3)
+
+        # Process stocks with no data at all (fetch full 365-day history from FYERS directly to DuckDB)
+        for symbol, fyers_symbol in no_data:
+            counter += 1
+            print(f"  [{counter:3d}/{total_to_process}] {fyers_symbol:25s} "
+                  f"NEW - fetching 365d history ", end="")
+            try:
+                new_df = fetch_historical_data(fyers_symbol, access_token, days=365)
+                save_candles(fyers_symbol, new_df, con=write_con, overwrite=True)
+                print(f"  {len(new_df)} rows (DuckDB)")
                 updated_count += 1
-            else:
-                print(f"  (no new data)")
-                skipped_count += 1
-        except Exception as e:
-            print(f"  FAILED: {str(e)[:40]}")
-            failed.append(symbol)
-
-        time.sleep(0.3)
-
-    # Process stocks with no data at all (fetch full 365-day history)
-    for symbol, fyers_symbol in no_data:
-        counter += 1
-        print(f"  [{counter:3d}/{total_to_process}] {fyers_symbol:25s} "
-              f"NEW - fetching 365d history ", end="")
-        try:
-            new_df = fetch_historical_data(fyers_symbol, access_token, days=365)
-            save_historical_data(fyers_symbol, new_df)
-            print(f"  {len(new_df)} rows")
-            updated_count += 1
-        except Exception as e:
-            print(f"  FAILED: {str(e)[:40]}")
-            failed.append(symbol)
-        time.sleep(0.3)
+            except Exception as e:
+                print(f"  FAILED: {str(e)[:40]}")
+                failed.append(symbol)
+            time.sleep(0.3)
+    finally:
+        write_con.close()
 
     # ---- Summary ----
     print(f"\n  {'='*56}")
