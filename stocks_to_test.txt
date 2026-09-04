@@ -1,5 +1,4 @@
-Here are the stock names extracted from your list, grouped by the sections in your raw text for better readability:
-Active Stocks
+# Stocks to Test & Baseline Strategy Universe
 ADANIENSOL
 ADANIPORTS
 ADANIPOWER
@@ -24,7 +23,6 @@ CUPID
 DEEPAKNTR
 EFFWA-ST
 ELIN
-EMS
 ELLEN
 FIVESTAR
 FORCEMOT
@@ -36,7 +34,6 @@ GPECO-ST
 HAL
 HINDCOPPER
 HINDZINC
-JAYANT
 JINDRILL
 JSWINFRA
 KDDL

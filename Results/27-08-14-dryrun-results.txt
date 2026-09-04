@@ -1,0 +1,56 @@
+ADD MORE:
+1. MCX — 75% GOOD
+2. SKYGOLD — 70% GOOD
+3. ABB — 70% GOOD
+
+NEW BUY:
+1. INOXINDIA — 95% EXCELLENT
+2. KMEW — 90% EXCELLENT
+3. SIGMAADV — 90% EXCELLENT
+4. JINDALSAW — 90% EXCELLENT
+5. GIPCL — 85% EXCELLENT
+6. RPEL — 80% EXCELLENT
+7. MANINDS — 80% EXCELLENT
+8. SOLARINDS — 75% GOOD
+9. PCJEWELLER — 75% GOOD
+10. IDEA — 75% GOOD
+11. MEDANTA — 75% GOOD
+12. JYOTICNC — 75% GOOD
+13. KENNAMET — 75% GOOD
+14. KWIL — 75% GOOD
+15. SURAKSHA — 75% GOOD
+16. BALAMINES — 70% GOOD
+17. WELSPUNLIV — 70% GOOD
+18. APARINDS — 70% GOOD
+19. IFCI — 70% GOOD
+20. PREMIERPOL — 70% GOOD
+21. PARADEEP — 65% GOOD
+22. AVALON — 65% GOOD
+23. SUBEXLTD — 65% GOOD
+
+CAUTION / SELL:
+1. APS-SM — 50% SELL (held 250 @ Rs.253.10) > Price below KC mid-line . EMA10 < EMA21 (downtrend)
+2. ASTRAMICRO — 50% SELL (held 1 @ Rs.1688.00) > Price below KC mid-line . EMA10 < EMA21 (downtrend)
+3. AWHCL — 50% SELL (held 352 @ Rs.389.05) > Price below KC mid-line . EMA10 < EMA21 (downtrend)
+4. BIRLACORPN — 50% SELL (held 143 @ Rs.883.00) > Price below KC mid-line . EMA10 < EMA21 (downtrend)
+5. CUMMINSIND — 50% SELL (held 78 @ Rs.5160.00) > Price below KC mid-line . EMA10 < EMA21 (downtrend)
+6. FORCEMOT — 50% SELL (held 5 @ Rs.17358.00) > Price below KC mid-line . EMA10 < EMA21 (downtrend)
+7. GESHIP — 50% SELL (held 100 @ Rs.1323.50) > Price below KC mid-line . EMA10 < EMA21 (downtrend)
+8. HINDCOPPER — 50% SELL (held 1000 @ Rs.537.50) > Price below KC mid-line
+9. POCL — 70% SELL (held 459 @ Rs.511.55) > Price below KC mid-line . Price below KC lower band (strong sell) . EMA10 < EMA21 (downtrend)
+10. POWERINDIA — 50% SELL (held 4 @ Rs.33755.00) > Price below KC mid-line
+11. RBMINFRA-SM — 50% SELL (held 400 @ Rs.244.40) > Price below KC mid-line . EMA10 < EMA21 (downtrend)
+12. SANGHVIMOV — 70% SELL (held 766 @ Rs.446.40) > Price below KC mid-line . EMA10 crossed below EMA21 (bearish) . EMA10 < EMA21 (downtrend)
+13. SCHNEIDER — 50% SELL (held 3100 @ Rs.1200.40) > Price below KC mid-line . EMA10 < EMA21 (downtrend)
+14. STALLION — 50% SELL (held 292 @ Rs.224.00) > Price below KC mid-line
+15. SWELECTES — 50% SELL (held 235 @ Rs.603.00) > Price below KC mid-line . EMA10 < EMA21 (downtrend)
+16. THERMAX — 50% SELL (held 147 @ Rs.3961.80) > Price below KC mid-line . EMA10 < EMA21 (downtrend)
+17. TIGERLOGS-BE — 70% SELL (held 11740 @ Rs.25.50) > Price below KC mid-line . Price below KC lower band (strong sell) . EMA10 < EMA21 (downtrend)
+18. VILAS-SM — 50% SELL (held 250 @ Rs.358.40) > Price below KC mid-line . EMA10 < EMA21 (downtrend)
+19. PWL — 50% SELL (held 695 @ Rs.124.40) > Price below KC mid-line . EMA10 < EMA21 (downtrend)
+20. ENRIN — 70% SELL (held 58 @ Rs.3257.80) > Price below KC mid-line . EMA10 crossed below EMA21 (bearish) . EMA10 < EMA21 (downtrend)
+21. BBOX — 70% SELL (held 125 @ Rs.742.00) > Price below KC mid-line . Price below KC lower band (strong sell) . EMA10 < EMA21 (downtrend)
+22. GRSE — 50% SELL (held 2 @ Rs.2638.10) > Price below KC mid-line . EMA10 < EMA21 (downtrend)
+23. TEJASNET — 70% SELL (held 401 @ Rs.509.65) > Price below KC mid-line . Price below KC lower band (strong sell) . EMA10 < EMA21 (downtrend)
+24. TEXRAIL — 50% SELL (held 1037 @ Rs.108.54) > Price below KC mid-line
+25. TORNTPOWER — 70% SELL (held 99 @ Rs.1228.40) > Price below KC mid-line . Price below KC lower band (strong sell) . EMA10 < EMA21 (downtrend)

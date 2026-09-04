@@ -166,6 +166,31 @@ def upsert_candles(
     return save_candles(symbol, df, con=con, overwrite=False)
 
 
+def delete_symbol_candles(
+    symbol: str,
+    con: Optional[duckdb.DuckDBPyConnection] = None
+) -> int:
+    """
+    Deletes all candle records for a symbol (and its alias candidates) from DuckDB.
+    Returns the number of deleted rows.
+    """
+    init_db()
+    candidates = normalize_symbol_candidates(symbol)
+    placeholders = ", ".join(["?"] * len(candidates))
+    close_con = False
+    if con is None:
+        con = duckdb.connect(DB_PATH, read_only=False)
+        close_con = True
+    try:
+        cnt = con.execute(f"SELECT COUNT(*) FROM candles WHERE symbol IN ({placeholders})", candidates).fetchone()[0]
+        if cnt > 0:
+            con.execute(f"DELETE FROM candles WHERE symbol IN ({placeholders})", candidates)
+        return cnt
+    finally:
+        if close_con:
+            con.close()
+
+
 def load_candles(symbol: str, con: Optional[duckdb.DuckDBPyConnection] = None) -> pd.DataFrame:
     """
     Loads historical candles for a symbol from DuckDB using an existing or new read_only connection.

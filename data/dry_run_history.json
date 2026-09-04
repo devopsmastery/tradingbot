@@ -4676,5 +4676,3171 @@
                 "score": 50
             }
         ]
+    },
+    {
+        "date": "2026-08-24",
+        "buy_signals": [
+            {
+                "symbol": "LTFOODS",
+                "close": 470.35,
+                "score": 90,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "UTTAMSUGAR",
+                "close": 352.3,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KWIL",
+                "close": 48.82,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "RENUKA",
+                "close": 27.2,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "DEEPINDS",
+                "close": 683.8,
+                "score": 85,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "VMART",
+                "close": 863.35,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SUBEXLTD",
+                "close": 18.65,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "FINCABLES",
+                "close": 1279.35,
+                "score": 80,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "GOLDBEES",
+                "close": 133.14,
+                "score": 75,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "MCX",
+                "close": 3244.4,
+                "score": 75,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "CARTRADE",
+                "close": 3122.0,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "RPEL",
+                "close": 1666.2,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "WELSPUNLIV",
+                "close": 192.5,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SUVEN",
+                "close": 391.55,
+                "score": 75,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "JYOTICNC",
+                "close": 977.8,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KENNAMET",
+                "close": 4112.7,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MANINDS",
+                "close": 712.9,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "AVADHSUGAR",
+                "close": 869.5,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "RRKABEL",
+                "close": 2952.6,
+                "score": 70,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "ALKYLAMINE",
+                "close": 2086.9,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SENORES",
+                "close": 1590.0,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "HAPPYFORGE",
+                "close": 2201.0,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "TIIL",
+                "close": 3303.3,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "PREMIERPOL",
+                "close": 90.98,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SURAKSHA",
+                "close": 320.55,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "ABB",
+                "close": 7548.0,
+                "score": 70,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "AKUMS",
+                "close": 779.95,
+                "score": 65,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "JINDALSAW",
+                "close": 292.45,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KRN",
+                "close": 1496.0,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MANORAMA",
+                "close": 1931.0,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MOTISONS",
+                "close": 17.27,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KTKBANK",
+                "close": 329.05,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "NETWEB",
+                "close": 5543.8,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SEAMECLTD",
+                "close": 1681.8,
+                "score": 65,
+                "action": "NEW_BUY"
+            }
+        ],
+        "sell_signals": [
+            {
+                "symbol": "ADANIENSOL",
+                "close": 1559.4,
+                "qty": 190,
+                "score": 50
+            },
+            {
+                "symbol": "ASTRAMICRO",
+                "close": 1663.0,
+                "qty": 1,
+                "score": 50
+            },
+            {
+                "symbol": "AWHCL",
+                "close": 382.85,
+                "qty": 352,
+                "score": 50
+            },
+            {
+                "symbol": "BIRLACORPN",
+                "close": 895.4,
+                "qty": 143,
+                "score": 50
+            },
+            {
+                "symbol": "CUMMINSIND",
+                "close": 5111.0,
+                "qty": 78,
+                "score": 70
+            },
+            {
+                "symbol": "FIVESTAR",
+                "close": 513.0,
+                "qty": 491,
+                "score": 50
+            },
+            {
+                "symbol": "FORCEMOT",
+                "close": 17746.0,
+                "qty": 5,
+                "score": 50
+            },
+            {
+                "symbol": "GESHIP",
+                "close": 1327.0,
+                "qty": 100,
+                "score": 50
+            },
+            {
+                "symbol": "GPECO-ST",
+                "close": 381.15,
+                "qty": 800,
+                "score": 50
+            },
+            {
+                "symbol": "POCL",
+                "close": 505.55,
+                "qty": 459,
+                "score": 70
+            },
+            {
+                "symbol": "RBMINFRA-SM",
+                "close": 251.45,
+                "qty": 400,
+                "score": 50
+            },
+            {
+                "symbol": "SANGHVIMOV",
+                "close": 461.65,
+                "qty": 766,
+                "score": 50
+            },
+            {
+                "symbol": "SCHNEIDER",
+                "close": 1203.9,
+                "qty": 3100,
+                "score": 50
+            },
+            {
+                "symbol": "STALLION",
+                "close": 228.25,
+                "qty": 292,
+                "score": 50
+            },
+            {
+                "symbol": "STOVEKRAFT",
+                "close": 771.9,
+                "qty": 360,
+                "score": 50
+            },
+            {
+                "symbol": "SWELECTES",
+                "close": 609.2,
+                "qty": 235,
+                "score": 50
+            },
+            {
+                "symbol": "THERMAX",
+                "close": 3982.3,
+                "qty": 147,
+                "score": 50
+            },
+            {
+                "symbol": "TIGERLOGS-BE",
+                "close": 25.5,
+                "qty": 11740,
+                "score": 70
+            },
+            {
+                "symbol": "VILAS-SM",
+                "close": 349.0,
+                "qty": 250,
+                "score": 50
+            },
+            {
+                "symbol": "WOCKPHARMA",
+                "close": 1886.4,
+                "qty": 50,
+                "score": 50
+            },
+            {
+                "symbol": "PWL",
+                "close": 120.26,
+                "qty": 695,
+                "score": 50
+            },
+            {
+                "symbol": "CGCL",
+                "close": 226.02,
+                "qty": 11,
+                "score": 50
+            },
+            {
+                "symbol": "BBOX",
+                "close": 771.05,
+                "qty": 125,
+                "score": 70
+            },
+            {
+                "symbol": "GRSE",
+                "close": 2623.2,
+                "qty": 2,
+                "score": 50
+            },
+            {
+                "symbol": "TEJASNET",
+                "close": 520.1,
+                "qty": 401,
+                "score": 50
+            },
+            {
+                "symbol": "TEXRAIL",
+                "close": 104.38,
+                "qty": 1037,
+                "score": 50
+            },
+            {
+                "symbol": "TORNTPOWER",
+                "close": 1246.3,
+                "qty": 99,
+                "score": 70
+            }
+        ]
+    },
+    {
+        "date": "2026-08-25",
+        "buy_signals": [
+            {
+                "symbol": "PARAGMILK",
+                "close": 249.28,
+                "score": 95,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "GIPCL",
+                "close": 190.8,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "IDEA",
+                "close": 15.2,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "DEEPINDS",
+                "close": 647.65,
+                "score": 90,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "GOLDBEES",
+                "close": 132.86,
+                "score": 85,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "KWIL",
+                "close": 47.0,
+                "score": 85,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "BALAMINES",
+                "close": 2355.0,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "PCJEWELLER",
+                "close": 10.91,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "CARTRADE",
+                "close": 3142.5,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SKYGOLD",
+                "close": 842.9,
+                "score": 80,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "TIIL",
+                "close": 3447.4,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "FINCABLES",
+                "close": 1258.3,
+                "score": 80,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "MCX",
+                "close": 3277.0,
+                "score": 75,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "PARADEEP",
+                "close": 159.35,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "VMART",
+                "close": 862.05,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "JYOTICNC",
+                "close": 990.0,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KENNAMET",
+                "close": 4112.8,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MANINDS",
+                "close": 712.4,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "ABB",
+                "close": 7615.0,
+                "score": 75,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "RPEL",
+                "close": 1596.0,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KRN",
+                "close": 1523.2,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SUBEXLTD",
+                "close": 17.81,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "UTTAMSUGAR",
+                "close": 326.0,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "AVADHSUGAR",
+                "close": 803.6,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KTKBANK",
+                "close": 335.25,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "WELSPUNLIV",
+                "close": 190.2,
+                "score": 65,
+                "action": "NEW_BUY"
+            }
+        ],
+        "sell_signals": [
+            {
+                "symbol": "ADANIENSOL",
+                "close": 1585.0,
+                "qty": 190,
+                "score": 50
+            },
+            {
+                "symbol": "ASTRAMICRO",
+                "close": 1702.5,
+                "qty": 1,
+                "score": 50
+            },
+            {
+                "symbol": "AWHCL",
+                "close": 379.05,
+                "qty": 352,
+                "score": 50
+            },
+            {
+                "symbol": "BIRLACORPN",
+                "close": 878.45,
+                "qty": 143,
+                "score": 50
+            },
+            {
+                "symbol": "CUMMINSIND",
+                "close": 5194.5,
+                "qty": 78,
+                "score": 50
+            },
+            {
+                "symbol": "ELIN",
+                "close": 98.15,
+                "qty": 1633,
+                "score": 50
+            },
+            {
+                "symbol": "FIVESTAR",
+                "close": 501.6,
+                "qty": 491,
+                "score": 70
+            },
+            {
+                "symbol": "FORCEMOT",
+                "close": 17430.0,
+                "qty": 5,
+                "score": 50
+            },
+            {
+                "symbol": "GPECO-ST",
+                "close": 395.0,
+                "qty": 800,
+                "score": 50
+            },
+            {
+                "symbol": "HINDCOPPER",
+                "close": 530.4,
+                "qty": 1000,
+                "score": 50
+            },
+            {
+                "symbol": "POCL",
+                "close": 505.0,
+                "qty": 459,
+                "score": 70
+            },
+            {
+                "symbol": "POWERINDIA",
+                "close": 33270.0,
+                "qty": 4,
+                "score": 50
+            },
+            {
+                "symbol": "RBMINFRA-SM",
+                "close": 246.25,
+                "qty": 400,
+                "score": 50
+            },
+            {
+                "symbol": "SANGHVIMOV",
+                "close": 457.45,
+                "qty": 766,
+                "score": 50
+            },
+            {
+                "symbol": "SCHNEIDER",
+                "close": 1147.2,
+                "qty": 3100,
+                "score": 70
+            },
+            {
+                "symbol": "SOTL",
+                "close": 673.0,
+                "qty": 25,
+                "score": 50
+            },
+            {
+                "symbol": "STALLION",
+                "close": 225.15,
+                "qty": 292,
+                "score": 50
+            },
+            {
+                "symbol": "SWELECTES",
+                "close": 602.6,
+                "qty": 235,
+                "score": 50
+            },
+            {
+                "symbol": "THERMAX",
+                "close": 4007.1,
+                "qty": 147,
+                "score": 50
+            },
+            {
+                "symbol": "TIGERLOGS-BE",
+                "close": 25.5,
+                "qty": 11740,
+                "score": 70
+            },
+            {
+                "symbol": "PWL",
+                "close": 121.1,
+                "qty": 695,
+                "score": 50
+            },
+            {
+                "symbol": "ENRIN",
+                "close": 3385.0,
+                "qty": 58,
+                "score": 50
+            },
+            {
+                "symbol": "BBOX",
+                "close": 746.4,
+                "qty": 125,
+                "score": 70
+            },
+            {
+                "symbol": "GRSE",
+                "close": 2605.0,
+                "qty": 2,
+                "score": 50
+            },
+            {
+                "symbol": "TEJASNET",
+                "close": 503.05,
+                "qty": 401,
+                "score": 70
+            },
+            {
+                "symbol": "TEXRAIL",
+                "close": 107.54,
+                "qty": 1037,
+                "score": 50
+            },
+            {
+                "symbol": "TORNTPOWER",
+                "close": 1247.3,
+                "qty": 99,
+                "score": 70
+            }
+        ]
+    },
+    {
+        "date": "2026-08-26",
+        "buy_signals": [
+            {
+                "symbol": "GIPCL",
+                "close": 201.7,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "HINDZINC",
+                "close": 629.85,
+                "score": 90,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "PCJEWELLER",
+                "close": 11.25,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "JINDALSAW",
+                "close": 301.9,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "VPRPL-BE",
+                "close": 33.71,
+                "score": 85,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "PARADEEP",
+                "close": 163.3,
+                "score": 85,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "CGCL",
+                "close": 254.51,
+                "score": 85,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "RPEL",
+                "close": 1738.3,
+                "score": 85,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "IFCI",
+                "close": 85.49,
+                "score": 85,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "GOLDBEES",
+                "close": 132.37,
+                "score": 80,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "BALAMINES",
+                "close": 2413.0,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "IDEA",
+                "close": 15.06,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KENNAMET",
+                "close": 4312.1,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "WEL",
+                "close": 154.77,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MCX",
+                "close": 3350.5,
+                "score": 75,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "CARTRADE",
+                "close": 3149.9,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SKYGOLD",
+                "close": 847.6,
+                "score": 75,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "JYOTICNC",
+                "close": 1014.0,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KWIL",
+                "close": 46.31,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SURAKSHA",
+                "close": 337.95,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "ABB",
+                "close": 7605.0,
+                "score": 75,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "MANINDS",
+                "close": 701.85,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "TIIL",
+                "close": 3390.0,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "AVADHSUGAR",
+                "close": 817.55,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KTKBANK",
+                "close": 337.75,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "ALKYLAMINE",
+                "close": 2088.4,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MARKSANS",
+                "close": 330.8,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "HAPPYFORGE",
+                "close": 2209.5,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "WELSPUNLIV",
+                "close": 190.7,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "PARAGMILK",
+                "close": 244.09,
+                "score": 65,
+                "action": "NEW_BUY"
+            }
+        ],
+        "sell_signals": [
+            {
+                "symbol": "ADANIENSOL",
+                "close": 1583.7,
+                "qty": 190,
+                "score": 50
+            },
+            {
+                "symbol": "APS-SM",
+                "close": 249.95,
+                "qty": 250,
+                "score": 50
+            },
+            {
+                "symbol": "ASTRAMICRO",
+                "close": 1697.8,
+                "qty": 1,
+                "score": 50
+            },
+            {
+                "symbol": "AWHCL",
+                "close": 384.8,
+                "qty": 352,
+                "score": 50
+            },
+            {
+                "symbol": "BIRLACORPN",
+                "close": 895.55,
+                "qty": 143,
+                "score": 50
+            },
+            {
+                "symbol": "CUMMINSIND",
+                "close": 5192.5,
+                "qty": 78,
+                "score": 50
+            },
+            {
+                "symbol": "ELIN",
+                "close": 100.11,
+                "qty": 1633,
+                "score": 50
+            },
+            {
+                "symbol": "FIVESTAR",
+                "close": 515.75,
+                "qty": 491,
+                "score": 50
+            },
+            {
+                "symbol": "FORCEMOT",
+                "close": 17400.0,
+                "qty": 5,
+                "score": 50
+            },
+            {
+                "symbol": "GESHIP",
+                "close": 1330.5,
+                "qty": 100,
+                "score": 50
+            },
+            {
+                "symbol": "POCL",
+                "close": 513.85,
+                "qty": 459,
+                "score": 70
+            },
+            {
+                "symbol": "POWERINDIA",
+                "close": 33165.0,
+                "qty": 4,
+                "score": 50
+            },
+            {
+                "symbol": "RBMINFRA-SM",
+                "close": 246.45,
+                "qty": 400,
+                "score": 50
+            },
+            {
+                "symbol": "SANGHVIMOV",
+                "close": 458.7,
+                "qty": 766,
+                "score": 50
+            },
+            {
+                "symbol": "SCHNEIDER",
+                "close": 1173.8,
+                "qty": 3100,
+                "score": 50
+            },
+            {
+                "symbol": "STALLION",
+                "close": 225.85,
+                "qty": 292,
+                "score": 50
+            },
+            {
+                "symbol": "SWELECTES",
+                "close": 605.65,
+                "qty": 235,
+                "score": 50
+            },
+            {
+                "symbol": "THERMAX",
+                "close": 3968.5,
+                "qty": 147,
+                "score": 50
+            },
+            {
+                "symbol": "TIGERLOGS-BE",
+                "close": 25.5,
+                "qty": 11740,
+                "score": 70
+            },
+            {
+                "symbol": "WOCKPHARMA",
+                "close": 1885.7,
+                "qty": 50,
+                "score": 50
+            },
+            {
+                "symbol": "ENRIN",
+                "close": 3323.9,
+                "qty": 58,
+                "score": 50
+            },
+            {
+                "symbol": "BBOX",
+                "close": 756.05,
+                "qty": 125,
+                "score": 70
+            },
+            {
+                "symbol": "GRSE",
+                "close": 2630.6,
+                "qty": 2,
+                "score": 50
+            },
+            {
+                "symbol": "TEJASNET",
+                "close": 504.4,
+                "qty": 401,
+                "score": 70
+            },
+            {
+                "symbol": "TEXRAIL",
+                "close": 108.96,
+                "qty": 1037,
+                "score": 50
+            },
+            {
+                "symbol": "TORNTPOWER",
+                "close": 1258.1,
+                "qty": 99,
+                "score": 70
+            }
+        ]
+    },
+    {
+        "date": "2026-08-27",
+        "buy_signals": [
+            {
+                "symbol": "INOXINDIA",
+                "close": 2158.8,
+                "score": 95,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KMEW",
+                "close": 2978.0,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SIGMAADV",
+                "close": 763.65,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "JINDALSAW",
+                "close": 308.4,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "GIPCL",
+                "close": 201.78,
+                "score": 85,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "RPEL",
+                "close": 1754.0,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MANINDS",
+                "close": 758.6,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MCX",
+                "close": 3274.2,
+                "score": 75,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "SOLARINDS",
+                "close": 20445.0,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "PCJEWELLER",
+                "close": 11.1,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "IDEA",
+                "close": 15.0,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MEDANTA",
+                "close": 1508.5,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "JYOTICNC",
+                "close": 1037.45,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KENNAMET",
+                "close": 4460.0,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KWIL",
+                "close": 46.36,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SURAKSHA",
+                "close": 336.0,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "BALAMINES",
+                "close": 2414.5,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SKYGOLD",
+                "close": 847.0,
+                "score": 70,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "WELSPUNLIV",
+                "close": 192.25,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "APARINDS",
+                "close": 18055.0,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "IFCI",
+                "close": 85.88,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "PREMIERPOL",
+                "close": 94.67,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "ABB",
+                "close": 7531.5,
+                "score": 70,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "PARADEEP",
+                "close": 161.25,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "AVALON",
+                "close": 2267.2,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SUBEXLTD",
+                "close": 18.1,
+                "score": 65,
+                "action": "NEW_BUY"
+            }
+        ],
+        "sell_signals": [
+            {
+                "symbol": "APS-SM",
+                "close": 253.1,
+                "qty": 250,
+                "score": 50
+            },
+            {
+                "symbol": "ASTRAMICRO",
+                "close": 1688.0,
+                "qty": 1,
+                "score": 50
+            },
+            {
+                "symbol": "AWHCL",
+                "close": 389.05,
+                "qty": 352,
+                "score": 50
+            },
+            {
+                "symbol": "BIRLACORPN",
+                "close": 883.0,
+                "qty": 143,
+                "score": 50
+            },
+            {
+                "symbol": "CUMMINSIND",
+                "close": 5160.0,
+                "qty": 78,
+                "score": 50
+            },
+            {
+                "symbol": "FORCEMOT",
+                "close": 17358.0,
+                "qty": 5,
+                "score": 50
+            },
+            {
+                "symbol": "GESHIP",
+                "close": 1323.5,
+                "qty": 100,
+                "score": 50
+            },
+            {
+                "symbol": "HINDCOPPER",
+                "close": 537.5,
+                "qty": 1000,
+                "score": 50
+            },
+            {
+                "symbol": "POCL",
+                "close": 511.55,
+                "qty": 459,
+                "score": 70
+            },
+            {
+                "symbol": "POWERINDIA",
+                "close": 33755.0,
+                "qty": 4,
+                "score": 50
+            },
+            {
+                "symbol": "RBMINFRA-SM",
+                "close": 244.4,
+                "qty": 400,
+                "score": 50
+            },
+            {
+                "symbol": "SANGHVIMOV",
+                "close": 446.4,
+                "qty": 766,
+                "score": 70
+            },
+            {
+                "symbol": "SCHNEIDER",
+                "close": 1200.4,
+                "qty": 3100,
+                "score": 50
+            },
+            {
+                "symbol": "STALLION",
+                "close": 224.0,
+                "qty": 292,
+                "score": 50
+            },
+            {
+                "symbol": "SWELECTES",
+                "close": 603.0,
+                "qty": 235,
+                "score": 50
+            },
+            {
+                "symbol": "THERMAX",
+                "close": 3961.8,
+                "qty": 147,
+                "score": 50
+            },
+            {
+                "symbol": "TIGERLOGS-BE",
+                "close": 25.5,
+                "qty": 11740,
+                "score": 70
+            },
+            {
+                "symbol": "VILAS-SM",
+                "close": 358.4,
+                "qty": 250,
+                "score": 50
+            },
+            {
+                "symbol": "PWL",
+                "close": 124.4,
+                "qty": 695,
+                "score": 50
+            },
+            {
+                "symbol": "ENRIN",
+                "close": 3257.8,
+                "qty": 58,
+                "score": 70
+            },
+            {
+                "symbol": "BBOX",
+                "close": 742.0,
+                "qty": 125,
+                "score": 70
+            },
+            {
+                "symbol": "GRSE",
+                "close": 2638.1,
+                "qty": 2,
+                "score": 50
+            },
+            {
+                "symbol": "TEJASNET",
+                "close": 509.65,
+                "qty": 401,
+                "score": 70
+            },
+            {
+                "symbol": "TEXRAIL",
+                "close": 108.54,
+                "qty": 1037,
+                "score": 50
+            },
+            {
+                "symbol": "TORNTPOWER",
+                "close": 1228.4,
+                "qty": 99,
+                "score": 70
+            }
+        ]
+    },
+    {
+        "date": "2026-08-28",
+        "buy_signals": [
+            {
+                "symbol": "GIPCL",
+                "close": 192.45,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "GOLDBEES",
+                "close": 133.03,
+                "score": 75,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "HINDZINC",
+                "close": 622.95,
+                "score": 75,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "MCX",
+                "close": 3294.5,
+                "score": 75,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "SKYGOLD",
+                "close": 857.1,
+                "score": 75,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "IDEA",
+                "close": 15.04,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "RPEL",
+                "close": 1650.0,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "JYOTICNC",
+                "close": 987.2,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KENNAMET",
+                "close": 4145.3,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MANINDS",
+                "close": 727.45,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "TIIL",
+                "close": 3458.4,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "IFCI",
+                "close": 86.64,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KTKBANK",
+                "close": 337.2,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KWIL",
+                "close": 47.43,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "PARADEEP",
+                "close": 162.42,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "HAPPYFORGE",
+                "close": 2230.9,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "VMART",
+                "close": 864.5,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "PARAGMILK",
+                "close": 248.37,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "AVADHSUGAR",
+                "close": 820.8,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SURAKSHA",
+                "close": 325.2,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "CARTRADE",
+                "close": 3096.1,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SUBEXLTD",
+                "close": 17.88,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "BALAMINES",
+                "close": 2360.0,
+                "score": 60,
+                "action": "NEW_BUY"
+            }
+        ],
+        "sell_signals": [
+            {
+                "symbol": "ASTRAMICRO",
+                "close": 1682.7,
+                "qty": 1,
+                "score": 50
+            },
+            {
+                "symbol": "AWHCL",
+                "close": 382.15,
+                "qty": 352,
+                "score": 50
+            },
+            {
+                "symbol": "BIRLACORPN",
+                "close": 890.25,
+                "qty": 143,
+                "score": 50
+            },
+            {
+                "symbol": "CUMMINSIND",
+                "close": 5194.5,
+                "qty": 78,
+                "score": 50
+            },
+            {
+                "symbol": "ELIN",
+                "close": 98.61,
+                "qty": 1633,
+                "score": 50
+            },
+            {
+                "symbol": "FIVESTAR",
+                "close": 526.3,
+                "qty": 491,
+                "score": 50
+            },
+            {
+                "symbol": "FORCEMOT",
+                "close": 17505.0,
+                "qty": 5,
+                "score": 50
+            },
+            {
+                "symbol": "GESHIP",
+                "close": 1331.7,
+                "qty": 100,
+                "score": 50
+            },
+            {
+                "symbol": "POCL",
+                "close": 507.85,
+                "qty": 459,
+                "score": 70
+            },
+            {
+                "symbol": "POWERINDIA",
+                "close": 33480.0,
+                "qty": 4,
+                "score": 50
+            },
+            {
+                "symbol": "RBMINFRA-SM",
+                "close": 243.45,
+                "qty": 400,
+                "score": 50
+            },
+            {
+                "symbol": "SANGHVIMOV",
+                "close": 450.5,
+                "qty": 766,
+                "score": 50
+            },
+            {
+                "symbol": "SCHNEIDER",
+                "close": 1156.4,
+                "qty": 3100,
+                "score": 70
+            },
+            {
+                "symbol": "SKIPPER",
+                "close": 541.25,
+                "qty": 371,
+                "score": 50
+            },
+            {
+                "symbol": "SWELECTES",
+                "close": 601.6,
+                "qty": 235,
+                "score": 50
+            },
+            {
+                "symbol": "THERMAX",
+                "close": 3984.5,
+                "qty": 147,
+                "score": 50
+            },
+            {
+                "symbol": "TIGERLOGS-BE",
+                "close": 25.5,
+                "qty": 11740,
+                "score": 70
+            },
+            {
+                "symbol": "ENRIN",
+                "close": 3381.0,
+                "qty": 58,
+                "score": 50
+            },
+            {
+                "symbol": "ABB",
+                "close": 6846.0,
+                "qty": 11,
+                "score": 50
+            },
+            {
+                "symbol": "BBOX",
+                "close": 870.0,
+                "qty": 125,
+                "score": 50
+            },
+            {
+                "symbol": "GRSE",
+                "close": 2621.7,
+                "qty": 2,
+                "score": 50
+            },
+            {
+                "symbol": "TEJASNET",
+                "close": 544.2,
+                "qty": 401,
+                "score": 50
+            }
+        ]
+    },
+    {
+        "date": "2026-08-31",
+        "buy_signals": [
+            {
+                "symbol": "ATHERENERG",
+                "close": 1717.7,
+                "score": 90,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "PARAGMILK",
+                "close": 254.42,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "HAPPYFORGE",
+                "close": 2412.0,
+                "score": 85,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "RPEL",
+                "close": 1771.2,
+                "score": 85,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "JINDALSAW",
+                "close": 309.65,
+                "score": 85,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KAPSTON",
+                "close": 586.8,
+                "score": 85,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MCX",
+                "close": 3400.0,
+                "score": 80,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "AVALON",
+                "close": 2373.3,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "AUROPHARMA",
+                "close": 1717.0,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SUVEN",
+                "close": 392.05,
+                "score": 80,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "IFCI",
+                "close": 89.7,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "GIPCL",
+                "close": 199.36,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "NYKAA",
+                "close": 349.55,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KENNAMET",
+                "close": 4396.1,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MANINDS",
+                "close": 752.95,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "AVADHSUGAR",
+                "close": 855.3,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "BALUFORGE",
+                "close": 630.6,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "ABB",
+                "close": 7638.5,
+                "score": 75,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "WELSPUNLIV",
+                "close": 196.21,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SURAKSHA",
+                "close": 338.55,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SIGMAADV-BE",
+                "close": 781.95,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "LUMAXTECH",
+                "close": 2078.5,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MARINE",
+                "close": 400.85,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "NAVINFLUOR",
+                "close": 8675.5,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SUBEXLTD",
+                "close": 18.48,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MAFANG",
+                "close": 209.95,
+                "score": 65,
+                "action": "NEW_BUY"
+            }
+        ],
+        "sell_signals": [
+            {
+                "symbol": "ADANIENSOL",
+                "close": 1417.4,
+                "qty": 190,
+                "score": 70
+            },
+            {
+                "symbol": "APS-SM",
+                "close": 250.4,
+                "qty": 250,
+                "score": 50
+            },
+            {
+                "symbol": "ASTRAMICRO",
+                "close": 1666.0,
+                "qty": 1,
+                "score": 50
+            },
+            {
+                "symbol": "AWHCL",
+                "close": 383.3,
+                "qty": 352,
+                "score": 50
+            },
+            {
+                "symbol": "BIRLACORPN",
+                "close": 872.7,
+                "qty": 143,
+                "score": 50
+            },
+            {
+                "symbol": "CUMMINSIND",
+                "close": 5105.0,
+                "qty": 78,
+                "score": 50
+            },
+            {
+                "symbol": "ELIN",
+                "close": 100.13,
+                "qty": 1633,
+                "score": 50
+            },
+            {
+                "symbol": "FORCEMOT",
+                "close": 17526.0,
+                "qty": 5,
+                "score": 50
+            },
+            {
+                "symbol": "GESHIP",
+                "close": 1301.8,
+                "qty": 100,
+                "score": 50
+            },
+            {
+                "symbol": "HAL",
+                "close": 4801.6,
+                "qty": 43,
+                "score": 50
+            },
+            {
+                "symbol": "HINDCOPPER",
+                "close": 525.35,
+                "qty": 1000,
+                "score": 50
+            },
+            {
+                "symbol": "POCL",
+                "close": 495.6,
+                "qty": 459,
+                "score": 70
+            },
+            {
+                "symbol": "POWERINDIA",
+                "close": 33760.0,
+                "qty": 4,
+                "score": 50
+            },
+            {
+                "symbol": "RBMINFRA-SM",
+                "close": 241.2,
+                "qty": 400,
+                "score": 50
+            },
+            {
+                "symbol": "SANGHVIMOV",
+                "close": 457.25,
+                "qty": 766,
+                "score": 50
+            },
+            {
+                "symbol": "SCHNEIDER",
+                "close": 1219.2,
+                "qty": 3100,
+                "score": 50
+            },
+            {
+                "symbol": "SKIPPER",
+                "close": 541.2,
+                "qty": 371,
+                "score": 50
+            },
+            {
+                "symbol": "SWELECTES",
+                "close": 588.5,
+                "qty": 235,
+                "score": 50
+            },
+            {
+                "symbol": "THERMAX",
+                "close": 3901.6,
+                "qty": 147,
+                "score": 50
+            },
+            {
+                "symbol": "TIGERLOGS-BE",
+                "close": 25.5,
+                "qty": 11740,
+                "score": 70
+            },
+            {
+                "symbol": "VILAS-SM",
+                "close": 357.95,
+                "qty": 250,
+                "score": 50
+            },
+            {
+                "symbol": "WOCKPHARMA",
+                "close": 1883.7,
+                "qty": 50,
+                "score": 50
+            },
+            {
+                "symbol": "PREMEXPLN",
+                "close": 662.8,
+                "qty": 378,
+                "score": 50
+            },
+            {
+                "symbol": "PWL",
+                "close": 116.3,
+                "qty": 695,
+                "score": 50
+            },
+            {
+                "symbol": "NAUKRI",
+                "close": 1313.0,
+                "qty": 32,
+                "score": 50
+            },
+            {
+                "symbol": "ENRIN",
+                "close": 3229.6,
+                "qty": 58,
+                "score": 50
+            },
+            {
+                "symbol": "CHOLAFIN",
+                "close": 1857.4,
+                "qty": 50,
+                "score": 50
+            },
+            {
+                "symbol": "BBOX",
+                "close": 747.65,
+                "qty": 125,
+                "score": 70
+            },
+            {
+                "symbol": "GRSE",
+                "close": 2565.5,
+                "qty": 2,
+                "score": 50
+            },
+            {
+                "symbol": "TEJASNET",
+                "close": 559.75,
+                "qty": 401,
+                "score": 50
+            },
+            {
+                "symbol": "TEXRAIL",
+                "close": 108.95,
+                "qty": 1037,
+                "score": 50
+            },
+            {
+                "symbol": "TORNTPOWER",
+                "close": 1215.1,
+                "qty": 99,
+                "score": 70
+            }
+        ]
+    },
+    {
+        "date": "2026-09-01",
+        "buy_signals": [
+            {
+                "symbol": "SAILIFE",
+                "close": 1558.9,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "PARAGMILK",
+                "close": 256.4,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "TNPETRO",
+                "close": 129.63,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MARINE",
+                "close": 425.1,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "ATHERENERG",
+                "close": 1728.5,
+                "score": 85,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "JINDALSAW",
+                "close": 312.05,
+                "score": 85,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SOTL",
+                "close": 761.4,
+                "score": 80,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "EBGNG",
+                "close": 660.0,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MAFANG",
+                "close": 211.56,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "LUMAXIND",
+                "close": 6399.5,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "GIPCL",
+                "close": 200.43,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "HAPPYFORGE",
+                "close": 2446.0,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "CRAFTSMAN",
+                "close": 11492.0,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KENNAMET",
+                "close": 4478.9,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MANINDS",
+                "close": 763.0,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "BALUFORGE",
+                "close": 633.3,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MCX",
+                "close": 3309.1,
+                "score": 70,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "AVALON",
+                "close": 2360.7,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "RPEL",
+                "close": 1740.6,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "WELSPUNLIV",
+                "close": 197.65,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SUVEN",
+                "close": 398.05,
+                "score": 70,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "SURAKSHA",
+                "close": 340.25,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SIGMAADV-BE",
+                "close": 789.0,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "GMMPFAUDLR",
+                "close": 1088.8,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "LUMAXTECH",
+                "close": 2098.5,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "ABB",
+                "close": 7419.0,
+                "score": 65,
+                "action": "ADD_MORE"
+            }
+        ],
+        "sell_signals": [
+            {
+                "symbol": "ADANIENSOL",
+                "close": 1377.3,
+                "qty": 190,
+                "score": 70
+            },
+            {
+                "symbol": "APS-SM",
+                "close": 255.0,
+                "qty": 250,
+                "score": 50
+            },
+            {
+                "symbol": "ASTRAMICRO",
+                "close": 1689.1,
+                "qty": 1,
+                "score": 50
+            },
+            {
+                "symbol": "AWHCL",
+                "close": 380.7,
+                "qty": 352,
+                "score": 50
+            },
+            {
+                "symbol": "BIRLACORPN",
+                "close": 885.45,
+                "qty": 143,
+                "score": 50
+            },
+            {
+                "symbol": "CUMMINSIND",
+                "close": 5070.0,
+                "qty": 78,
+                "score": 50
+            },
+            {
+                "symbol": "ELIN",
+                "close": 96.91,
+                "qty": 1633,
+                "score": 70
+            },
+            {
+                "symbol": "FORCEMOT",
+                "close": 17600.0,
+                "qty": 5,
+                "score": 50
+            },
+            {
+                "symbol": "GESHIP",
+                "close": 1330.6,
+                "qty": 100,
+                "score": 50
+            },
+            {
+                "symbol": "GOLDBEES",
+                "close": 126.61,
+                "qty": 2209,
+                "score": 50
+            },
+            {
+                "symbol": "GPECO-ST",
+                "close": 401.1,
+                "qty": 800,
+                "score": 50
+            },
+            {
+                "symbol": "HAL",
+                "close": 4805.6,
+                "qty": 43,
+                "score": 50
+            },
+            {
+                "symbol": "HINDCOPPER",
+                "close": 524.45,
+                "qty": 1000,
+                "score": 50
+            },
+            {
+                "symbol": "POCL",
+                "close": 496.7,
+                "qty": 459,
+                "score": 70
+            },
+            {
+                "symbol": "POWERINDIA",
+                "close": 32820.0,
+                "qty": 4,
+                "score": 50
+            },
+            {
+                "symbol": "RBMINFRA-SM",
+                "close": 233.0,
+                "qty": 400,
+                "score": 50
+            },
+            {
+                "symbol": "SANGHVIMOV",
+                "close": 460.05,
+                "qty": 766,
+                "score": 50
+            },
+            {
+                "symbol": "SCHNEIDER",
+                "close": 1180.6,
+                "qty": 3100,
+                "score": 50
+            },
+            {
+                "symbol": "SKIPPER",
+                "close": 545.1,
+                "qty": 371,
+                "score": 50
+            },
+            {
+                "symbol": "SWELECTES",
+                "close": 590.0,
+                "qty": 235,
+                "score": 50
+            },
+            {
+                "symbol": "THERMAX",
+                "close": 3888.0,
+                "qty": 147,
+                "score": 50
+            },
+            {
+                "symbol": "TIGERLOGS-BE",
+                "close": 25.5,
+                "qty": 11740,
+                "score": 70
+            },
+            {
+                "symbol": "VILAS-SM",
+                "close": 355.0,
+                "qty": 250,
+                "score": 50
+            },
+            {
+                "symbol": "WOCKPHARMA",
+                "close": 1862.1,
+                "qty": 50,
+                "score": 70
+            },
+            {
+                "symbol": "PREMEXPLN",
+                "close": 663.5,
+                "qty": 378,
+                "score": 50
+            },
+            {
+                "symbol": "PWL",
+                "close": 114.39,
+                "qty": 695,
+                "score": 50
+            },
+            {
+                "symbol": "SKYGOLD",
+                "close": 773.75,
+                "qty": 128,
+                "score": 50
+            },
+            {
+                "symbol": "ENRIN",
+                "close": 3188.1,
+                "qty": 58,
+                "score": 50
+            },
+            {
+                "symbol": "CHOLAFIN",
+                "close": 1837.0,
+                "qty": 50,
+                "score": 50
+            },
+            {
+                "symbol": "BBOX",
+                "close": 721.45,
+                "qty": 125,
+                "score": 70
+            },
+            {
+                "symbol": "GRSE",
+                "close": 2551.3,
+                "qty": 2,
+                "score": 50
+            },
+            {
+                "symbol": "TEJASNET",
+                "close": 552.4,
+                "qty": 401,
+                "score": 50
+            },
+            {
+                "symbol": "TORNTPOWER",
+                "close": 1201.6,
+                "qty": 99,
+                "score": 70
+            }
+        ]
+    },
+    {
+        "date": "2026-09-02",
+        "buy_signals": [
+            {
+                "symbol": "ANTELOPUS",
+                "close": 951.15,
+                "score": 95,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SAILIFE",
+                "close": 1587.0,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "TNPETRO",
+                "close": 133.73,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "IFCI",
+                "close": 98.32,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "WINDLAS",
+                "close": 1096.6,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "GIPCL",
+                "close": 205.94,
+                "score": 85,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "ATHERENERG",
+                "close": 1686.1,
+                "score": 85,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "PARAGMILK",
+                "close": 254.9,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SKFINDUS",
+                "close": 3039.2,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KENNAMET",
+                "close": 4643.1,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MARINE",
+                "close": 431.5,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "RPEL",
+                "close": 1774.6,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "UDS",
+                "close": 231.44,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "WELSPUNLIV",
+                "close": 200.01,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "JINDALSAW",
+                "close": 309.15,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SEAMECLTD",
+                "close": 1735.7,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SURAKSHA",
+                "close": 340.35,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "HAPPYFORGE",
+                "close": 2345.9,
+                "score": 65,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "ABB",
+                "close": 7447.5,
+                "score": 65,
+                "action": "ADD_MORE"
+            }
+        ],
+        "sell_signals": [
+            {
+                "symbol": "ADANIENSOL",
+                "close": 1396.6,
+                "qty": 190,
+                "score": 70
+            },
+            {
+                "symbol": "AMBER",
+                "close": 7415.0,
+                "qty": 26,
+                "score": 50
+            },
+            {
+                "symbol": "APS-SM",
+                "close": 249.35,
+                "qty": 250,
+                "score": 50
+            },
+            {
+                "symbol": "ASTRAMICRO",
+                "close": 1641.8,
+                "qty": 1,
+                "score": 50
+            },
+            {
+                "symbol": "AWHCL",
+                "close": 372.95,
+                "qty": 352,
+                "score": 50
+            },
+            {
+                "symbol": "BIRLACORPN",
+                "close": 867.4,
+                "qty": 143,
+                "score": 50
+            },
+            {
+                "symbol": "CUMMINSIND",
+                "close": 5088.5,
+                "qty": 78,
+                "score": 50
+            },
+            {
+                "symbol": "ELIN",
+                "close": 95.26,
+                "qty": 1633,
+                "score": 50
+            },
+            {
+                "symbol": "ELLEN",
+                "close": 313.3,
+                "qty": 233,
+                "score": 50
+            },
+            {
+                "symbol": "FIVESTAR",
+                "close": 524.85,
+                "qty": 491,
+                "score": 50
+            },
+            {
+                "symbol": "FORCEMOT",
+                "close": 17600.0,
+                "qty": 5,
+                "score": 50
+            },
+            {
+                "symbol": "GESHIP",
+                "close": 1305.6,
+                "qty": 100,
+                "score": 50
+            },
+            {
+                "symbol": "GOLDBEES",
+                "close": 123.52,
+                "qty": 2209,
+                "score": 50
+            },
+            {
+                "symbol": "HAL",
+                "close": 4780.0,
+                "qty": 43,
+                "score": 50
+            },
+            {
+                "symbol": "HINDCOPPER",
+                "close": 520.95,
+                "qty": 1000,
+                "score": 50
+            },
+            {
+                "symbol": "JSWINFRA",
+                "close": 332.1,
+                "qty": 455,
+                "score": 50
+            },
+            {
+                "symbol": "MTARTECH-BE",
+                "close": 6872.0,
+                "qty": 5,
+                "score": 50
+            },
+            {
+                "symbol": "POCL",
+                "close": 479.2,
+                "qty": 459,
+                "score": 70
+            },
+            {
+                "symbol": "POWERINDIA",
+                "close": 32200.0,
+                "qty": 4,
+                "score": 50
+            },
+            {
+                "symbol": "RBMINFRA-SM",
+                "close": 242.75,
+                "qty": 400,
+                "score": 50
+            },
+            {
+                "symbol": "RRKABEL",
+                "close": 2630.4,
+                "qty": 174,
+                "score": 50
+            },
+            {
+                "symbol": "SANGHVIMOV",
+                "close": 452.3,
+                "qty": 766,
+                "score": 50
+            },
+            {
+                "symbol": "SCHNEIDER",
+                "close": 1169.5,
+                "qty": 3100,
+                "score": 50
+            },
+            {
+                "symbol": "SKIPPER",
+                "close": 537.15,
+                "qty": 371,
+                "score": 50
+            },
+            {
+                "symbol": "SWELECTES",
+                "close": 584.35,
+                "qty": 235,
+                "score": 50
+            },
+            {
+                "symbol": "THERMAX",
+                "close": 3752.5,
+                "qty": 147,
+                "score": 70
+            },
+            {
+                "symbol": "TIGERLOGS-BE",
+                "close": 25.5,
+                "qty": 11740,
+                "score": 70
+            },
+            {
+                "symbol": "VILAS-SM",
+                "close": 349.0,
+                "qty": 250,
+                "score": 50
+            },
+            {
+                "symbol": "PWL",
+                "close": 115.47,
+                "qty": 695,
+                "score": 50
+            },
+            {
+                "symbol": "SKYGOLD",
+                "close": 753.1,
+                "qty": 128,
+                "score": 50
+            },
+            {
+                "symbol": "ENRIN",
+                "close": 3119.3,
+                "qty": 58,
+                "score": 70
+            },
+            {
+                "symbol": "FINCABLES",
+                "close": 1191.2,
+                "qty": 173,
+                "score": 50
+            },
+            {
+                "symbol": "CHOLAFIN",
+                "close": 1825.9,
+                "qty": 50,
+                "score": 50
+            },
+            {
+                "symbol": "BBOX",
+                "close": 725.2,
+                "qty": 125,
+                "score": 70
+            },
+            {
+                "symbol": "GRSE",
+                "close": 2495.1,
+                "qty": 2,
+                "score": 70
+            },
+            {
+                "symbol": "TEJASNET",
+                "close": 548.85,
+                "qty": 401,
+                "score": 50
+            },
+            {
+                "symbol": "TORNTPOWER",
+                "close": 1248.9,
+                "qty": 99,
+                "score": 70
+            }
+        ]
+    },
+    {
+        "date": "2026-09-03",
+        "buy_signals": [
+            {
+                "symbol": "ANTELOPUS",
+                "close": 951.15,
+                "score": 95,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SAILIFE",
+                "close": 1587.0,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "TNPETRO",
+                "close": 133.73,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "IFCI",
+                "close": 98.32,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "WINDLAS",
+                "close": 1096.6,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "GIPCL",
+                "close": 205.94,
+                "score": 85,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "ATHERENERG",
+                "close": 1686.1,
+                "score": 85,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "PARAGMILK",
+                "close": 254.9,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SKFINDUS",
+                "close": 3039.2,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KENNAMET",
+                "close": 4643.1,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MARINE",
+                "close": 431.5,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "RPEL",
+                "close": 1774.6,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "UDS",
+                "close": 231.44,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "WELSPUNLIV",
+                "close": 200.01,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "JINDALSAW",
+                "close": 309.15,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SEAMECLTD",
+                "close": 1735.7,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SURAKSHA",
+                "close": 340.35,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "HAPPYFORGE",
+                "close": 2345.9,
+                "score": 65,
+                "action": "NEW_BUY"
+            }
+        ],
+        "sell_signals": [
+            {
+                "symbol": "ADANIENSOL",
+                "close": 1396.6,
+                "qty": 190,
+                "score": 70
+            },
+            {
+                "symbol": "AWHCL",
+                "close": 372.95,
+                "qty": 352,
+                "score": 50
+            },
+            {
+                "symbol": "BIRLACORPN",
+                "close": 867.4,
+                "qty": 143,
+                "score": 50
+            },
+            {
+                "symbol": "CUMMINSIND",
+                "close": 5088.5,
+                "qty": 78,
+                "score": 50
+            },
+            {
+                "symbol": "GOLDBEES",
+                "close": 123.52,
+                "qty": 2209,
+                "score": 50
+            },
+            {
+                "symbol": "MTARTECH-BE",
+                "close": 6872.0,
+                "qty": 5,
+                "score": 50
+            },
+            {
+                "symbol": "POCL",
+                "close": 479.2,
+                "qty": 459,
+                "score": 70
+            },
+            {
+                "symbol": "POWERINDIA",
+                "close": 32200.0,
+                "qty": 4,
+                "score": 50
+            },
+            {
+                "symbol": "RBMINFRA-SM",
+                "close": 242.75,
+                "qty": 400,
+                "score": 50
+            },
+            {
+                "symbol": "RRKABEL",
+                "close": 2630.4,
+                "qty": 174,
+                "score": 50
+            },
+            {
+                "symbol": "SWELECTES",
+                "close": 584.35,
+                "qty": 235,
+                "score": 50
+            },
+            {
+                "symbol": "THERMAX",
+                "close": 3752.5,
+                "qty": 147,
+                "score": 70
+            },
+            {
+                "symbol": "TIGERLOGS-BE",
+                "close": 25.5,
+                "qty": 11740,
+                "score": 70
+            },
+            {
+                "symbol": "PWL",
+                "close": 115.47,
+                "qty": 695,
+                "score": 50
+            },
+            {
+                "symbol": "CHOLAFIN",
+                "close": 1825.9,
+                "qty": 50,
+                "score": 50
+            },
+            {
+                "symbol": "ABB",
+                "close": 6846.0,
+                "qty": 11,
+                "score": 50
+            },
+            {
+                "symbol": "BBOX",
+                "close": 870.0,
+                "qty": 125,
+                "score": 50
+            },
+            {
+                "symbol": "TEJASNET",
+                "close": 544.2,
+                "qty": 401,
+                "score": 50
+            }
+        ]
+    },
+    {
+        "date": "2026-09-04",
+        "buy_signals": [
+            {
+                "symbol": "SOLARINDS",
+                "close": 21500.0,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "RPEL",
+                "close": 1885.2,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "UDS",
+                "close": 236.61,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "ANTELOPUS",
+                "close": 1013.3,
+                "score": 90,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "CAPLIPOINT",
+                "close": 2845.0,
+                "score": 85,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "CGCL",
+                "close": 271.7,
+                "score": 85,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "TNPETRO",
+                "close": 137.81,
+                "score": 85,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "IFCI",
+                "close": 95.91,
+                "score": 85,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "DEEPINDS",
+                "close": 744.85,
+                "score": 85,
+                "action": "ADD_MORE"
+            },
+            {
+                "symbol": "KMEW",
+                "close": 3150.4,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SAILIFE",
+                "close": 1574.8,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MANINDS",
+                "close": 793.4,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SEAMECLTD",
+                "close": 1786.6,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "WINDLAS",
+                "close": 1127.1,
+                "score": 80,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "GIPCL",
+                "close": 208.04,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "BEML",
+                "close": 2079.4,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "ASIANENE",
+                "close": 523.0,
+                "score": 75,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SKFINDUS",
+                "close": 3062.8,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "WELSPUNLIV",
+                "close": 200.61,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "JINDALSAW",
+                "close": 310.85,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "KENNAMET",
+                "close": 4532.2,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "MARINE",
+                "close": 430.4,
+                "score": 70,
+                "action": "NEW_BUY"
+            },
+            {
+                "symbol": "SURAKSHA",
+                "close": 339.6,
+                "score": 65,
+                "action": "NEW_BUY"
+            }
+        ],
+        "sell_signals": [
+            {
+                "symbol": "ADANIENSOL",
+                "close": 1385.7,
+                "qty": 190,
+                "score": 70
+            },
+            {
+                "symbol": "AWHCL",
+                "close": 371.4,
+                "qty": 352,
+                "score": 50
+            },
+            {
+                "symbol": "BIRLACORPN",
+                "close": 880.9,
+                "qty": 143,
+                "score": 50
+            },
+            {
+                "symbol": "CUMMINSIND",
+                "close": 5071.0,
+                "qty": 78,
+                "score": 50
+            },
+            {
+                "symbol": "GOLDBEES",
+                "close": 126.23,
+                "qty": 2209,
+                "score": 50
+            },
+            {
+                "symbol": "MTARTECH-BE",
+                "close": 6820.0,
+                "qty": 5,
+                "score": 50
+            },
+            {
+                "symbol": "POCL",
+                "close": 476.1,
+                "qty": 459,
+                "score": 70
+            },
+            {
+                "symbol": "POWERINDIA",
+                "close": 32000.0,
+                "qty": 4,
+                "score": 50
+            },
+            {
+                "symbol": "RBMINFRA-SM",
+                "close": 244.4,
+                "qty": 400,
+                "score": 50
+            },
+            {
+                "symbol": "RRKABEL",
+                "close": 2617.7,
+                "qty": 174,
+                "score": 50
+            },
+            {
+                "symbol": "SWELECTES",
+                "close": 576.9,
+                "qty": 235,
+                "score": 50
+            },
+            {
+                "symbol": "THERMAX",
+                "close": 3733.9,
+                "qty": 147,
+                "score": 70
+            },
+            {
+                "symbol": "TIGERLOGS-BE",
+                "close": 25.5,
+                "qty": 11740,
+                "score": 70
+            },
+            {
+                "symbol": "PWL",
+                "close": 120.6,
+                "qty": 695,
+                "score": 50
+            },
+            {
+                "symbol": "CHOLAFIN",
+                "close": 1849.3,
+                "qty": 50,
+                "score": 50
+            },
+            {
+                "symbol": "ABB",
+                "close": 6846.0,
+                "qty": 11,
+                "score": 50
+            },
+            {
+                "symbol": "BBOX",
+                "close": 870.0,
+                "qty": 125,
+                "score": 50
+            },
+            {
+                "symbol": "TEJASNET",
+                "close": 544.2,
+                "qty": 401,
+                "score": 50
+            }
+        ]
     }
 ]

@@ -368,6 +368,13 @@ def remove_from_watchlist_api(req: WatchlistModifyRequest):
     return remove_from_watchlist(req.symbols, target=req.target or "active")
 
 
+@app.post("/api/watchlist/purge-missing")
+def purge_missing_watchlist_api():
+    """Purges any symbols with 0 candle records from DuckDB and all watchlists."""
+    from data.watchlist_manager import purge_zero_candle_symbols
+    return purge_zero_candle_symbols()
+
+
 class StageNewStocksRequest(BaseModel):
     symbols_text: str
 
@@ -542,17 +549,64 @@ def parse_results_txt(filepath: str) -> dict:
 
 
 @app.get("/api/recos/latest")
-def get_latest_recos():
-    """Returns the latest recommendation results parsed from Results folder."""
+def get_latest_recos(type: Optional[str] = None):
+    """Returns the latest recommendation results parsed from Results folder.
+       type can be 'nsescan', 'dryrun', 'all', or None.
+       When 'all' or None, merges the latest dryrun (watchlist) results and latest nsescan discoveries into a unified view.
+    """
     results_dir = os.path.join(PROJECT_DIR, "Results")
-    files = glob.glob(os.path.join(results_dir, "*.txt"))
-    if not files:
-        return {"has_results": False, "message": "No scan results found in Results folder. Please run a Dry Run or Full NSE Scan."}
+    nsescan_files = sorted(glob.glob(os.path.join(results_dir, "*-nsescan-results.txt")), key=os.path.getmtime, reverse=True)
+    dryrun_files = sorted(glob.glob(os.path.join(results_dir, "*-dryrun-results.txt")), key=os.path.getmtime, reverse=True)
 
-    files.sort(key=os.path.getmtime, reverse=True)
-    latest_file = files[0]
-    data = parse_results_txt(latest_file)
-    data["has_results"] = True
+    if type == "nsescan":
+        target_files = nsescan_files if nsescan_files else glob.glob(os.path.join(results_dir, "*.txt"))
+        if not target_files:
+            return {"has_results": False, "message": "No NSE scan results found. Please run a Full NSE Scan."}
+        target_files.sort(key=os.path.getmtime, reverse=True)
+        data = parse_results_txt(target_files[0])
+        data["has_results"] = True
+    elif type == "dryrun":
+        target_files = dryrun_files if dryrun_files else glob.glob(os.path.join(results_dir, "*.txt"))
+        if not target_files:
+            return {"has_results": False, "message": "No watchlist dry run results found. Please run a Dry Run scan."}
+        target_files.sort(key=os.path.getmtime, reverse=True)
+        data = parse_results_txt(target_files[0])
+        data["has_results"] = True
+    else:
+        # Combined / Latest mode
+        if dryrun_files and nsescan_files:
+            dry_data = parse_results_txt(dryrun_files[0])
+            nse_data = parse_results_txt(nsescan_files[0])
+            data = dry_data
+            data["has_results"] = True
+            data["discoveries"] = nse_data.get("discoveries", [])
+            data["counts"]["discoveries"] = len(data["discoveries"])
+            data["counts"]["total_recos"] = data["counts"]["add_more"] + data["counts"]["new_buy"] + data["counts"]["discoveries"]
+
+            # Merge excellent symbols
+            all_exc = list(dict.fromkeys(data.get("excellent_symbols", []) + nse_data.get("excellent_symbols", [])))
+            data["excellent_symbols"] = all_exc
+            data["counts"]["excellent"] = len(all_exc)
+
+            all_syms = list(dict.fromkeys([x["symbol"] for x in data["add_more"] + data["new_buy"]] + [x["symbol"] for x in data["discoveries"]]))
+            data["all_tickers_formatted"] = ",\n".join(f"NSE:{s}" for s in all_syms)
+            data["excellent_tickers_formatted"] = ",\n".join(f"NSE:{s}" for s in all_exc)
+
+            dt_dry = datetime.fromtimestamp(os.path.getmtime(dryrun_files[0])).strftime("%d %b %H:%M")
+            dt_nse = datetime.fromtimestamp(os.path.getmtime(nsescan_files[0])).strftime("%d %b %H:%M")
+            data["filename"] = f"{os.path.basename(dryrun_files[0])} + {os.path.basename(nsescan_files[0])}"
+            data["date_formatted"] = f"{dt_dry} (Watchlist) | {dt_nse} (NSE Scan)"
+        else:
+            all_files = sorted(glob.glob(os.path.join(results_dir, "*.txt")), key=os.path.getmtime, reverse=True)
+            if not all_files:
+                return {"has_results": False, "message": "No scan results found in Results folder. Please run a Dry Run or Full NSE Scan."}
+            data = parse_results_txt(all_files[0])
+            data["has_results"] = True
+
+    data["has_nsescan"] = len(nsescan_files) > 0
+    data["has_dryrun"] = len(dryrun_files) > 0
+    data["latest_nsescan_file"] = os.path.basename(nsescan_files[0]) if nsescan_files else None
+    data["latest_dryrun_file"] = os.path.basename(dryrun_files[0]) if dryrun_files else None
     return data
 
 

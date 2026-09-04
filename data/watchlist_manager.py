@@ -15,14 +15,22 @@ TEST_STOCKS_FILE = os.path.join(PROJECT_DIR, "stocks_to_test.txt")
 SELL_WATCHLIST_FILE = os.path.join(PROJECT_DIR, "stocks_sell_watchlist.txt")
 
 
+def is_valid_ticker(symbol: str) -> bool:
+    """Validates whether a string can be an NSE symbol (alphanumeric, -, &, no spaces, max 15 chars)."""
+    if not symbol or len(symbol) > 15 or " " in symbol or "\t" in symbol:
+        return False
+    return bool(re.match(r"^[A-Z0-9&\-]{1,15}$", symbol))
+
+
 def clean_symbol(symbol: str) -> str:
-    """Normalizes symbol string (removes NSE: prefix, -EQ suffix, whitespace)."""
+    """Normalizes symbol string (removes NSE: prefix, -EQ suffix, whitespace, and rejects invalid text)."""
     s = symbol.strip().upper()
     if s.startswith("NSE:"):
         s = s[4:]
     if s.endswith("-EQ"):
         s = s[:-3]
-    return s
+    s = s.strip()
+    return s if is_valid_ticker(s) else ""
 
 
 def read_symbols_from_file(filepath: str) -> List[str]:
@@ -188,3 +196,97 @@ def get_watchlist_summary() -> Dict[str, Any]:
         "test_stocks": test,
         "test_count": len(test)
     }
+
+
+def purge_untracked_or_failed_symbols(symbols: List[str]) -> Dict[str, Any]:
+    """
+    Purges symbols where data could not be fetched or that are invalid from:
+    1. Active Watchlist (stocks_watchlist.txt)
+    2. Sell Watchlist (stocks_sell_watchlist.txt)
+    3. Test Stocks (stocks_to_test.txt)
+    4. DuckDB database (candles table)
+    """
+    from data.duckdb_manager import delete_symbol_candles
+
+    clean_syms = set()
+    for s in symbols:
+        raw = str(s).strip().upper()
+        clean_syms.add(raw)
+        c = clean_symbol(raw)
+        if c:
+            clean_syms.add(c)
+        if raw.startswith("NSE:"):
+            clean_syms.add(raw[4:])
+        if raw.endswith("-EQ"):
+            clean_syms.add(raw[:-3])
+
+    # 1. Purge from Active Watchlist
+    active = get_active_watchlist()
+    orig_active_len = len(active)
+    active = [s for s in active if s not in clean_syms and clean_symbol(s) not in clean_syms]
+    if len(active) != orig_active_len:
+        write_symbols_to_file(ACTIVE_WATCHLIST_FILE, active, "Active Stock Watchlist")
+
+    # 2. Purge from Sell Watchlist
+    sell = get_sell_watchlist()
+    orig_sell_len = len(sell)
+    sell = [s for s in sell if s not in clean_syms and clean_symbol(s) not in clean_syms]
+    if len(sell) != orig_sell_len:
+        write_symbols_to_file(SELL_WATCHLIST_FILE, sell, "Sell Watchlist - Weakness & Exit Signals")
+
+    # 3. Purge from Test Stocks
+    test = get_test_stocks()
+    orig_test_len = len(test)
+    test = [s for s in test if s not in clean_syms and clean_symbol(s) not in clean_syms]
+    if len(test) != orig_test_len:
+        write_symbols_to_file(TEST_STOCKS_FILE, test, "Stocks to Test & Baseline Strategy Universe")
+
+    # 4. Purge from DuckDB
+    deleted_candles = 0
+    for s in clean_syms:
+        try:
+            deleted_candles += delete_symbol_candles(s)
+        except Exception:
+            pass
+
+    return {
+        "success": True,
+        "purged_symbols": list(clean_syms),
+        "removed_from_active": orig_active_len - len(active),
+        "removed_from_sell": orig_sell_len - len(sell),
+        "removed_from_test": orig_test_len - len(test),
+        "active_remaining": len(active),
+        "sell_remaining": len(sell),
+        "test_remaining": len(test),
+        "deleted_candles": deleted_candles
+    }
+
+
+def purge_zero_candle_symbols() -> Dict[str, Any]:
+    """
+    Scans all watchlists and purges any symbol that has 0 candle data in DuckDB.
+    Uses bulk distinct symbol query for high performance.
+    """
+    from data.duckdb_manager import get_connection, normalize_symbol_candidates
+
+    active = get_active_watchlist()
+    sell = get_sell_watchlist()
+    test = get_test_stocks()
+    all_syms = list(dict.fromkeys(active + sell + test))
+
+    con = get_connection(read_only=True)
+    try:
+        existing_rows = con.execute("SELECT DISTINCT symbol FROM candles").fetchall()
+        existing_symbols = {r[0].upper() for r in existing_rows}
+    finally:
+        con.close()
+
+    zero_candle_syms = []
+    for s in all_syms:
+        cands = [c.upper() for c in normalize_symbol_candidates(s)]
+        if not any(c in existing_symbols for c in cands):
+            zero_candle_syms.append(s)
+
+    if zero_candle_syms:
+        return purge_untracked_or_failed_symbols(zero_candle_syms)
+    return {"success": True, "purged_symbols": [], "message": "All tracked symbols have valid candle data in DuckDB."}

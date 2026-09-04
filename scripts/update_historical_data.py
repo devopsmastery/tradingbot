@@ -42,7 +42,9 @@ from data.duckdb_manager import (
     upsert_candles,
     DB_PATH,
 )
-from data.watchlist_manager import get_active_watchlist, get_sell_watchlist
+from data.watchlist_manager import (
+    get_active_watchlist, get_sell_watchlist, purge_untracked_or_failed_symbols
+)
 
 
 WATCHLIST_FILE = os.path.join(os.path.dirname(STOCKS_FILE), "stocks_watchlist.txt")
@@ -263,6 +265,9 @@ def main():
     print(f"  No new data      : {skipped_count}")
     if failed:
         print(f"  Failed           : {len(failed)} ({', '.join(failed[:10])})")
+        print(f"\n  [PURGE] Auto-removing {len(failed)} un-fetchable/invalid stocks from DuckDB & watchlists...")
+        purge_res = purge_untracked_or_failed_symbols(failed)
+        print(f"  Purge complete   : Removed from watchlists & deleted from DuckDB.")
     print(f"  Already current  : {len(already_current)}")
     print(f"  Last trading day : {last_trading_day.strftime('%d %b %Y (%A)')}")
     print()

@@ -21,7 +21,7 @@ from data.duckdb_manager import (
 from data.watchlist_manager import (
     add_to_active_watchlist, get_active_watchlist,
     get_sell_watchlist, get_test_stocks, clean_symbol,
-    read_symbols_from_file
+    read_symbols_from_file, purge_untracked_or_failed_symbols
 )
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -106,11 +106,14 @@ def add_new_stocks():
 
     # ---- Summary ----
     print("  " + "-" * 56)
-    print(f"\n  📊 SUMMARY:")
     print(f"     Successfully fetched : {success}/{len(unique_new)}")
     if failed:
         print(f"     Failed              : {len(failed)} ({', '.join(failed[:10])})")
-    print(f"     Active Watchlist    : {result['active_count']} stocks")
+        print(f"     [PURGE] Auto-removing {len(failed)} un-fetchable stocks from Active Watchlist...")
+        purge_res = purge_untracked_or_failed_symbols(failed)
+        print(f"     Active Watchlist now: {purge_res['active_remaining']} stocks")
+    else:
+        print(f"     Active Watchlist    : {result['active_count']} stocks")
 
     # ---- Step 3: Clear staging file ----
     _clear_staging_file()

@@ -417,6 +417,13 @@
 
         <!-- Action Buttons -->
         <div class="flex flex-wrap items-center gap-2">
+          <!-- Report Filter Pills -->
+          <div class="flex items-center rounded-lg bg-dark-card2 p-1 border border-dark-border text-xs">
+            <button onclick="filterRecoType('all')" id="filter-btn-all" class="reco-filter-btn px-2.5 py-1 rounded font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 transition">Latest</button>
+            <button onclick="filterRecoType('dryrun')" id="filter-btn-dryrun" class="reco-filter-btn px-2.5 py-1 rounded font-medium text-slate-400 hover:text-slate-200 transition">Watchlist</button>
+            <button onclick="filterRecoType('nsescan')" id="filter-btn-nsescan" class="reco-filter-btn px-2.5 py-1 rounded font-medium text-slate-400 hover:text-slate-200 transition">NSE Scan</button>
+          </div>
+
           <!-- Primary: Add Excellent to Watchlist -->
           <button onclick="addExcellentToWatchlist()" class="px-3.5 py-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-lg shadow-emerald-600/20 transition">
             <i data-lucide="star" class="w-3.5 h-3.5 fill-current text-amber-300"></i>
@@ -443,7 +450,7 @@
       </div>
 
       <!-- Reco Summary KPI Cards -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
         <div class="bg-dark-card border border-dark-border rounded-xl p-4">
           <div class="text-xs text-slate-400 flex items-center justify-between">
             <span>Total Recommendations</span>
@@ -462,6 +469,14 @@
 
         <div class="bg-dark-card border border-dark-border rounded-xl p-4">
           <div class="text-xs text-slate-400 flex items-center justify-between">
+            <span>NEW BUY (Fresh)</span>
+            <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div class="text-2xl font-bold font-mono text-emerald-400 mt-2" id="kpi-newbuy-recos">0</div>
+        </div>
+
+        <div class="bg-dark-card border border-dark-border rounded-xl p-4">
+          <div class="text-xs text-slate-400 flex items-center justify-between">
             <span>ADD MORE (Held)</span>
             <i data-lucide="trending-up" class="w-4 h-4 text-cyan-400"></i>
           </div>
@@ -470,15 +485,45 @@
 
         <div class="bg-dark-card border border-dark-border rounded-xl p-4">
           <div class="text-xs text-slate-400 flex items-center justify-between">
-            <span>NEW BUY (Fresh)</span>
-            <i data-lucide="plus-circle" class="w-4 h-4 text-indigo-400"></i>
+            <span>NSE DISCOVERIES</span>
+            <i data-lucide="compass" class="w-4 h-4 text-amber-400"></i>
           </div>
-          <div class="text-2xl font-bold font-mono text-indigo-400 mt-2" id="kpi-newbuy-recos">0</div>
+          <div class="text-2xl font-bold font-mono text-amber-400 mt-2" id="kpi-discoveries-recos">0</div>
+        </div>
+      </div>
+
+      <!-- NSE SCAN DISCOVERIES SECTION -->
+      <div class="space-y-3 pt-2" id="discoveries-section">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-amber-300 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            NSE SCAN DISCOVERIES — Fresh Small & Mid-Cap Breakouts (Full Market Scan)
+          </h3>
+          <div class="flex flex-wrap items-center space-x-2">
+            <span class="text-xs font-mono text-slate-500" id="discoveries-count-label">0 items</span>
+            <!-- Filter pill for Discoveries: All vs Excellent -->
+            <div class="flex items-center rounded-lg bg-dark-card2 p-0.5 border border-dark-border text-[11px]">
+              <button onclick="toggleDiscoveryFilter('all')" id="disc-filter-all" class="px-2 py-0.5 rounded font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/20 transition">All</button>
+              <button onclick="toggleDiscoveryFilter('excellent')" id="disc-filter-exc" class="px-2 py-0.5 rounded font-medium text-slate-400 hover:text-slate-200 transition">⭐ Excellent Only</button>
+            </div>
+            <button onclick="addDiscoveryExcellentToWatchlist()" class="px-2.5 py-1 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center space-x-1 transition" title="Add Excellent discoveries (80%+) to Active Watchlist">
+              <i data-lucide="star" class="w-3.5 h-3.5 text-amber-300 fill-current"></i>
+              <span>Add Excellent to Watch</span>
+            </button>
+            <button onclick="addAllDiscoveriesToWatchlist()" class="px-2.5 py-1 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center space-x-1 transition" title="Add all discoveries to Active Watchlist">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+              <span>Add All to Watch</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="discoveries-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3.5">
+          <!-- Dynamically populated -->
         </div>
       </div>
 
       <!-- NEW BUY SECTION -->
-      <div class="space-y-3">
+      <div class="space-y-3" id="new-buy-section">
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
@@ -493,7 +538,7 @@
       </div>
 
       <!-- ADD MORE SECTION -->
-      <div class="space-y-3 pt-4">
+      <div class="space-y-3 pt-4" id="add-more-section">
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span>
@@ -545,14 +590,18 @@
           <p class="text-xs text-slate-400 mt-1">Active Watchlist (scanned daily) vs Sell Watchlist (weakness candidates)</p>
         </div>
 
-        <!-- Add stock input -->
-        <div class="flex items-center gap-2 w-full sm:w-auto">
+        <!-- Add stock input & Actions -->
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <input type="text" id="manual-add-symbol" placeholder="Add symbol (e.g. SUBEXLTD)..." 
             class="bg-dark-card2 border border-dark-border rounded-lg px-3 py-1.5 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 uppercase"
             onkeydown="if(event.key==='Enter') manualAddSymbol()">
           <button onclick="manualAddSymbol()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center space-x-1 shadow-lg shadow-emerald-600/20 transition">
             <i data-lucide="plus" class="w-3.5 h-3.5"></i>
             <span>Add</span>
+          </button>
+          <button onclick="purgeMissingWatchlist()" class="px-3 py-1.5 rounded-lg bg-dark-card2 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border border-dark-border hover:border-rose-500/40 text-xs font-semibold flex items-center space-x-1 transition" title="Scan watchlists and DuckDB to purge symbols with 0 candle records">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            <span>Purge Missing</span>
           </button>
         </div>
       </div>
@@ -1284,9 +1333,36 @@
     // -------------------------------------------------------------
     // Recommendations (Reco) Engine
     // -------------------------------------------------------------
+    let currentRecoFilter = 'all';
+    let discoveryFilterState = 'all';
+
+    async function filterRecoType(type) {
+      currentRecoFilter = type;
+      ['all', 'dryrun', 'nsescan'].forEach(t => {
+        const btn = document.getElementById(`filter-btn-${t}`);
+        if (!btn) return;
+        if (t === type) {
+          btn.className = 'reco-filter-btn px-2.5 py-1 rounded font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 transition';
+        } else {
+          btn.className = 'reco-filter-btn px-2.5 py-1 rounded font-medium text-slate-400 hover:text-slate-200 transition';
+        }
+      });
+
+      try {
+        const url = type === 'all' ? '/api/recos/latest' : `/api/recos/latest?type=${type}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        latestRecosData = data;
+        renderRecosView(data);
+      } catch (e) {
+        console.error('Error fetching filtered recos:', e);
+      }
+    }
+
     async function loadLatestRecos() {
       try {
-        const res = await fetch('/api/recos/latest');
+        const url = currentRecoFilter === 'all' ? '/api/recos/latest' : `/api/recos/latest?type=${currentRecoFilter}`;
+        const res = await fetch(url);
         const data = await res.json();
         latestRecosData = data;
         renderRecosView(data);
@@ -1324,6 +1400,57 @@
       }
     }
 
+    function toggleDiscoveryFilter(filter) {
+      discoveryFilterState = filter;
+      const btnAll = document.getElementById('disc-filter-all');
+      const btnExc = document.getElementById('disc-filter-exc');
+      if (filter === 'all') {
+        if (btnAll) btnAll.className = 'px-2 py-0.5 rounded font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/20 transition';
+        if (btnExc) btnExc.className = 'px-2 py-0.5 rounded font-medium text-slate-400 hover:text-slate-200 transition';
+      } else {
+        if (btnAll) btnAll.className = 'px-2 py-0.5 rounded font-medium text-slate-400 hover:text-slate-200 transition';
+        if (btnExc) btnExc.className = 'px-2 py-0.5 rounded font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/20 transition';
+      }
+      renderDiscoveriesContainer();
+    }
+
+    function renderDiscoveriesContainer() {
+      if (!latestRecosData) return;
+      const discSection = document.getElementById('discoveries-section');
+      const discContainer = document.getElementById('discoveries-container');
+      const discCountLabel = document.getElementById('discoveries-count-label');
+      if (!discContainer || !discSection) return;
+
+      discContainer.innerHTML = '';
+      const allDiscoveries = latestRecosData.discoveries || [];
+
+      if (allDiscoveries.length === 0) {
+        discSection.classList.add('hidden');
+        if (discCountLabel) discCountLabel.textContent = '0 items';
+        return;
+      }
+
+      discSection.classList.remove('hidden');
+      const itemsToRender = discoveryFilterState === 'excellent'
+        ? allDiscoveries.filter(d => d.score >= 80)
+        : allDiscoveries;
+
+      if (discCountLabel) {
+        discCountLabel.textContent = discoveryFilterState === 'excellent'
+          ? `${itemsToRender.length} excellent / ${allDiscoveries.length} total`
+          : `${allDiscoveries.length} setups`;
+      }
+
+      if (itemsToRender.length === 0) {
+        discContainer.innerHTML = '<div class="col-span-full text-xs text-slate-500 py-4 text-center">No Excellent (80%+) discovery setups in this report.</div>';
+      } else {
+        itemsToRender.forEach((item, idx) => {
+          discContainer.appendChild(createRecoCard(item, idx + 1, 'DISCOVERY'));
+        });
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
     function renderRecosView(data) {
       if (!data || !data.has_results) return;
 
@@ -1336,15 +1463,43 @@
       document.getElementById('kpi-excellent-recos').textContent = data.counts.excellent;
       document.getElementById('kpi-addmore-recos').textContent = data.counts.add_more;
       document.getElementById('kpi-newbuy-recos').textContent = data.counts.new_buy;
+      const kpiDisc = document.getElementById('kpi-discoveries-recos');
+      if (kpiDisc) kpiDisc.textContent = (data.counts && data.counts.discoveries) || (data.discoveries ? data.discoveries.length : 0);
 
-      document.getElementById('newbuy-count-label').textContent = `${data.new_buy.length} setups`;
-      document.getElementById('addmore-count-label').textContent = `${data.add_more.length} setups`;
+      document.getElementById('newbuy-count-label').textContent = `${(data.new_buy || []).length} setups`;
+      document.getElementById('addmore-count-label').textContent = `${(data.add_more || []).length} setups`;
+
+      // Render Discoveries Section
+      renderDiscoveriesContainer();
+
+      // Show / hide sections cleanly based on data
+      const nbSection = document.getElementById('new-buy-section');
+      const amSection = document.getElementById('add-more-section');
+      const hasDiscoveries = data.discoveries && data.discoveries.length > 0;
+      const hasNewBuy = data.new_buy && data.new_buy.length > 0;
+      const hasAddMore = data.add_more && data.add_more.length > 0;
+
+      if (nbSection) {
+        if (!hasNewBuy && hasDiscoveries) {
+          nbSection.classList.add('hidden');
+        } else {
+          nbSection.classList.remove('hidden');
+        }
+      }
+
+      if (amSection) {
+        if (!hasAddMore && hasDiscoveries) {
+          amSection.classList.add('hidden');
+        } else {
+          amSection.classList.remove('hidden');
+        }
+      }
 
       // Render NEW BUY cards
       const nbContainer = document.getElementById('new-buy-container');
       nbContainer.innerHTML = '';
-      if (data.new_buy.length === 0) {
-        nbContainer.innerHTML = '<div class="col-span-3 text-xs text-slate-500 py-4 text-center">No new buy opportunities in this report.</div>';
+      if (!data.new_buy || data.new_buy.length === 0) {
+        nbContainer.innerHTML = '<div class="col-span-full text-xs text-slate-500 py-4 text-center">No new buy opportunities in this report.</div>';
       } else {
         data.new_buy.forEach((item, idx) => {
           nbContainer.appendChild(createRecoCard(item, idx + 1, 'NEW_BUY'));
@@ -1354,8 +1509,8 @@
       // Render ADD MORE cards
       const amContainer = document.getElementById('add-more-container');
       amContainer.innerHTML = '';
-      if (data.add_more.length === 0) {
-        amContainer.innerHTML = '<div class="col-span-3 text-xs text-slate-500 py-4 text-center">No held stocks with momentum in this report.</div>';
+      if (!data.add_more || data.add_more.length === 0) {
+        amContainer.innerHTML = '<div class="col-span-full text-xs text-slate-500 py-4 text-center">No held stocks with momentum in this report.</div>';
       } else {
         data.add_more.forEach((item, idx) => {
           amContainer.appendChild(createRecoCard(item, idx + 1, 'ADD_MORE'));
@@ -1377,7 +1532,7 @@
         csSection.classList.add('hidden');
       }
 
-      lucide.createIcons();
+      if (window.lucide) lucide.createIcons();
     }
 
     function createRecoCard(item, rank, type) {
@@ -1386,6 +1541,17 @@
       const borderClass = isExcellent ? 'border-emerald-500/40 bg-dark-card hover:border-emerald-400 glow-emerald' : 'border-dark-border bg-dark-card hover:border-slate-500';
       const scoreBadgeClass = isExcellent ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30';
       
+      const isWatching = (watchlistsData.active_watchlist || []).includes(item.symbol);
+      const watchBtnHtml = isWatching
+        ? `<button disabled class="px-2 py-1 rounded bg-emerald-500/10 text-[10px] sm:text-[11px] font-semibold text-emerald-400/70 border border-emerald-500/20 cursor-default flex items-center space-x-1" title="Already in Active Watchlist">
+             <i data-lucide="check" class="w-3 h-3"></i>
+             <span>Watching</span>
+           </button>`
+        : `<button onclick="addSingleStockToWatchlist('${item.symbol}', this)" class="px-2 py-1 rounded bg-dark-card2 hover:bg-emerald-500/20 text-[10px] sm:text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 border border-dark-border hover:border-emerald-500/40 transition flex items-center space-x-1" title="Add ${item.symbol} to Active Watchlist">
+             <i data-lucide="plus" class="w-3 h-3"></i>
+             <span>+ Watch</span>
+           </button>`;
+
       card.className = `border rounded-xl p-3.5 flex flex-col justify-between transition-all ${borderClass}`;
       card.innerHTML = `
         <div>
@@ -1412,7 +1578,9 @@
         </div>
 
         <div class="mt-3.5 pt-2.5 border-t border-dark-border/60 flex items-center justify-between gap-1">
-          <span class="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate" title="${item.fyers_symbol}">${item.fyers_symbol}</span>
+          <div class="flex items-center">
+            ${watchBtnHtml}
+          </div>
           <div class="flex items-center space-x-1">
             <button onclick="openChart('${item.fyers_symbol}')" class="px-2 py-1 rounded bg-dark-card2 hover:bg-emerald-500/20 text-[10px] sm:text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 border border-dark-border hover:border-emerald-500/40 transition flex items-center space-x-1" title="Open Fyers / TradingView Chart">
               <i data-lucide="candlestick-chart" class="w-3 h-3"></i>
@@ -1420,7 +1588,7 @@
             </button>
             <button onclick="inspectSymbol('${item.symbol}')" class="px-2 py-1 rounded bg-dark-card2 hover:bg-cyan-500/20 text-[10px] sm:text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 border border-dark-border hover:border-cyan-500/40 transition flex items-center space-x-1" title="Deep Dive Technical Audit">
               <i data-lucide="search" class="w-3 h-3"></i>
-              <span>Deep Dive</span>
+              <span>Audit</span>
             </button>
           </div>
         </div>
@@ -1479,6 +1647,46 @@
       window.open(tvUrl, '_blank');
     }
 
+    async function addSingleStockToWatchlist(symbol, btn) {
+      if (!symbol) return;
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i><span>Adding...</span>';
+        if (window.lucide) lucide.createIcons();
+      }
+      try {
+        const res = await fetch('/api/watchlist/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbols: [symbol], target: 'active' })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          if (btn) {
+            btn.className = 'px-2 py-1 rounded bg-emerald-500/10 text-[10px] sm:text-[11px] font-semibold text-emerald-400/70 border border-emerald-500/20 cursor-default flex items-center space-x-1';
+            btn.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i><span>Watching</span>';
+            if (window.lucide) lucide.createIcons();
+          }
+          await loadWatchlistsData();
+          fetchStatus();
+        } else {
+          alert(`Failed to add ${symbol}: ${data.detail || 'Error'}`);
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="plus" class="w-3 h-3"></i><span>+ Watch</span>';
+            if (window.lucide) lucide.createIcons();
+          }
+        }
+      } catch (err) {
+        alert(`Error adding ${symbol}: ${err}`);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="plus" class="w-3 h-3"></i><span>+ Watch</span>';
+          if (window.lucide) lucide.createIcons();
+        }
+      }
+    }
+
     async function addExcellentToWatchlist() {
       if (!latestRecosData || !latestRecosData.excellent_symbols || latestRecosData.excellent_symbols.length === 0) {
         alert('No Excellent (80%+) setups in the current report.');
@@ -1496,10 +1704,67 @@
 
         if (res.ok) {
           alert(`⭐ Successfully added ${data.added.length} Excellent stocks to Active Watchlist!\n(Total Active: ${data.active_count})`);
-          loadWatchlistsData();
+          await loadWatchlistsData();
           fetchStatus();
         } else {
           alert(`Error: ${data.detail || 'Failed to add to watchlist'}`);
+        }
+      } catch (e) {
+        alert(`Request failed: ${e}`);
+      }
+    }
+
+    async function addDiscoveryExcellentToWatchlist() {
+      if (!latestRecosData || !latestRecosData.discoveries || latestRecosData.discoveries.length === 0) {
+        alert('No discoveries available in the current report.');
+        return;
+      }
+      const excSyms = latestRecosData.discoveries.filter(d => d.score >= 80).map(d => d.symbol);
+      if (excSyms.length === 0) {
+        alert('No Excellent (80%+) discovery setups found.');
+        return;
+      }
+      try {
+        const res = await fetch('/api/watchlist/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbols: excSyms, target: 'active' })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert(`⭐ Added ${data.added.length} Excellent discovery stocks to Active Watchlist!\n(Total Active: ${data.active_count})`);
+          await loadWatchlistsData();
+          fetchStatus();
+        } else {
+          alert(`Error: ${data.detail || 'Failed to add'}`);
+        }
+      } catch (e) {
+        alert(`Request failed: ${e}`);
+      }
+    }
+
+    async function addAllDiscoveriesToWatchlist() {
+      if (!latestRecosData || !latestRecosData.discoveries || latestRecosData.discoveries.length === 0) {
+        alert('No discovery stocks found in current report.');
+        return;
+      }
+      const syms = latestRecosData.discoveries.map(d => d.symbol);
+      if (!confirm(`Add all ${syms.length} NSE Scan discovery stocks to your Active Watchlist?`)) {
+        return;
+      }
+      try {
+        const res = await fetch('/api/watchlist/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbols: syms, target: 'active' })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert(`⭐ Added ${data.added.length} discovery stocks to Active Watchlist!\n(Total Active: ${data.active_count})`);
+          await loadWatchlistsData();
+          fetchStatus();
+        } else {
+          alert(`Error: ${data.detail || 'Failed to add discoveries'}`);
         }
       } catch (e) {
         alert(`Request failed: ${e}`);
@@ -1589,6 +1854,27 @@
       runDeepDive();
     }
 
+    async function purgeMissingWatchlist() {
+      if (!confirm('Scan all watchlists and DuckDB to purge any stocks with 0 candles or invalid tickers?')) return;
+      try {
+        const res = await fetch('/api/watchlist/purge-missing', { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) {
+          if (data.purged_symbols && data.purged_symbols.length > 0) {
+            alert(`🧹 Purged ${data.purged_symbols.length} invalid/empty symbols:\n${data.purged_symbols.join(', ')}\n(Active Remaining: ${data.active_remaining})`);
+          } else {
+            alert('✅ All tracked symbols have valid candle data in DuckDB. No symbols needed purging.');
+          }
+          await loadWatchlistsData();
+          fetchStatus();
+        } else {
+          alert(`Error purging symbols: ${data.detail || 'Failed'}`);
+        }
+      } catch (e) {
+        alert(`Request failed: ${e}`);
+      }
+    }
+
     // -------------------------------------------------------------
     // Watchlists Management Engine
     // -------------------------------------------------------------
@@ -1605,6 +1891,10 @@
         document.getElementById('nav-active-wl-count').textContent = data.active_count || 0;
 
         renderWatchlistsTables();
+
+        if (latestRecosData) {
+          renderRecosView(latestRecosData);
+        }
       } catch (e) {
         console.error('Error loading watchlists:', e);
       }
