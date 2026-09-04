@@ -1,6 +1,6 @@
 """
-Launcher script for the Fyers Trading Bot Web GUI Dashboard.
-Runs on http://localhost:8000
+Launcher script for MarketAnalyzer Web GUI Dashboard.
+Runs on http://localhost:8000 (100% Standalone - No AI/LLM models required)
 """
 
 import os
@@ -17,7 +17,7 @@ def main():
     url = f"http://localhost:{port}"
 
     print("=" * 65)
-    print("  STARTING FYERS TRADING BOT WEB GUI DASHBOARD")
+    print("  STARTING MARKETANALYZER WEB GUI DASHBOARD (STANDALONE)")
     print("=" * 65)
     print(f"  URL        : {url}")
     print(f"  Host       : {host}:{port}")

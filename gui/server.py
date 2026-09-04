@@ -1,6 +1,7 @@
 """
-Fyers Trading Bot - Web GUI Backend Server
+MarketAnalyzer - Web GUI Backend Server
 Runs on localhost:8000 using FastAPI and Uvicorn.
+100% Standalone - Pure deterministic mathematical indicators & DuckDB storage.
 """
 
 import os
@@ -41,7 +42,7 @@ from live_trading.execute_trades import (
     compute_indicators, generate_signal, quality_label
 )
 
-app = FastAPI(title="Fyers Trading Bot GUI", version="2.0.0")
+app = FastAPI(title="MarketAnalyzer GUI", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
