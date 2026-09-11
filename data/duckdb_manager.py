@@ -3,14 +3,16 @@ DuckDB Database Manager for Fyers Trading Bot.
 Provides high-performance columnar storage and microsecond time-series queries
 for historical candlestick data, replacing individual CSV files.
 Optimized for high-concurrency multi-process read/write operations.
+Includes recommendations_history table for tracking first-discovered EXCELLENT stocks.
 """
 
 import os
 import glob
+import re
 import duckdb
 import pandas as pd
-from datetime import datetime
-from typing import Optional, List, Dict, Any
+from datetime import datetime, date
+from typing import Optional, List, Dict, Any, Union
 
 DB_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(DB_DIR, "tradingbot.duckdb")
@@ -344,3 +346,246 @@ def migrate_csv_directory(dir_path: str = HISTORICAL_DATA_DIR) -> Dict[str, Any]
         }
     finally:
         con.close()
+
+
+# ============================================================
+# Recommendations History  (tracks first-seen EXCELLENT stock)
+# ============================================================
+
+RECOMMENDATIONS_HISTORY_DDL = """
+    CREATE TABLE IF NOT EXISTS recommendations_history (
+        symbol          VARCHAR NOT NULL,
+        first_seen_date DATE    NOT NULL,
+        first_seen_price DOUBLE,
+        source          VARCHAR,
+        PRIMARY KEY (symbol)
+    );
+"""
+
+
+def _ensure_recommendations_table(con: duckdb.DuckDBPyConnection) -> None:
+    """Creates recommendations_history table if it does not exist (idempotent)."""
+    con.execute(RECOMMENDATIONS_HISTORY_DDL)
+
+
+def upsert_excellent_recommendation(
+    symbol: str,
+    seen_date: date,
+    seen_price: Optional[float],
+    source: str = "dryrun",
+    con: Optional[duckdb.DuckDBPyConnection] = None,
+) -> bool:
+    """
+    Inserts a new row for an EXCELLENT stock if not already tracked.
+    Does NOT update existing rows — preserves the *first* seen date forever.
+    Returns True if a new record was inserted, False if already existed.
+    """
+    close_con = False
+    if con is None:
+        con = duckdb.connect(DB_PATH, read_only=False)
+        close_con = True
+    try:
+        _ensure_recommendations_table(con)
+        existing = con.execute(
+            "SELECT 1 FROM recommendations_history WHERE symbol = ?", [symbol]
+        ).fetchone()
+        if existing:
+            return False  # Already tracked — preserve first-seen date
+        con.execute(
+            """
+            INSERT INTO recommendations_history (symbol, first_seen_date, first_seen_price, source)
+            VALUES (?, ?, ?, ?)
+            """,
+            [symbol, seen_date, seen_price, source],
+        )
+        return True
+    finally:
+        if close_con:
+            con.close()
+
+
+def batch_upsert_excellent_recommendations(
+    records: List[Dict[str, Any]],
+    source: str = "dryrun",
+) -> int:
+    """
+    Efficiently upserts a batch of EXCELLENT stocks into recommendations_history.
+    Each dict must have: {'symbol': str, 'date': date, 'price': float|None}
+    Returns count of NEW records inserted.
+    """
+    if not records:
+        return 0
+
+    con = duckdb.connect(DB_PATH, read_only=False)
+    try:
+        _ensure_recommendations_table(con)
+
+        # Fetch already-tracked symbols in one query
+        existing = {
+            row[0]
+            for row in con.execute("SELECT symbol FROM recommendations_history").fetchall()
+        }
+
+        inserted = 0
+        for rec in records:
+            sym = rec.get("symbol", "").strip().upper()
+            if not sym or sym in existing:
+                continue
+            con.execute(
+                """
+                INSERT INTO recommendations_history (symbol, first_seen_date, first_seen_price, source)
+                VALUES (?, ?, ?, ?)
+                """,
+                [sym, rec.get("date", date.today()), rec.get("price"), source],
+            )
+            existing.add(sym)
+            inserted += 1
+
+        return inserted
+    finally:
+        con.close()
+
+
+def get_recommendations_history() -> Dict[str, Dict[str, Any]]:
+    """
+    Returns a dict keyed by symbol with first_seen_date (as DD/MM string) and first_seen_price.
+    Example: {'RELIANCE': {'first_seen_date': '04/09', 'first_seen_price': 2450.5, 'source': 'nsescan'}}
+    """
+    init_db()
+    con = get_connection(read_only=True)
+    try:
+        # Ensure table exists in read path (first boot scenario)
+        try:
+            rows = con.execute(
+                "SELECT symbol, first_seen_date, first_seen_price, source FROM recommendations_history"
+            ).fetchall()
+        except Exception:
+            return {}
+        result = {}
+        for symbol, fsd, fsp, src in rows:
+            if fsd:
+                if hasattr(fsd, 'strftime'):
+                    date_str = fsd.strftime("%d/%m")
+                else:
+                    # Handle string dates like '2026-09-04'
+                    try:
+                        date_str = datetime.strptime(str(fsd)[:10], "%Y-%m-%d").strftime("%d/%m")
+                    except Exception:
+                        date_str = str(fsd)[:5]
+            else:
+                date_str = datetime.today().strftime("%d/%m")
+            result[symbol] = {
+                "first_seen_date": date_str,
+                "first_seen_price": round(float(fsp), 2) if fsp else None,
+                "source": src,
+            }
+        return result
+    finally:
+        con.close()
+
+
+def _get_close_price_on_date(symbol: str, target_date: date, con: duckdb.DuckDBPyConnection) -> Optional[float]:
+    """Returns the closing price for a symbol on (or nearest before) target_date from DuckDB candles."""
+    candidates = normalize_symbol_candidates(symbol)
+    placeholders = ", ".join(["?"] * len(candidates))
+    target_ts = datetime.combine(target_date, datetime.min.time())
+    row = con.execute(
+        f"""
+        SELECT close FROM candles
+        WHERE symbol IN ({placeholders})
+          AND DATE_TRUNC('day', timestamp) = DATE_TRUNC('day', ?)
+        ORDER BY timestamp DESC LIMIT 1
+        """,
+        candidates + [target_ts],
+    ).fetchone()
+    return float(row[0]) if row else None
+
+
+def init_recommendations_history_from_files(results_dir: str) -> Dict[str, Any]:
+    """
+    Backfills recommendations_history from existing Results/*.txt files.
+    Parses all dryrun and nsescan result files chronologically (oldest first)
+    so the earliest file wins (first_seen semantics are preserved).
+
+    Returns summary: {'inserted': int, 'files_scanned': int, 'errors': []}
+    """
+    pattern = re.compile(
+        r"^(\d+)\.\s+([A-Z0-9_\-&]+)\s+[—\-]\s+(\d+)%\s+([A-Z]+)", re.MULTILINE
+    )
+    EXCELLENT_THRESHOLD = 80
+
+    # Gather all result files, sort oldest-first so first_seen is accurate
+    all_files = sorted(
+        glob.glob(os.path.join(results_dir, "*-dryrun-results.txt"))
+        + glob.glob(os.path.join(results_dir, "*-nsescan-results.txt")),
+        key=os.path.getmtime,
+    )
+
+    if not all_files:
+        return {"inserted": 0, "files_scanned": 0, "errors": []}
+
+    errors = []
+    # Use ONE read-write connection for everything (DuckDB allows only one connection at a time)
+    con = duckdb.connect(DB_PATH, read_only=False)
+
+    try:
+        _ensure_recommendations_table(con)
+
+        existing = {
+            row[0]
+            for row in con.execute(
+                "SELECT symbol FROM recommendations_history"
+            ).fetchall()
+        }
+
+        inserted = 0
+
+        for fpath in all_files:
+            fname = os.path.basename(fpath)
+            source = "nsescan" if "nsescan" in fname else "dryrun"
+
+            # Derive date from file modification time
+            mtime = os.path.getmtime(fpath)
+            file_date = datetime.fromtimestamp(mtime).date()
+
+            try:
+                with open(fpath, "r", encoding="utf-8", errors="ignore") as fh:
+                    content = fh.read()
+            except Exception as e:
+                errors.append(f"{fname}: {e}")
+                continue
+
+            # Parse all EXCELLENT symbols from file
+            for m in pattern.finditer(content):
+                sym = m.group(2).strip().upper()
+                score = int(m.group(3))
+                if score < EXCELLENT_THRESHOLD:
+                    continue
+                if sym in existing:
+                    continue
+
+                # Try to get price from DuckDB candles on that date (using same rw connection)
+                price = None
+                try:
+                    price = _get_close_price_on_date(sym, file_date, con)
+                except Exception:
+                    pass
+
+                try:
+                    con.execute(
+                        """
+                        INSERT INTO recommendations_history (symbol, first_seen_date, first_seen_price, source)
+                        VALUES (?, ?, ?, ?)
+                        """,
+                        [sym, file_date, price, source],
+                    )
+                    existing.add(sym)
+                    inserted += 1
+                except Exception as e:
+                    errors.append(f"{sym} @ {fname}: {e}")
+
+    finally:
+        con.close()
+
+    return {"inserted": inserted, "files_scanned": len(all_files), "errors": errors}
+

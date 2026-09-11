@@ -501,6 +501,20 @@ def main():
             with open(results_filepath, "w", encoding="utf-8") as f:
                 f.write("\n".join(lines) + "\n")
             print(f"  {colored('Results saved:', Colors.GREEN)} Results/{results_filename}")
+
+            # ---- Upsert EXCELLENT discoveries into DuckDB history table ----
+            from data.duckdb_manager import batch_upsert_excellent_recommendations
+            today_date = datetime.now().date()
+            excellent_records = [
+                {"symbol": sym, "date": today_date, "price": close}
+                for sym, close, score, reasons in discoveries
+                if score >= 80
+            ]
+            if excellent_records:
+                inserted = batch_upsert_excellent_recommendations(excellent_records, source="nsescan")
+                if inserted:
+                    print(f"  {colored('History:', Colors.DIM)} Recorded {inserted} new EXCELLENT discovery(s) in DuckDB recommendations_history")
+
         except Exception as e:
             print(f"  {colored('Results File Error:', Colors.RED)} {e}")
 

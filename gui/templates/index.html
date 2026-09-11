@@ -1543,51 +1543,67 @@
       
       const isWatching = (watchlistsData.active_watchlist || []).includes(item.symbol);
       const watchBtnHtml = isWatching
-        ? `<button disabled class="px-2 py-1 rounded bg-emerald-500/10 text-[10px] sm:text-[11px] font-semibold text-emerald-400/70 border border-emerald-500/20 cursor-default flex items-center space-x-1" title="Already in Active Watchlist">
-             <i data-lucide="check" class="w-3 h-3"></i>
+        ? `<button disabled class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-[9px] sm:text-[10px] font-semibold text-emerald-400/70 border border-emerald-500/20 cursor-default flex items-center space-x-1" title="Already in Active Watchlist">
+             <i data-lucide="check" class="w-2.5 h-2.5"></i>
              <span>Watching</span>
            </button>`
-        : `<button onclick="addSingleStockToWatchlist('${item.symbol}', this)" class="px-2 py-1 rounded bg-dark-card2 hover:bg-emerald-500/20 text-[10px] sm:text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 border border-dark-border hover:border-emerald-500/40 transition flex items-center space-x-1" title="Add ${item.symbol} to Active Watchlist">
-             <i data-lucide="plus" class="w-3 h-3"></i>
+        : `<button onclick="addSingleStockToWatchlist('${item.symbol}', this)" class="px-1.5 py-0.5 rounded bg-dark-card2 hover:bg-emerald-500/20 text-[9px] sm:text-[10px] font-semibold text-emerald-400 hover:text-emerald-300 border border-dark-border hover:border-emerald-500/40 transition flex items-center space-x-1" title="Add ${item.symbol} to Active Watchlist">
+             <i data-lucide="plus" class="w-2.5 h-2.5"></i>
              <span>+ Watch</span>
            </button>`;
 
-      card.className = `border rounded-xl p-3.5 flex flex-col justify-between transition-all ${borderClass}`;
+      // First-seen date chip — shown as calendar badge
+      const firstSeenDate = item.first_seen_date || new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'2-digit'}).replace('/','/');
+      const firstSeenPrice = item.first_seen_price ? `₹${Number(item.first_seen_price).toFixed(2)}` : '';
+      const isNewToday = !item.first_seen_date;
+      const dateBadgeClass = isNewToday ? 'text-amber-400/80 border-amber-500/30 bg-amber-500/5' : 'text-slate-400 border-slate-600/40 bg-slate-800/40';
+
+      card.className = `border rounded-xl p-3 flex flex-col justify-between transition-all ${borderClass}`;
       card.innerHTML = `
         <div>
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-1.5">
-              <span class="text-xs font-mono text-slate-500">#${rank}</span>
-              <h4 class="text-base font-bold text-white font-mono tracking-tight">${item.symbol}</h4>
+          <!-- Header: rank + symbol + score -->
+          <div class="flex items-center justify-between gap-1">
+            <div class="flex items-center space-x-1 min-w-0">
+              <span class="text-[10px] font-mono text-slate-500 shrink-0">#${rank}</span>
+              <h4 class="text-sm font-bold text-white font-mono tracking-tight truncate">${item.symbol}</h4>
             </div>
-            <span class="text-[10px] sm:text-[11px] font-mono font-bold px-1.5 py-0.5 rounded border ${scoreBadgeClass}">
+            <span class="text-[9px] sm:text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${scoreBadgeClass} whitespace-nowrap shrink-0">
               ${item.score}% ${item.label}
             </span>
           </div>
 
+          <!-- First Seen date row -->
+          <div class="mt-1.5 flex items-center justify-between gap-1">
+            <span class="inline-flex items-center gap-1 text-[9px] font-mono px-1.5 py-0.5 rounded border ${dateBadgeClass}">
+              <i data-lucide="calendar" class="w-2.5 h-2.5 shrink-0"></i>
+              <span>${isNewToday ? '🆕 ' : ''}First: ${firstSeenDate}</span>
+            </span>
+            ${firstSeenPrice ? `<span class="text-[9px] font-mono text-slate-500" title="Price when first discovered">@ ${firstSeenPrice}</span>` : ''}
+          </div>
+
           <!-- Quality Score Bar -->
-          <div class="mt-2.5 space-y-1">
-            <div class="flex justify-between text-[11px] font-mono text-slate-400">
+          <div class="mt-2 space-y-0.5">
+            <div class="flex justify-between text-[10px] font-mono text-slate-400">
               <span>Quality Score</span>
               <span class="font-bold text-white">${item.score}/100</span>
             </div>
-            <div class="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+            <div class="w-full h-1 rounded-full bg-slate-800 overflow-hidden">
               <div class="h-full ${isExcellent ? 'bg-emerald-500' : 'bg-cyan-500'}" style="width: ${item.score}%"></div>
             </div>
           </div>
         </div>
 
-        <div class="mt-3.5 pt-2.5 border-t border-dark-border/60 flex items-center justify-between gap-1">
+        <div class="mt-3 pt-2 border-t border-dark-border/60 flex items-center justify-between gap-1">
           <div class="flex items-center">
             ${watchBtnHtml}
           </div>
           <div class="flex items-center space-x-1">
-            <button onclick="openChart('${item.fyers_symbol}')" class="px-2 py-1 rounded bg-dark-card2 hover:bg-emerald-500/20 text-[10px] sm:text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 border border-dark-border hover:border-emerald-500/40 transition flex items-center space-x-1" title="Open Fyers / TradingView Chart">
-              <i data-lucide="candlestick-chart" class="w-3 h-3"></i>
+            <button onclick="openChart('${item.fyers_symbol}')" class="px-1.5 py-0.5 rounded bg-dark-card2 hover:bg-emerald-500/20 text-[9px] sm:text-[10px] font-semibold text-emerald-400 hover:text-emerald-300 border border-dark-border hover:border-emerald-500/40 transition flex items-center space-x-1" title="Open Fyers / TradingView Chart">
+              <i data-lucide="candlestick-chart" class="w-2.5 h-2.5"></i>
               <span>Chart</span>
             </button>
-            <button onclick="inspectSymbol('${item.symbol}')" class="px-2 py-1 rounded bg-dark-card2 hover:bg-cyan-500/20 text-[10px] sm:text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 border border-dark-border hover:border-cyan-500/40 transition flex items-center space-x-1" title="Deep Dive Technical Audit">
-              <i data-lucide="search" class="w-3 h-3"></i>
+            <button onclick="inspectSymbol('${item.symbol}')" class="px-1.5 py-0.5 rounded bg-dark-card2 hover:bg-cyan-500/20 text-[9px] sm:text-[10px] font-semibold text-cyan-400 hover:text-cyan-300 border border-dark-border hover:border-cyan-500/40 transition flex items-center space-x-1" title="Deep Dive Technical Audit">
+              <i data-lucide="search" class="w-2.5 h-2.5"></i>
               <span>Audit</span>
             </button>
           </div>

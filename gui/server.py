@@ -41,6 +41,10 @@ from data.data_fetcher import (
 from live_trading.execute_trades import (
     compute_indicators, generate_signal, quality_label
 )
+from data.duckdb_manager import (
+    get_recommendations_history,
+    init_recommendations_history_from_files,
+)
 
 app = FastAPI(title="MarketAnalyzer GUI", version="2.0.0")
 
@@ -456,6 +460,20 @@ def get_staged_stocks():
 # Recommendations (Reco) & Results Endpoints
 # -------------------------------------------------------------
 
+def _merge_history_into_items(items: list, history: dict) -> list:
+    """
+    Enriches each item dict with first_seen_date (DD/MM) and first_seen_price.
+    Uses today's date as default for new discoveries not yet in history.
+    """
+    today_ddmm = datetime.now().strftime("%d/%m")
+    for item in items:
+        sym = item.get("symbol", "")
+        rec = history.get(sym, {})
+        item["first_seen_date"] = rec.get("first_seen_date", today_ddmm)
+        item["first_seen_price"] = rec.get("first_seen_price")
+    return items
+
+
 def parse_results_txt(filepath: str) -> dict:
     """Parses a Results/DD-MM-HH-*.txt file into structured JSON."""
     if not os.path.exists(filepath):
@@ -554,10 +572,17 @@ def get_latest_recos(type: Optional[str] = None):
     """Returns the latest recommendation results parsed from Results folder.
        type can be 'nsescan', 'dryrun', 'all', or None.
        When 'all' or None, merges the latest dryrun (watchlist) results and latest nsescan discoveries into a unified view.
+       Each item is enriched with first_seen_date (DD/MM) and first_seen_price from DuckDB recommendations_history.
     """
     results_dir = os.path.join(PROJECT_DIR, "Results")
     nsescan_files = sorted(glob.glob(os.path.join(results_dir, "*-nsescan-results.txt")), key=os.path.getmtime, reverse=True)
     dryrun_files = sorted(glob.glob(os.path.join(results_dir, "*-dryrun-results.txt")), key=os.path.getmtime, reverse=True)
+
+    # Load history once per call — O(1) lookup for all subsequent item merges
+    try:
+        history = get_recommendations_history()
+    except Exception:
+        history = {}
 
     if type == "nsescan":
         target_files = nsescan_files if nsescan_files else glob.glob(os.path.join(results_dir, "*.txt"))
@@ -604,6 +629,11 @@ def get_latest_recos(type: Optional[str] = None):
             data = parse_results_txt(all_files[0])
             data["has_results"] = True
 
+    # Inject first_seen_date / first_seen_price into every item
+    _merge_history_into_items(data.get("add_more", []), history)
+    _merge_history_into_items(data.get("new_buy", []), history)
+    _merge_history_into_items(data.get("discoveries", []), history)
+
     data["has_nsescan"] = len(nsescan_files) > 0
     data["has_dryrun"] = len(dryrun_files) > 0
     data["latest_nsescan_file"] = os.path.basename(nsescan_files[0]) if nsescan_files else None
@@ -629,6 +659,35 @@ def get_recos_history():
                 "counts": info["counts"]
             })
     return {"files": history}
+
+
+@app.get("/api/recos/recommendation-history")
+def api_get_recommendation_history():
+    """Returns full recommendations_history table as {symbol: {first_seen_date, first_seen_price, source}}."""
+    try:
+        history = get_recommendations_history()
+        return {"count": len(history), "history": history}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/recos/recommendation-history/init")
+def api_init_recommendation_history():
+    """
+    Backfills recommendations_history from all existing Results/*.txt files.
+    Safe to call multiple times — only inserts records not already tracked (preserves first_seen dates).
+    """
+    results_dir = os.path.join(PROJECT_DIR, "Results")
+    try:
+        result = init_recommendations_history_from_files(results_dir)
+        return {
+            "success": True,
+            "inserted": result["inserted"],
+            "files_scanned": result["files_scanned"],
+            "errors": result["errors"][:20],  # cap errors list
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/api/recos/file")
