@@ -41,6 +41,11 @@ from data.duckdb_manager import (
     save_candles,
     upsert_candles,
     DB_PATH,
+    set_last_updated,
+    is_db_current,
+    get_last_updated,
+    MARKET_CLOSE_HOUR,
+    MARKET_CLOSE_MINUTE,
 )
 from data.watchlist_manager import (
     get_active_watchlist, get_sell_watchlist, purge_untracked_or_failed_symbols
@@ -138,6 +143,28 @@ def main():
     print("  UPDATE HISTORICAL DATA  -  DuckDB Incremental Sync")
     print("=" * 60)
 
+    today = datetime.now()
+
+    # ---- Smart EOD Gate: skip if DB is already current ----
+    status = is_db_current(now=today)
+    last_updated = status["last_updated"]
+    eod_boundary = status["eod_boundary"]
+
+    print(f"\n  Current time      : {today.strftime('%A, %d %b %Y  %H:%M:%S')}")
+    print(f"  Market close      : {MARKET_CLOSE_HOUR:02d}:{MARKET_CLOSE_MINUTE:02d} IST")
+    print(f"  EOD boundary      : {eod_boundary.strftime('%d %b %Y  %H:%M')} (start of current session)")
+    if last_updated:
+        print(f"  DB last updated   : {last_updated.strftime('%d %b %Y  %H:%M:%S')}")
+    else:
+        print(f"  DB last updated   : Never")
+
+    if status["current"]:
+        print(f"\n  [OK] {status['reason']}")
+        print(f"\n  DuckDB is already up-to-date for this trading session. Skipping fetch.")
+        return
+
+    print(f"\n  [UPDATE NEEDED] {status['reason']}")
+
     # ---- Build universe from test stocks + active + sell watchlists ----
     main_stocks = read_stocks(STOCKS_FILE)
     active_stocks = get_active_watchlist()
@@ -148,9 +175,9 @@ def main():
         print("  No stocks found in any watchlist.")
         return
 
-    today = datetime.now()
-    print(f"\n  Today             : {today.strftime('%A, %d %b %Y %H:%M')}")
     print(f"  Total stocks      : {len(all_stocks)}")
+    print()
+
 
     # ---- Auth + probe actual last trading date ----
     print("  Authenticating...", end=" ")
@@ -270,6 +297,21 @@ def main():
         print(f"  Purge complete   : Removed from watchlists & deleted from DuckDB.")
     print(f"  Already current  : {len(already_current)}")
     print(f"  Last trading day : {last_trading_day.strftime('%d %b %Y (%A)')}")
+
+    # ---- Stamp last-updated timestamp in DuckDB ----
+    # Only stamp if at least some update was attempted (even partial success is meaningful)
+    stamp = set_last_updated()
+    next_eod = stamp.replace(
+        hour=MARKET_CLOSE_HOUR, minute=MARKET_CLOSE_MINUTE, second=0, microsecond=0
+    )
+    if stamp < next_eod:
+        # Stamped before today's market close → next relevant update is today post-15:30
+        next_update_str = f"today after {MARKET_CLOSE_HOUR:02d}:{MARKET_CLOSE_MINUTE:02d}"
+    else:
+        # Stamped after today's close → next relevant update is tomorrow post-15:30
+        next_update_str = f"tomorrow after {MARKET_CLOSE_HOUR:02d}:{MARKET_CLOSE_MINUTE:02d}"
+    print(f"  DB last updated  : {stamp.strftime('%d %b %Y  %H:%M:%S')}")
+    print(f"  Next update due  : {next_update_str}")
     print()
 
 

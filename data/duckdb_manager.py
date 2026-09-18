@@ -4,6 +4,7 @@ Provides high-performance columnar storage and microsecond time-series queries
 for historical candlestick data, replacing individual CSV files.
 Optimized for high-concurrency multi-process read/write operations.
 Includes recommendations_history table for tracking first-discovered EXCELLENT stocks.
+Includes db_metadata table for tracking last-update timestamps with NSE 15:30 boundary logic.
 """
 
 import os
@@ -11,12 +12,16 @@ import glob
 import re
 import duckdb
 import pandas as pd
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from typing import Optional, List, Dict, Any, Union
 
 DB_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(DB_DIR, "tradingbot.duckdb")
 HISTORICAL_DATA_DIR = os.path.join(DB_DIR, "historical_data")
+
+# NSE market close time (IST) — EOD data becomes available after 15:30
+MARKET_CLOSE_HOUR   = 15
+MARKET_CLOSE_MINUTE = 30
 
 
 def get_connection(read_only: bool = True) -> duckdb.DuckDBPyConnection:
@@ -29,10 +34,12 @@ def get_connection(read_only: bool = True) -> duckdb.DuckDBPyConnection:
 
 
 def init_db():
-    """Initializes the database schema if missing."""
-    if os.path.exists(DB_PATH):
-        return
-
+    """
+    Initializes the database schema (idempotent — safe to call many times).
+    Creates:
+      - candles          : OHLCV time-series per symbol
+      - db_metadata      : key-value store for operational metadata (e.g. last_updated)
+    """
     con = duckdb.connect(DB_PATH, read_only=False)
     try:
         con.execute("""
@@ -45,6 +52,12 @@ def init_db():
                 close DOUBLE,
                 volume BIGINT,
                 PRIMARY KEY (symbol, timestamp)
+            );
+        """)
+        con.execute("""
+            CREATE TABLE IF NOT EXISTS db_metadata (
+                key   VARCHAR NOT NULL PRIMARY KEY,
+                value VARCHAR
             );
         """)
     finally:
@@ -346,6 +359,145 @@ def migrate_csv_directory(dir_path: str = HISTORICAL_DATA_DIR) -> Dict[str, Any]
         }
     finally:
         con.close()
+
+
+# ============================================================
+# DB Metadata  (last-updated tracking + 15:30 trading boundary)
+# ============================================================
+
+_META_LAST_UPDATED_KEY = "last_updated"  # ISO-8601 datetime string stored in db_metadata
+
+
+def set_last_updated(
+    ts: Optional[datetime] = None,
+    con: Optional[duckdb.DuckDBPyConnection] = None,
+) -> datetime:
+    """
+    Records the current (or supplied) timestamp as the DuckDB last-updated time.
+    Uses INSERT OR REPLACE so it's idempotent.
+    Returns the timestamp that was saved.
+    """
+    init_db()
+    if ts is None:
+        ts = datetime.now()
+    ts_str = ts.strftime("%Y-%m-%dT%H:%M:%S")
+
+    close_con = False
+    if con is None:
+        con = duckdb.connect(DB_PATH, read_only=False)
+        close_con = True
+    try:
+        con.execute(
+            "INSERT OR REPLACE INTO db_metadata (key, value) VALUES (?, ?)",
+            [_META_LAST_UPDATED_KEY, ts_str],
+        )
+        return ts
+    finally:
+        if close_con:
+            con.close()
+
+
+def get_last_updated() -> Optional[datetime]:
+    """
+    Returns the last time DuckDB was updated, or None if never updated.
+    Reads from the db_metadata table.
+    """
+    init_db()
+    con = get_connection(read_only=True)
+    try:
+        row = con.execute(
+            "SELECT value FROM db_metadata WHERE key = ?", [_META_LAST_UPDATED_KEY]
+        ).fetchone()
+        if row and row[0]:
+            return datetime.strptime(row[0], "%Y-%m-%dT%H:%M:%S")
+        return None
+    except Exception:
+        return None
+    finally:
+        con.close()
+
+
+def get_current_eod_session(now: Optional[datetime] = None) -> datetime:
+    """
+    Returns the datetime of the START of the current EOD session boundary.
+
+    NSE closes at 15:30 IST each day.  EOD data for a trading day is finalised
+    only AFTER 15:30 of that day.
+
+    Rules:
+      - If current time >= 15:30 today  →  EOD session boundary = 15:30 today
+      - If current time <  15:30 today  →  EOD session boundary = 15:30 yesterday
+
+    This boundary is the point-in-time AFTER which a DB update is considered
+    "fresh" for the current available EOD data.
+    """
+    if now is None:
+        now = datetime.now()
+    market_close_today = now.replace(
+        hour=MARKET_CLOSE_HOUR, minute=MARKET_CLOSE_MINUTE, second=0, microsecond=0
+    )
+    if now >= market_close_today:
+        # Today's EOD data is available
+        return market_close_today
+    else:
+        # Today's market is still open (or not yet open); last EOD was yesterday
+        return market_close_today - timedelta(days=1)
+
+
+def is_db_current(now: Optional[datetime] = None) -> Dict[str, Any]:
+    """
+    Checks whether the DuckDB last-updated timestamp is fresh enough to skip
+    a re-fetch, based on the NSE 15:30 trading boundary.
+
+    Returns a dict with:
+        {
+            'current':          bool   — True = DB is already up-to-date, skip fetch
+            'last_updated':     datetime | None
+            'eod_boundary':     datetime  — the 15:30 session boundary
+            'reason':           str   — human-readable explanation
+        }
+
+    Logic:
+        - If last_updated is None             → not current (never updated)
+        - If last_updated >= eod_boundary     → current (already have latest EOD)
+        - Else                                → not current (needs update)
+    """
+    if now is None:
+        now = datetime.now()
+
+    last_updated  = get_last_updated()
+    eod_boundary  = get_current_eod_session(now)
+
+    if last_updated is None:
+        return {
+            "current":      False,
+            "last_updated": None,
+            "eod_boundary": eod_boundary,
+            "reason":       "Database has never been updated.",
+        }
+
+    if last_updated >= eod_boundary:
+        return {
+            "current":      True,
+            "last_updated": last_updated,
+            "eod_boundary": eod_boundary,
+            "reason": (
+                f"DB last updated {last_updated.strftime('%d %b %Y %H:%M')} — "
+                f"already after EOD boundary {eod_boundary.strftime('%d %b %Y %H:%M')}. "
+                f"No update needed."
+            ),
+        }
+
+    return {
+        "current":      False,
+        "last_updated": last_updated,
+        "eod_boundary": eod_boundary,
+        "reason": (
+            f"DB last updated {last_updated.strftime('%d %b %Y %H:%M')} — "
+            f"stale (EOD boundary is {eod_boundary.strftime('%d %b %Y %H:%M')}). "
+            f"Update required."
+        ),
+    }
 
 
 # ============================================================

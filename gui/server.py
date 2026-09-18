@@ -44,6 +44,8 @@ from live_trading.execute_trades import (
 from data.duckdb_manager import (
     get_recommendations_history,
     init_recommendations_history_from_files,
+    get_last_updated,
+    is_db_current,
 )
 
 app = FastAPI(title="MarketAnalyzer GUI", version="2.0.0")
@@ -454,6 +456,35 @@ def get_staged_stocks():
     staging_file = os.path.join(PROJECT_DIR, "Newly_added_stocks.txt")
     symbols = read_symbols_from_file(staging_file)
     return {"symbols": symbols, "count": len(symbols)}
+
+
+# -------------------------------------------------------------
+# DB Status Endpoint
+# -------------------------------------------------------------
+
+@app.get("/api/db/status")
+def get_db_status():
+    """
+    Returns DuckDB update freshness information.
+    Includes last_updated timestamp, current EOD boundary (NSE 15:30 IST),
+    and whether the database needs updating.
+    """
+    try:
+        status = is_db_current()
+        lu = status["last_updated"]
+        eb = status["eod_boundary"]
+        return {
+            "last_updated":        lu.strftime("%d %b %Y  %H:%M:%S") if lu else None,
+            "last_updated_iso":    lu.isoformat() if lu else None,
+            "eod_boundary":        eb.strftime("%d %b %Y  %H:%M"),
+            "eod_boundary_iso":    eb.isoformat(),
+            "is_current":          status["current"],
+            "needs_update":        not status["current"],
+            "reason":              status["reason"],
+            "market_close":        "15:30 IST",
+        }
+    except Exception as e:
+        return {"error": str(e), "is_current": False, "needs_update": True}
 
 
 # -------------------------------------------------------------
