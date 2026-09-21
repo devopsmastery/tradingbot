@@ -35,11 +35,18 @@ def get_connection(read_only: bool = True) -> duckdb.DuckDBPyConnection:
 
 def init_db():
     """
-    Initializes the database schema (idempotent — safe to call many times).
+    Initializes the database schema on first boot (idempotent via file existence check).
     Creates:
-      - candles          : OHLCV time-series per symbol
-      - db_metadata      : key-value store for operational metadata (e.g. last_updated)
+      - candles     : OHLCV time-series per symbol
+      - db_metadata : key-value store for operational metadata (e.g. last_updated)
+
+    NOTE: Only opens a connection when the DB file does not yet exist, so this is
+    always safe to call even when a read-only connection is already open elsewhere.
+    The db_metadata table is also lazily ensured by _ensure_db_metadata_table().
     """
+    if os.path.exists(DB_PATH):
+        return  # File already exists — schema was created on a previous boot
+
     con = duckdb.connect(DB_PATH, read_only=False)
     try:
         con.execute("""
@@ -62,6 +69,20 @@ def init_db():
         """)
     finally:
         con.close()
+
+
+def _ensure_db_metadata_table(con: duckdb.DuckDBPyConnection) -> None:
+    """
+    Creates the db_metadata table if it does not exist, using an already-open connection.
+    Safe to call repeatedly — CREATE TABLE IF NOT EXISTS is idempotent.
+    Follows the same pattern as _ensure_recommendations_table().
+    """
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS db_metadata (
+            key   VARCHAR NOT NULL PRIMARY KEY,
+            value VARCHAR
+        );
+    """)
 
 
 def normalize_symbol_candidates(symbol: str) -> List[str]:
@@ -377,7 +398,6 @@ def set_last_updated(
     Uses INSERT OR REPLACE so it's idempotent.
     Returns the timestamp that was saved.
     """
-    init_db()
     if ts is None:
         ts = datetime.now()
     ts_str = ts.strftime("%Y-%m-%dT%H:%M:%S")
@@ -387,6 +407,7 @@ def set_last_updated(
         con = duckdb.connect(DB_PATH, read_only=False)
         close_con = True
     try:
+        _ensure_db_metadata_table(con)   # lazy table creation — no extra connection
         con.execute(
             "INSERT OR REPLACE INTO db_metadata (key, value) VALUES (?, ?)",
             [_META_LAST_UPDATED_KEY, ts_str],
@@ -400,21 +421,23 @@ def set_last_updated(
 def get_last_updated() -> Optional[datetime]:
     """
     Returns the last time DuckDB was updated, or None if never updated.
-    Reads from the db_metadata table.
+    Reads from the db_metadata table. Returns None if table doesn't exist yet
+    (first boot before any update has run — is_db_current() handles this gracefully).
+    Uses a read-only connection so it never conflicts with any other open connection.
     """
-    init_db()
-    con = get_connection(read_only=True)
     try:
-        row = con.execute(
-            "SELECT value FROM db_metadata WHERE key = ?", [_META_LAST_UPDATED_KEY]
-        ).fetchone()
-        if row and row[0]:
-            return datetime.strptime(row[0], "%Y-%m-%dT%H:%M:%S")
-        return None
+        con = get_connection(read_only=True)
+        try:
+            row = con.execute(
+                "SELECT value FROM db_metadata WHERE key = ?", [_META_LAST_UPDATED_KEY]
+            ).fetchone()
+            if row and row[0]:
+                return datetime.strptime(row[0], "%Y-%m-%dT%H:%M:%S")
+            return None
+        finally:
+            con.close()
     except Exception:
         return None
-    finally:
-        con.close()
 
 
 def get_current_eod_session(now: Optional[datetime] = None) -> datetime:
