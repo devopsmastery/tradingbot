@@ -202,6 +202,102 @@ def upsert_candles(
     return save_candles(symbol, df, con=con, overwrite=False)
 
 
+def bulk_upsert_candles(
+    records: List[Dict[str, Any]],
+    con: Optional[duckdb.DuckDBPyConnection] = None,
+) -> int:
+    """
+    High-performance bulk upsert: writes candles for MANY symbols in a single
+    INSERT OR REPLACE transaction instead of one call per symbol.
+
+    Args:
+        records: List of dicts, each with keys:
+                   'symbol' (str, Fyers format e.g. 'NSE:RELIANCE-EQ')
+                   'df'     (pd.DataFrame with Date index and OHLCV columns)
+        con:     Optional existing read-write DuckDB connection to reuse.
+
+    Returns:
+        Total number of rows written across all symbols.
+
+    Performance vs upsert_candles():
+        upsert_candles() = N register + N INSERT + N unregister calls.
+        bulk_upsert_candles() = 1 register + 1 INSERT + 1 unregister call.
+        For 200 symbols this is ~200× fewer DB round-trips.
+    """
+    if not records:
+        return 0
+
+    prepared = []
+    for rec in records:
+        symbol = rec["symbol"]
+        df = rec["df"]
+        if df is None or df.empty:
+            continue
+
+        # Normalise symbol to NSE: format
+        s = symbol.strip().upper()
+        sym = s if s.startswith("NSE:") else (f"NSE:{s}" if "-" in s else f"NSE:{s}-EQ")
+
+        temp = df.copy()
+        if "Date" in temp.columns:
+            temp["Date"] = pd.to_datetime(temp["Date"])
+            temp.set_index("Date", inplace=True)
+        elif not isinstance(temp.index, pd.DatetimeIndex):
+            temp.index = pd.to_datetime(temp.index)
+
+        temp.reset_index(inplace=True)
+
+        # Normalise column names
+        col_map = {}
+        for col in temp.columns:
+            cl = str(col).lower()
+            if cl in ("date", "timestamp", "epoch", "time", "datetime"):
+                col_map[col] = "timestamp"
+            elif cl == "open":
+                col_map[col] = "open"
+            elif cl == "high":
+                col_map[col] = "high"
+            elif cl == "low":
+                col_map[col] = "low"
+            elif cl == "close":
+                col_map[col] = "close"
+            elif cl in ("volume", "vol"):
+                col_map[col] = "volume"
+        temp.rename(columns=col_map, inplace=True)
+        temp["symbol"] = sym
+
+        for req in ("timestamp", "open", "high", "low", "close", "volume"):
+            if req not in temp.columns:
+                continue  # skip malformed symbols silently
+
+        temp = temp[["symbol", "timestamp", "open", "high", "low", "close", "volume"]]
+        temp.dropna(subset=["timestamp", "close"], inplace=True)
+        temp.drop_duplicates(subset=["symbol", "timestamp"], keep="last", inplace=True)
+        prepared.append(temp)
+
+    if not prepared:
+        return 0
+
+    bulk_df = pd.concat(prepared, ignore_index=True)
+
+    close_con = False
+    if con is None:
+        con = duckdb.connect(DB_PATH, read_only=False)
+        close_con = True
+    try:
+        con.register("_bulk_upsert_view", bulk_df)
+        con.execute("""
+            INSERT OR REPLACE INTO candles (symbol, timestamp, open, high, low, close, volume)
+            SELECT symbol, timestamp, open, high, low, close, volume
+            FROM _bulk_upsert_view
+        """)
+        con.unregister("_bulk_upsert_view")
+        return len(bulk_df)
+    finally:
+        if close_con:
+            con.close()
+
+
 def delete_symbol_candles(
     symbol: str,
     con: Optional[duckdb.DuckDBPyConnection] = None

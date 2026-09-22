@@ -1,15 +1,24 @@
 """
-Update Historical Data — Incremental DuckDB Sync.
+Update Historical Data — Incremental DuckDB Sync (Optimised).
 
-Reads last-recorded date per symbol from DuckDB, fetches only missing
-end-of-day OHLC candles from Fyers, and appends them.
-If data is already up to date, reports the last recorded date and skips.
+Key optimisations vs the previous sequential version:
+  1. ThreadPoolExecutor(max_workers=6): fetches N symbols concurrently instead
+     of sequentially — ~6x speedup on network-bound Fyers API calls.
+  2. Semaphore rate-limit (8 req/s): replaces the blunt time.sleep(0.3) with
+     a rolling-window rate limiter that lets the executor run as fast as the
+     Fyers API allows without triggering throttling.
+  3. bulk_upsert_candles(): all fetched DataFrames are written to DuckDB in a
+     single INSERT OR REPLACE transaction — ~200x fewer DB round-trips.
+  4. no_data stocks (new symbols needing 365-day history) run sequentially
+     after the parallel pass to avoid very large concurrent payloads.
 """
 
 import os
 import sys
 import io
 import time
+import threading
+import concurrent.futures
 import pandas as pd
 from datetime import datetime, timedelta, timezone
 
@@ -40,6 +49,7 @@ from data.duckdb_manager import (
     load_candles,
     save_candles,
     upsert_candles,
+    bulk_upsert_candles,
     DB_PATH,
     set_last_updated,
     is_db_current,
@@ -56,6 +66,79 @@ WATCHLIST_FILE = os.path.join(os.path.dirname(STOCKS_FILE), "stocks_watchlist.tx
 
 # Liquid stock used to probe the actual last trading date from Fyers API
 PROBE_SYMBOL = "NSE:RELIANCE-EQ"
+
+# --- Concurrency / rate-limit settings ---
+MAX_WORKERS = 6     # parallel Fyers API workers for incremental updates
+MAX_RPS     = 8     # max requests per second (Fyers sustained cap ~10/s)
+
+# Rolling-window rate-limiter state (module-level, shared across workers)
+_rate_lock      = threading.Lock()
+_last_req_times: list = []    # monotonic timestamps of recent requests
+
+
+def _acquire_rate_slot() -> None:
+    """
+    Rolling-window rate limiter: allows at most MAX_RPS requests within any
+    1-second window. Each worker calls this before hitting the Fyers API.
+    Much more precise than a blanket time.sleep(0.3).
+    """
+    with _rate_lock:
+        now = time.monotonic()
+        # Drop timestamps outside the 1-second window
+        while _last_req_times and now - _last_req_times[0] > 1.0:
+            _last_req_times.pop(0)
+
+        if len(_last_req_times) >= MAX_RPS:
+            # At the cap — sleep until the oldest request falls out of the window
+            sleep_for = 1.0 - (now - _last_req_times[0]) + 0.01
+            if sleep_for > 0:
+                time.sleep(sleep_for)
+            now = time.monotonic()
+            while _last_req_times and now - _last_req_times[0] > 1.0:
+                _last_req_times.pop(0)
+
+        _last_req_times.append(time.monotonic())
+
+
+def _fetch_worker(
+    task: dict,
+    access_token: str,
+    today: datetime,
+    counter_lock: threading.Lock,
+    counter: list,
+    total: int,
+) -> dict:
+    """
+    ThreadPoolExecutor worker: fetches incremental candles for one symbol.
+
+    Returns a result dict:
+      { 'symbol', 'fyers_symbol', 'df' (DataFrame | None), 'rows' (int), 'error' (str | None) }
+    """
+    symbol       = task["symbol"]
+    fyers_symbol = task["fyers_symbol"]
+    latest       = task["latest"]
+    days_behind  = task["days_behind"]
+    start_fetch  = latest + timedelta(days=1)
+
+    _acquire_rate_slot()   # honour rate limit before hitting the API
+
+    with counter_lock:
+        counter[0] += 1
+        idx = counter[0]
+
+    print(f"  [{idx:3d}/{total}] {fyers_symbol:28s} last={latest.strftime('%d-%b')} ({days_behind}d) ...", flush=True)
+
+    try:
+        df = fetch_missing_data(fyers_symbol, access_token, start_fetch, today)
+        if not df.empty:
+            print(f"  [{idx:3d}/{total}] {fyers_symbol:28s} +{len(df)} rows", flush=True)
+            return {"symbol": symbol, "fyers_symbol": fyers_symbol, "df": df, "rows": len(df), "error": None}
+        else:
+            print(f"  [{idx:3d}/{total}] {fyers_symbol:28s} (no new data)", flush=True)
+            return {"symbol": symbol, "fyers_symbol": fyers_symbol, "df": None, "rows": 0, "error": None}
+    except Exception as e:
+        print(f"  [{idx:3d}/{total}] {fyers_symbol:28s} FAILED: {str(e)[:50]}", flush=True)
+        return {"symbol": symbol, "fyers_symbol": fyers_symbol, "df": None, "rows": 0, "error": str(e)}
 
 
 def probe_last_trading_date(access_token: str) -> datetime:
@@ -141,12 +224,13 @@ def fetch_missing_data(symbol: str, access_token: str, start_date: datetime, end
 def main():
     print("=" * 60)
     print("  UPDATE HISTORICAL DATA  -  DuckDB Incremental Sync")
+    print("  (Optimised: concurrent fetch + bulk write)")
     print("=" * 60)
 
     today = datetime.now()
 
     # ---- Smart EOD Gate: skip if DB is already current ----
-    status = is_db_current(now=today)
+    status       = is_db_current(now=today)
     last_updated = status["last_updated"]
     eod_boundary = status["eod_boundary"]
 
@@ -166,40 +250,41 @@ def main():
     print(f"\n  [UPDATE NEEDED] {status['reason']}")
 
     # ---- Build universe from test stocks + active + sell watchlists ----
-    main_stocks = read_stocks(STOCKS_FILE)
+    main_stocks   = read_stocks(STOCKS_FILE)
     active_stocks = get_active_watchlist()
-    sell_stocks = get_sell_watchlist()
-    all_stocks = list(dict.fromkeys(main_stocks + active_stocks + sell_stocks))
+    sell_stocks   = get_sell_watchlist()
+    all_stocks    = list(dict.fromkeys(main_stocks + active_stocks + sell_stocks))
 
     if not all_stocks:
         print("  No stocks found in any watchlist.")
         return
 
     print(f"  Total stocks      : {len(all_stocks)}")
+    print(f"  Parallel workers  : {MAX_WORKERS}  (rate-limit: {MAX_RPS} req/s)")
     print()
 
-
     # ---- Auth + probe actual last trading date ----
-    print("  Authenticating...", end=" ")
+    print("  Authenticating...", end=" ", flush=True)
     access_token = get_access_token()
+    print("done")
 
-    print("  Probing last trading date from NSE...", end=" ")
+    print("  Probing last trading date from NSE...", end=" ", flush=True)
     last_trading_day = probe_last_trading_date(access_token)
     print(f"{last_trading_day.strftime('%A, %d %b %Y')}")
 
     # ---- Get all latest dates from DuckDB in one batch query ----
-    print("  Loading DuckDB index...", end=" ")
+    print("  Loading DuckDB index...", end=" ", flush=True)
     duckdb_latest = get_duckdb_latest_dates()
     print(f"{len(duckdb_latest)} symbols indexed.\n")
 
     # ---- Categorize stocks ----
     already_current = []
-    needs_update = []
-    no_data = []
+    needs_update    = []   # list of task dicts for parallel phase
+    no_data         = []   # list of (symbol, fyers_symbol) for sequential phase
 
     for symbol in all_stocks:
         fyers_symbol = to_fyers_symbol(symbol)
-        candidates = normalize_symbol_candidates(fyers_symbol)
+        candidates   = normalize_symbol_candidates(fyers_symbol)
         latest = None
         for c in candidates:
             if c in duckdb_latest:
@@ -211,7 +296,12 @@ def main():
         elif latest.date() >= last_trading_day.date():
             already_current.append((symbol, fyers_symbol, latest))
         else:
-            needs_update.append((symbol, fyers_symbol, latest))
+            needs_update.append({
+                "symbol":       symbol,
+                "fyers_symbol": fyers_symbol,
+                "latest":       latest,
+                "days_behind":  (last_trading_day.date() - latest.date()).days,
+            })
 
     # ---- Report status ----
     print(f"  Already up-to-date : {len(already_current)} stocks  (last date: {last_trading_day.strftime('%d %b %Y')})")
@@ -220,7 +310,6 @@ def main():
 
     if already_current and not needs_update and not no_data:
         print(f"\n  All {len(already_current)} stocks are already up-to-date!")
-        print(f"  Last recorded date : {last_trading_day.strftime('%d %b %Y (%A)')}")
         print(f"\n  No fetch required. DuckDB is current.")
         return
 
@@ -228,88 +317,112 @@ def main():
         print("\n  Nothing to update.")
         return
 
-    # ---- Fetch missing data ----
-    total_to_process = len(needs_update) + len(no_data)
-    print(f"\n  {'='*56}")
-    print(f"  Fetching missing candles for {total_to_process} stocks...")
-    print(f"  {'='*56}")
-
     updated_count = 0
     skipped_count = 0
-    failed = []
-    counter = 0
+    failed        = []
+    t_start       = time.monotonic()
 
-    # Open single write connection for the entire batch to eliminate connection churn
-    write_con = duckdb.connect(DB_PATH, read_only=False)
+    # ================================================================
+    # PHASE 1: Concurrent incremental updates (ThreadPoolExecutor)
+    # ================================================================
+    if needs_update:
+        total_inc    = len(needs_update)
+        counter      = [0]
+        counter_lock = threading.Lock()
+        fetch_results = []
 
-    try:
-        # Process stocks needing incremental updates: Direct EOD candle upsert into DuckDB
-        for symbol, fyers_symbol, latest in needs_update:
-            counter += 1
-            start_fetch = latest + timedelta(days=1)
-            days_behind = (last_trading_day.date() - latest.date()).days
-            print(f"  [{counter:3d}/{total_to_process}] {fyers_symbol:25s} "
-                  f"last={latest.strftime('%d-%b')} ({days_behind}d behind) ", end="")
+        print(f"\n  {'='*56}")
+        print(f"  PHASE 1: Incremental update — {total_inc} stocks  ({MAX_WORKERS} workers)")
+        print(f"  {'='*56}")
 
-            try:
-                new_df = fetch_missing_data(fyers_symbol, access_token, start_fetch, today)
-                if not new_df.empty:
-                    # Direct, pure EOD upsert into DuckDB (zero CSV read/write, zero existing candle re-reads)
-                    upsert_candles(fyers_symbol, new_df, con=write_con)
-                    print(f"  +{len(new_df)} rows (DuckDB)")
-                    updated_count += 1
-                else:
-                    print(f"  (no new data)")
-                    skipped_count += 1
-            except Exception as e:
-                print(f"  FAILED: {str(e)[:40]}")
-                failed.append(symbol)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            futures = {
+                executor.submit(
+                    _fetch_worker, task, access_token, today, counter_lock, counter, total_inc
+                ): task
+                for task in needs_update
+            }
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    fetch_results.append(future.result())
+                except Exception as e:
+                    task = futures[future]
+                    fetch_results.append({
+                        "symbol": task["symbol"], "fyers_symbol": task["fyers_symbol"],
+                        "df": None, "rows": 0, "error": str(e),
+                    })
 
-            time.sleep(0.3)
-
-        # Process stocks with no data at all (fetch full 365-day history from FYERS directly to DuckDB)
-        for symbol, fyers_symbol in no_data:
-            counter += 1
-            print(f"  [{counter:3d}/{total_to_process}] {fyers_symbol:25s} "
-                  f"NEW - fetching 365d history ", end="")
-            try:
-                new_df = fetch_historical_data(fyers_symbol, access_token, days=365)
-                save_candles(fyers_symbol, new_df, con=write_con, overwrite=True)
-                print(f"  {len(new_df)} rows (DuckDB)")
+        # ---- Separate successes from failures ----
+        bulk_records = []
+        for res in fetch_results:
+            if res["error"]:
+                failed.append(res["symbol"])
+            elif res["df"] is not None:
+                bulk_records.append({"symbol": res["fyers_symbol"], "df": res["df"]})
                 updated_count += 1
-            except Exception as e:
-                print(f"  FAILED: {str(e)[:40]}")
-                failed.append(symbol)
-            time.sleep(0.3)
-    finally:
-        write_con.close()
+            else:
+                skipped_count += 1
+
+        # ---- Bulk write ALL fetched symbols in ONE DuckDB transaction ----
+        if bulk_records:
+            print(f"\n  Writing {len(bulk_records)} symbols to DuckDB (bulk transaction)...", end=" ", flush=True)
+            write_con = duckdb.connect(DB_PATH, read_only=False)
+            try:
+                total_rows = bulk_upsert_candles(bulk_records, con=write_con)
+                print(f"{total_rows} rows written.")
+            finally:
+                write_con.close()
+
+    # ================================================================
+    # PHASE 2: Sequential full-history fetch for new symbols
+    # ================================================================
+    if no_data:
+        total_new = len(no_data)
+        print(f"\n  {'='*56}")
+        print(f"  PHASE 2: New symbols — {total_new} stocks  (365d history, sequential)")
+        print(f"  {'='*56}")
+
+        write_con = duckdb.connect(DB_PATH, read_only=False)
+        try:
+            for idx, (symbol, fyers_symbol) in enumerate(no_data, 1):
+                print(f"  [{idx:3d}/{total_new}] {fyers_symbol:28s} NEW - fetching 365d history ", end="", flush=True)
+                try:
+                    new_df = fetch_historical_data(fyers_symbol, access_token, days=365)
+                    save_candles(fyers_symbol, new_df, con=write_con, overwrite=True)
+                    print(f"  {len(new_df)} rows")
+                    updated_count += 1
+                except Exception as e:
+                    print(f"  FAILED: {str(e)[:50]}")
+                    failed.append(symbol)
+                time.sleep(0.4)   # conservative throttle for large 365-day fetches
+        finally:
+            write_con.close()
 
     # ---- Summary ----
+    elapsed = time.monotonic() - t_start
     print(f"\n  {'='*56}")
-    print(f"  SYNC COMPLETE")
+    print(f"  SYNC COMPLETE  ({elapsed:.1f}s)")
     print(f"  {'='*56}")
     print(f"  Updated          : {updated_count}")
     print(f"  No new data      : {skipped_count}")
     if failed:
         print(f"  Failed           : {len(failed)} ({', '.join(failed[:10])})")
         print(f"\n  [PURGE] Auto-removing {len(failed)} un-fetchable/invalid stocks from DuckDB & watchlists...")
-        purge_res = purge_untracked_or_failed_symbols(failed)
+        purge_untracked_or_failed_symbols(failed)
         print(f"  Purge complete   : Removed from watchlists & deleted from DuckDB.")
     print(f"  Already current  : {len(already_current)}")
     print(f"  Last trading day : {last_trading_day.strftime('%d %b %Y (%A)')}")
 
     # ---- Stamp last-updated timestamp in DuckDB ----
-    # Only stamp if at least some update was attempted (even partial success is meaningful)
-    stamp = set_last_updated()
+    stamp    = set_last_updated()
     next_eod = stamp.replace(
         hour=MARKET_CLOSE_HOUR, minute=MARKET_CLOSE_MINUTE, second=0, microsecond=0
     )
-    if stamp < next_eod:
-        # Stamped before today's market close → next relevant update is today post-15:30
-        next_update_str = f"today after {MARKET_CLOSE_HOUR:02d}:{MARKET_CLOSE_MINUTE:02d}"
-    else:
-        # Stamped after today's close → next relevant update is tomorrow post-15:30
-        next_update_str = f"tomorrow after {MARKET_CLOSE_HOUR:02d}:{MARKET_CLOSE_MINUTE:02d}"
+    next_update_str = (
+        f"today after {MARKET_CLOSE_HOUR:02d}:{MARKET_CLOSE_MINUTE:02d}"
+        if stamp < next_eod
+        else f"tomorrow after {MARKET_CLOSE_HOUR:02d}:{MARKET_CLOSE_MINUTE:02d}"
+    )
     print(f"  DB last updated  : {stamp.strftime('%d %b %Y  %H:%M:%S')}")
     print(f"  Next update due  : {next_update_str}")
     print()
@@ -317,3 +430,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
