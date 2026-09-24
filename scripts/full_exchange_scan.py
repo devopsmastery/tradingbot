@@ -44,10 +44,11 @@ load_dotenv()
 from live_trading.fyers_auth import get_access_token, FYERS_APP_ID
 from data.data_fetcher import (
     to_fyers_symbol, fetch_historical_data,
-    read_stocks, apply_live_quote
+    read_stocks, apply_live_quote, fetch_batch_quotes,
+    HISTORY_URL,
 )
 from data.duckdb_manager import (
-    get_connection, load_candles, save_candles, DB_PATH
+    get_connection, load_candles, save_candles, upsert_candles, DB_PATH
 )
 from live_trading.execute_trades import (
     compute_indicators, generate_signal, quality_bar, quality_label, Colors, colored
@@ -72,6 +73,83 @@ MIN_VOLUME           = 10000   # Min today's traded volume
 NEAR_52W_HIGH_RATIO  = 0.88   # Must be within 12% of 52-week high (momentum filter)
 
 BATCH_SIZE = 50  # Fyers quotes API maximum batch size (up to 50 symbols/request)
+
+# Staleness gate: if DuckDB last candle is older than this many calendar days,
+# fetch only the missing days from Fyers before running strategy.
+# Prevents stale EMA/KC indicators from generating false signals (e.g. BlueDart).
+MAX_STALE_DAYS = 5
+
+
+def refresh_stale_candles(
+    symbol: str,
+    fyers_sym: str,
+    df: "pd.DataFrame",
+    access_token: str,
+    today: "datetime.date",
+) -> "pd.DataFrame":
+    """
+    If a DuckDB-cached DataFrame's last candle is more than MAX_STALE_DAYS old,
+    fetches only the missing days from Fyers and appends them (incremental refresh).
+
+    Returns the refreshed DataFrame (or the original if already fresh / API fails).
+    Strategy indicators are then computed on the complete, up-to-date data.
+
+    Why needed: `apply_live_quote` only patches the *last candle's price*, it cannot
+    fix EMA/KC values that are built from 50+ days of missing history.
+    """
+    last_candle_date = df.index[-1].date()
+    days_stale = (today - last_candle_date).days
+
+    if days_stale <= MAX_STALE_DAYS:
+        return df  # Already fresh — nothing to do
+
+    # Symbol's DuckDB data is stale: fetch missing days incrementally
+    from datetime import timedelta
+    start_fetch = last_candle_date + timedelta(days=1)
+    start_str   = start_fetch.strftime("%Y-%m-%d")
+    end_str     = today.strftime("%Y-%m-%d")
+
+    try:
+        import requests as _requests
+        headers = {"Authorization": f"{FYERS_APP_ID}:{access_token}"}
+        params  = {
+            "symbol":     fyers_sym,
+            "resolution": "D",
+            "date_format": "1",
+            "range_from": start_str,
+            "range_to":   end_str,
+            "cont_flag":  "1",
+        }
+        resp = _requests.get(HISTORY_URL, params=params, headers=headers, timeout=8)
+        data = resp.json()
+
+        if data.get("s") == "ok" and data.get("candles"):
+            import pandas as _pd
+            new_df = _pd.DataFrame(
+                data["candles"],
+                columns=["Epoch", "Open", "High", "Low", "Close", "Volume"]
+            )
+            new_df["Date"] = _pd.to_datetime(new_df["Epoch"], unit="s")
+            new_df = new_df[["Date", "Open", "High", "Low", "Close", "Volume"]]
+            new_df.sort_values("Date", inplace=True)
+            new_df.set_index("Date", inplace=True)
+
+            # Persist the incremental rows to DuckDB for next time
+            try:
+                upsert_candles(fyers_sym, new_df)
+            except Exception:
+                pass  # Best-effort persist — do not fail the scan
+
+            # Merge with existing history
+            refreshed = _pd.concat([df, new_df])
+            refreshed = refreshed[~refreshed.index.duplicated(keep="last")]
+            refreshed.sort_index(inplace=True)
+            return refreshed
+
+    except Exception:
+        pass  # Network or parse error — fall through to stale data with a warning
+
+    return df  # Return original if refresh failed
 
 
 # ============================================================
@@ -377,27 +455,58 @@ def main():
     print()
 
     discoveries = []  # (symbol, close, score, reasons)
-    cache_hits  = 0
-    api_fetches = 0
-    errors      = 0
+    cache_hits      = 0
+    api_fetches     = 0
+    stale_refreshed = 0
+    errors          = 0
+    today_date      = datetime.now().date()
 
-    # Step 1: Pre-load all candidates from DuckDB
+    # Step 1: Pre-load all candidates from DuckDB; classify as fresh, stale, or uncached
     db_con = get_connection(read_only=True)
-    candidate_dfs = {}
-    uncached_symbols = []
+    candidate_dfs    = {}
+    uncached_symbols = []   # Not in DuckDB at all → need full 60-day fetch
+    stale_symbols    = []   # In DuckDB but too old → incremental refresh needed
 
     try:
         for symbol in candidates:
             fyers_sym = to_fyers_symbol(symbol)
             try:
-                candidate_dfs[symbol] = load_candles(fyers_sym, con=db_con)
-                cache_hits += 1
+                df = load_candles(fyers_sym, con=db_con)
+                days_stale = (today_date - df.index[-1].date()).days
+                if days_stale > MAX_STALE_DAYS:
+                    # Stale: last candle too old for reliable EMA/KC — queue for refresh
+                    stale_symbols.append((symbol, fyers_sym, df, days_stale))
+                else:
+                    candidate_dfs[symbol] = df
+                    cache_hits += 1
             except FileNotFoundError:
                 uncached_symbols.append(symbol)
     finally:
         db_con.close()
 
-    # Step 2: Concurrently fetch history for any candidate not in DuckDB
+    # Step 2a: Concurrent incremental refresh for stale symbols
+    # Fetches only the missing trading days (fast), merges, and persists to DuckDB.
+    if stale_symbols:
+        print(f"  Refreshing {len(stale_symbols)} stale symbols "
+              f"(last data >{MAX_STALE_DAYS}d old) in parallel...", flush=True)
+
+        def refresh_worker(args):
+            sym, fsym, old_df, days_stale = args
+            refreshed = refresh_stale_candles(sym, fsym, old_df, access_token, today_date)
+            return sym, refreshed
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            rfutures = [executor.submit(refresh_worker, args) for args in stale_symbols]
+            for f in as_completed(rfutures):
+                sym, refreshed_df = f.result()
+                if refreshed_df is not None and not refreshed_df.empty:
+                    candidate_dfs[sym] = refreshed_df
+                    new_days_stale = (today_date - refreshed_df.index[-1].date()).days
+                    if new_days_stale <= MAX_STALE_DAYS:
+                        stale_refreshed += 1
+                    # else: refresh failed/no new data — still evaluate with best available
+
+    # Step 2b: Concurrently fetch full 60-day history for symbols not in DuckDB at all
     if uncached_symbols:
         print(f"  Fetching 60-day history for {len(uncached_symbols)} new candidates in parallel...")
         def fetch_and_cache(sym):
@@ -418,6 +527,7 @@ def main():
                     api_fetches += 1
                 else:
                     errors += 1
+
 
     # Step 3: High-speed in-memory evaluation (zero redundant network calls)
     for i, symbol in enumerate(candidates, 1):
@@ -454,10 +564,16 @@ def main():
     print(colored('  DISCOVERY BUY SIGNALS  --  New Stocks Outside Your Universe', Colors.BOLD + Colors.GREEN))
     print(colored('=' * 70, Colors.GREEN))
     print(f'  Candidates scanned  : {len(candidates)}')
-    print(f'  Cache hits          : {cache_hits} (instant)')
-    print(f'  API fetches         : {api_fetches} (downloaded fresh)')
+    print(f'  Cache hits (fresh)  : {cache_hits} (instant, ≤{MAX_STALE_DAYS}d old)')
+    if stale_refreshed:
+        print(f'  Stale refreshed     : {stale_refreshed} (incremental update applied)')
+    stale_not_refreshed = len(stale_symbols) - stale_refreshed
+    if stale_not_refreshed > 0:
+        print(f'  Stale (no refresh)  : {stale_not_refreshed} (evaluated on best-available data)')
+    print(f'  New (60d fetch)     : {api_fetches} (downloaded fresh)')
     if errors:
         print(f'  Errors              : {errors}')
+
 
     if not discoveries:
         print()

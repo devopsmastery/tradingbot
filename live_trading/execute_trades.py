@@ -34,8 +34,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from live_trading.fyers_auth import get_access_token, FYERS_APP_ID
 from data.data_fetcher import (
     read_stocks, to_fyers_symbol, fetch_historical_data,
-    save_historical_data, HISTORICAL_DATA_DIR, append_live_quote,
-    load_historical_csv, fetch_batch_quotes, apply_live_quote
+    save_historical_data, upsert_historical_data, HISTORICAL_DATA_DIR,
+    append_live_quote, load_historical_csv, fetch_batch_quotes,
+    apply_live_quote, HISTORY_URL,
 )
 from data.watchlist_manager import (
     get_active_watchlist, get_sell_watchlist, get_test_stocks,
@@ -525,6 +526,44 @@ def main():
                     # Fallback to API if not in DuckDB
                     df = fetch_historical_data(fyers_symbol, access_token, days=60)
                     save_historical_data(fyers_symbol, df)
+
+                # 1b. Staleness guard: if DuckDB data is >5 days old, fetch missing days
+                #     so EMA/KC indicators are computed on current history (not old snapshots)
+                _MAX_STALE = 5
+                _last_date = df.index[-1].date()
+                _days_stale = (datetime.now().date() - _last_date).days
+                if _days_stale > _MAX_STALE:
+                    try:
+                        from datetime import timedelta as _td
+                        import requests as _req
+                        _start = (_last_date + _td(days=1)).strftime("%Y-%m-%d")
+                        _end   = datetime.now().strftime("%Y-%m-%d")
+                        _hdrs  = {"Authorization": f"{FYERS_APP_ID}:{access_token}"}
+                        _params = {
+                            "symbol": fyers_symbol, "resolution": "D",
+                            "date_format": "1", "range_from": _start,
+                            "range_to": _end, "cont_flag": "1",
+                        }
+                        _resp = _req.get(HISTORY_URL, params=_params, headers=_hdrs, timeout=8)
+                        _data = _resp.json()
+                        if _data.get("s") == "ok" and _data.get("candles"):
+                            import pandas as _pd2
+                            _new = _pd2.DataFrame(
+                                _data["candles"],
+                                columns=["Epoch","Open","High","Low","Close","Volume"]
+                            )
+                            _new["Date"] = _pd2.to_datetime(_new["Epoch"], unit="s")
+                            _new = _new[["Date","Open","High","Low","Close","Volume"]]
+                            _new.sort_values("Date", inplace=True)
+                            _new.set_index("Date", inplace=True)
+                            # Merge and persist
+                            df = _pd2.concat([df, _new])
+                            df = df[~df.index.duplicated(keep="last")]
+                            df.sort_index(inplace=True)
+                            upsert_historical_data(fyers_symbol, _new)
+                    except Exception:
+                        # If refresh fails, continue with stale data (no crash)
+                        pass
 
                 # 2. Overlay real-time quote from pre-fetched batch dictionary
                 quote = live_quotes.get(fyers_symbol)
