@@ -272,17 +272,27 @@ def main():
         print(f"\n  [UPDATE NEEDED] {status['reason'] if not args.force else 'Forced sync via --force'}")
 
 
-    # ---- Build universe from test stocks + active + sell watchlists ----
+    # ---- Build universe from test stocks + active + sell watchlists + portfolio holdings ----
     main_stocks   = read_stocks(STOCKS_FILE)
     active_stocks = get_active_watchlist()
     sell_stocks   = get_sell_watchlist()
-    all_stocks    = list(dict.fromkeys(main_stocks + active_stocks + sell_stocks))
+    port_stocks   = []
+    port_file     = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "portfolio_db.json")
+    if os.path.exists(port_file):
+        try:
+            import json as _json
+            with open(port_file, "r") as pf:
+                port_stocks = list(_json.load(pf).keys())
+        except Exception:
+            pass
+
+    all_stocks    = list(dict.fromkeys(main_stocks + active_stocks + sell_stocks + port_stocks))
 
     if not all_stocks:
-        print("  No stocks found in any watchlist.")
+        print("  No stocks found in any watchlist or portfolio.")
         return
 
-    print(f"  Total stocks      : {len(all_stocks)}")
+    print(f"  Total stocks      : {len(all_stocks)} ({len(main_stocks)} main + {len(active_stocks)} active + {len(sell_stocks)} sell + {len(port_stocks)} portfolio)")
     print(f"  Parallel workers  : {MAX_WORKERS}  (rate-limit: {MAX_RPS} req/s)")
     print()
 

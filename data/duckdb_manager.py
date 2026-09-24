@@ -86,26 +86,30 @@ def _ensure_db_metadata_table(con: duckdb.DuckDBPyConnection) -> None:
 
 
 def normalize_symbol_candidates(symbol: str) -> List[str]:
-    """Generates all possible alias formats for symbol matching."""
+    """Generates all possible alias formats for symbol matching across NSE series."""
     s = symbol.strip().upper()
     candidates = [s]
     
-    if not s.startswith("NSE:"):
-        if "-" in s:
-            candidates.append(f"NSE:{s}")
-        else:
-            candidates.append(f"NSE:{s}-EQ")
-            candidates.append(f"NSE:{s}-BE")
-            candidates.append(f"NSE:{s}-SM")
-            candidates.append(f"NSE:{s}-ST")
-    else:
-        core = s[4:]
-        candidates.append(core)
-        if core.endswith("-EQ") or core.endswith("-BE") or core.endswith("-SM") or core.endswith("-ST"):
-            candidates.append(core[:-3])
-        if "-" not in core:
-            candidates.append(f"NSE:{core}-EQ")
-            
+    # Extract root ticker by stripping NSE: prefix and any series suffix
+    core = s[4:] if s.startswith("NSE:") else s
+    root = core
+    for suffix in ["-EQ", "-BE", "-SM", "-ST", "-BZ"]:
+        if root.endswith(suffix):
+            root = root[:-len(suffix)]
+            break
+
+    # Add all candidate variants in prioritized order
+    candidates.append(f"NSE:{core}")
+    candidates.append(core)
+    candidates.append(f"NSE:{root}-EQ")
+    candidates.append(f"NSE:{root}-BE")
+    candidates.append(f"NSE:{root}-SM")
+    candidates.append(f"NSE:{root}-ST")
+    candidates.append(f"NSE:{root}")
+    candidates.append(f"{root}-EQ")
+    candidates.append(f"{root}-BE")
+    candidates.append(root)
+
     return list(dict.fromkeys(candidates))
 
 
