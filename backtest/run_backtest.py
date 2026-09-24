@@ -169,10 +169,10 @@ def main():
 
     # ---- Define strategy suite ----
     all_strategies = [
-        (KeltnerBreakoutTunedStrategy,       "Keltner Tuned (ATR 2.0 + EMA)  [LIVE]"),
+        (KeltnerBreakoutStrategy,             "Keltner Breakout (ATR 1.5)  [LIVE]"),
+        (KeltnerBreakoutTunedStrategy,       "Keltner Tuned (ATR 2.0 + EMA)"),
         (KeltnerRetracementBreakoutStrategy,  "Keltner 5-Rule Retracement"),
         (KeltnerEMACrossStrategy,             "Keltner + EMA Cross"),
-        (KeltnerBreakoutStrategy,             "Keltner Breakout (ATR 1.5)"),
         (BollingerRSIStrategy,                "Bollinger RSI"),
         (SqueezeBreakoutStrategy,             "Squeeze Breakout"),
     ]
@@ -265,7 +265,7 @@ def main():
     print(f"     Avg Sharpe     : {best_sharpe:.3f}")
 
     # Per-stock breakdown for the live strategy and the winner (if different)
-    live_strat_name = "Keltner Tuned (ATR 2.0 + EMA)  [LIVE]"
+    live_strat_name = "Keltner Breakout (ATR 1.5)  [LIVE]"
     print("\n" + "=" * 110)
     print("  PER-STOCK BREAKDOWN")
     print("=" * 110)

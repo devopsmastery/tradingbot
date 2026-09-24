@@ -86,10 +86,80 @@ def get_test_stocks() -> List[str]:
     return read_symbols_from_file(TEST_STOCKS_FILE)
 
 
-def add_to_active_watchlist(symbols: List[str]) -> Dict[str, Any]:
+def ensure_symbols_have_history(
+    symbols: List[str],
+    min_days: int = 60,
+    fetch_days: int = 100
+) -> Dict[str, Any]:
+    """
+    Ensures each symbol in `symbols` has at least `min_days` (default 60 trading days / ~3 months)
+    of historical candles in DuckDB.
+    
+    If missing or having fewer than `min_days` candles, fetches `fetch_days` (default 100 days)
+    from Fyers API and upserts into DuckDB so that strategy indicators behave properly.
+    """
+    if not symbols:
+        return {"checked": 0, "synced": [], "already_had_history": [], "failed": []}
+
+    from data.duckdb_manager import get_connection, upsert_candles, normalize_symbol_candidates
+    from data.data_fetcher import to_fyers_symbol, fetch_historical_data
+
+    # Clean symbols
+    clean_syms = [clean_symbol(s) for s in symbols if clean_symbol(s)]
+    if not clean_syms:
+        return {"checked": 0, "synced": [], "already_had_history": [], "failed": []}
+
+    # Query current candle counts in DuckDB
+    con = get_connection(read_only=True)
+    counts = {}
+    try:
+        for s in clean_syms:
+            fsym = to_fyers_symbol(s)
+            cands = normalize_symbol_candidates(fsym)
+            placeholders = ",".join(["?"] * len(cands))
+            row = con.execute(f"SELECT COUNT(*) FROM candles WHERE symbol IN ({placeholders})", cands).fetchone()
+            counts[s] = row[0] if row else 0
+    finally:
+        con.close()
+
+    needed = [s for s in clean_syms if counts.get(s, 0) < min_days]
+    already_ok = [s for s in clean_syms if counts.get(s, 0) >= min_days]
+
+    synced = []
+    failed = []
+
+    if needed:
+        try:
+            from live_trading.fyers_auth import get_access_token
+            access_token = get_access_token()
+            for s in needed:
+                fsym = to_fyers_symbol(s)
+                try:
+                    df = fetch_historical_data(fsym, access_token, days=fetch_days)
+                    if df is not None and not df.empty:
+                        upsert_candles(fsym, df)
+                        synced.append(s)
+                    else:
+                        failed.append({"symbol": s, "error": "No candle data returned from Fyers"})
+                except Exception as fe:
+                    failed.append({"symbol": s, "error": str(fe)})
+        except Exception as auth_e:
+            for s in needed:
+                failed.append({"symbol": s, "error": f"Fyers auth required: {auth_e}"})
+
+    return {
+        "checked": len(clean_syms),
+        "needed_sync": len(needed),
+        "synced": synced,
+        "already_had_history": already_ok,
+        "failed": failed,
+    }
+
+
+def add_to_active_watchlist(symbols: List[str], sync_history: bool = True) -> Dict[str, Any]:
     """
     Adds symbols to the active watchlist and removes them from the sell watchlist.
-    Also ensures they are present in DuckDB.
+    Also ensures they hold at least 3 months (60+ trading days) of history in DuckDB.
     """
     current_active = get_active_watchlist()
     current_sell = get_sell_watchlist()
@@ -107,11 +177,17 @@ def add_to_active_watchlist(symbols: List[str]) -> Dict[str, Any]:
     write_symbols_to_file(ACTIVE_WATCHLIST_FILE, current_active, "Active Stock Watchlist")
     write_symbols_to_file(SELL_WATCHLIST_FILE, current_sell, "Sell Watchlist - Weakness & Exit Signals")
 
+    history_result = None
+    target_sync = added if added else [clean_symbol(s) for s in symbols if clean_symbol(s)]
+    if sync_history and target_sync:
+        history_result = ensure_symbols_have_history(target_sync, min_days=60, fetch_days=100)
+
     return {
         "success": True,
         "added": added,
         "active_count": len(current_active),
-        "sell_count": len(current_sell)
+        "sell_count": len(current_sell),
+        "history_sync": history_result,
     }
 
 

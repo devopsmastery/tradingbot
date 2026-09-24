@@ -180,14 +180,14 @@ def probe_last_trading_date(access_token: str) -> datetime:
 
 
 def get_duckdb_latest_dates() -> dict:
-    """Returns {symbol: latest_timestamp} for all symbols in DuckDB in one query."""
+    """Returns {symbol: {'latest': Timestamp, 'count': int}} for all symbols in DuckDB in one query."""
     init_db()
     con = get_connection(read_only=True)
     try:
         rows = con.execute(
-            "SELECT symbol, MAX(timestamp) AS latest FROM candles GROUP BY symbol"
+            "SELECT symbol, MAX(timestamp) AS latest, COUNT(*) AS cnt FROM candles GROUP BY symbol"
         ).fetchall()
-        return {row[0]: pd.to_datetime(row[1]) for row in rows}
+        return {row[0]: {"latest": pd.to_datetime(row[1]), "count": row[2]} for row in rows}
     finally:
         con.close()
 
@@ -229,7 +229,13 @@ def main():
 
     today = datetime.now()
 
-    # ---- Smart EOD Gate: skip if DB is already current ----
+    # ---- Command-line arguments ----
+    import argparse
+    parser = argparse.ArgumentParser(description="Update DuckDB Historical Data")
+    parser.add_argument("--force", action="store_true", help="Force sync even if EOD gate says current")
+    args, _ = parser.parse_known_args()
+
+    # ---- Smart EOD Gate: skip if DB is already current (unless --force or underfilled history exists) ----
     status       = is_db_current(now=today)
     last_updated = status["last_updated"]
     eod_boundary = status["eod_boundary"]
@@ -242,12 +248,29 @@ def main():
     else:
         print(f"  DB last updated   : Never")
 
-    if status["current"]:
-        print(f"\n  [OK] {status['reason']}")
-        print(f"\n  DuckDB is already up-to-date for this trading session. Skipping fetch.")
-        return
+    # Check if any active stocks have < 60 candles (< 3 months) in DuckDB
+    underfilled_count = 0
+    try:
+        init_db()
+        chk_con = get_connection(read_only=True)
+        underfilled_count = chk_con.execute(
+            "SELECT COUNT(*) FROM (SELECT symbol, COUNT(*) as c FROM candles GROUP BY symbol HAVING c < 60)"
+        ).fetchone()[0]
+        chk_con.close()
+    except Exception:
+        pass
 
-    print(f"\n  [UPDATE NEEDED] {status['reason']}")
+    if status["current"] and not args.force:
+        if underfilled_count == 0:
+            print(f"\n  [OK] {status['reason']}")
+            print(f"\n  DuckDB is already up-to-date and all symbols have >= 3 months history. Skipping fetch.")
+            return
+        else:
+            print(f"\n  [NOTICE] EOD timestamp is current, but {underfilled_count} symbol(s) have < 3 months data.")
+            print(f"           Proceeding to ensure 3-month history across all active stocks...")
+    else:
+        print(f"\n  [UPDATE NEEDED] {status['reason'] if not args.force else 'Forced sync via --force'}")
+
 
     # ---- Build universe from test stocks + active + sell watchlists ----
     main_stocks   = read_stocks(STOCKS_FILE)
@@ -277,43 +300,50 @@ def main():
     duckdb_latest = get_duckdb_latest_dates()
     print(f"{len(duckdb_latest)} symbols indexed.\n")
 
-    # ---- Categorize stocks ----
+    # ---- Categorize stocks (with 3-Month / 60-candle History Guarantee) ----
+    MIN_HISTORY_CANDLES = 60  # Minimum 3 months of trading days (~60-65 candles)
+
     already_current = []
     needs_update    = []   # list of task dicts for parallel phase
     no_data         = []   # list of (symbol, fyers_symbol) for sequential phase
+    needs_backfill  = []   # list of (symbol, fyers_symbol, count) needing 3-month backfill
 
     for symbol in all_stocks:
         fyers_symbol = to_fyers_symbol(symbol)
         candidates   = normalize_symbol_candidates(fyers_symbol)
-        latest = None
+        info = None
         for c in candidates:
             if c in duckdb_latest:
-                latest = duckdb_latest[c]
+                info = duckdb_latest[c]
                 break
 
-        if latest is None:
+        if info is None:
             no_data.append((symbol, fyers_symbol))
-        elif latest.date() >= last_trading_day.date():
-            already_current.append((symbol, fyers_symbol, latest))
+        elif info["count"] < MIN_HISTORY_CANDLES:
+            # Holds less than 3 months of candles in DuckDB -> needs backfill
+            needs_backfill.append((symbol, fyers_symbol, info["count"]))
+        elif info["latest"].date() >= last_trading_day.date():
+            already_current.append((symbol, fyers_symbol, info["latest"]))
         else:
             needs_update.append({
                 "symbol":       symbol,
                 "fyers_symbol": fyers_symbol,
-                "latest":       latest,
-                "days_behind":  (last_trading_day.date() - latest.date()).days,
+                "latest":       info["latest"],
+                "days_behind":  (last_trading_day.date() - info["latest"].date()).days,
             })
 
     # ---- Report status ----
     print(f"  Already up-to-date : {len(already_current)} stocks  (last date: {last_trading_day.strftime('%d %b %Y')})")
     print(f"  Needs update       : {len(needs_update)} stocks")
+    print(f"  Needs 3-mo backfill: {len(needs_backfill)} stocks (< {MIN_HISTORY_CANDLES} candles)")
     print(f"  No data (new)      : {len(no_data)} stocks")
 
-    if already_current and not needs_update and not no_data:
-        print(f"\n  All {len(already_current)} stocks are already up-to-date!")
+    if already_current and not needs_update and not no_data and not needs_backfill:
+        print(f"\n  All {len(already_current)} stocks are already up-to-date and hold 3+ months of history!")
         print(f"\n  No fetch required. DuckDB is current.")
         return
 
-    if not needs_update and not no_data:
+    if not needs_update and not no_data and not needs_backfill:
         print("\n  Nothing to update.")
         return
 
@@ -374,18 +404,34 @@ def main():
                 write_con.close()
 
     # ================================================================
-    # PHASE 2: Sequential full-history fetch for new symbols
+    # PHASE 2: 3-Month History Backfill & New Symbols
     # ================================================================
-    if no_data:
-        total_new = len(no_data)
+    if needs_backfill or no_data:
+        total_p2 = len(needs_backfill) + len(no_data)
         print(f"\n  {'='*56}")
-        print(f"  PHASE 2: New symbols — {total_new} stocks  (365d history, sequential)")
+        print(f"  PHASE 2: 3-Month History Backfill & New Symbols — {total_p2} stocks")
         print(f"  {'='*56}")
 
         write_con = duckdb.connect(DB_PATH, read_only=False)
         try:
+            # 1. Backfill existing symbols with < 60 candles to full 3+ months
+            for idx, (symbol, fyers_symbol, cnt) in enumerate(needs_backfill, 1):
+                print(f"  [{idx:3d}/{total_p2}] {fyers_symbol:28s} BACKFILL (had {cnt}d) - fetching 100d history ", end="", flush=True)
+                try:
+                    new_df = fetch_historical_data(fyers_symbol, access_token, days=100)
+                    upsert_candles(fyers_symbol, new_df, con=write_con)
+                    print(f"  +{len(new_df)} rows (upserted)")
+                    updated_count += 1
+                except Exception as e:
+                    print(f"  FAILED: {str(e)[:50]}")
+                    failed.append(symbol)
+                time.sleep(0.3)
+
+            # 2. Fetch symbols completely missing from DuckDB
+            offset = len(needs_backfill)
             for idx, (symbol, fyers_symbol) in enumerate(no_data, 1):
-                print(f"  [{idx:3d}/{total_new}] {fyers_symbol:28s} NEW - fetching 365d history ", end="", flush=True)
+                cur_idx = offset + idx
+                print(f"  [{cur_idx:3d}/{total_p2}] {fyers_symbol:28s} NEW - fetching 365d history ", end="", flush=True)
                 try:
                     new_df = fetch_historical_data(fyers_symbol, access_token, days=365)
                     save_candles(fyers_symbol, new_df, con=write_con, overwrite=True)
@@ -397,6 +443,7 @@ def main():
                 time.sleep(0.4)   # conservative throttle for large 365-day fetches
         finally:
             write_con.close()
+
 
     # ---- Summary ----
     elapsed = time.monotonic() - t_start

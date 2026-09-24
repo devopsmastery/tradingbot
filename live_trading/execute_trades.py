@@ -51,7 +51,7 @@ ORDER_URL = "https://api-t1.fyers.in/api/v3/orders/sync"
 
 # Strategy Parameters
 KC_PERIOD = 20
-KC_ATR_MULTIPLIER = 2.0
+KC_ATR_MULTIPLIER = float(os.getenv("KC_ATR_MULTIPLIER", "1.5"))  # Default ATR 1.5 (winning strategy)
 EMA_FAST = 10
 EMA_SLOW = 21
 QUANTITY = 1  # Default quantity per order; adjust per stock
@@ -416,7 +416,7 @@ def load_portfolio() -> dict:
 def main():
     print()
     print(colored("=" * 70, Colors.CYAN))
-    print(colored("  KELTNER TUNED LIVE SCANNER  (ATR 2.0 + EMA 10/21)", Colors.BOLD + Colors.CYAN))
+    print(colored(f"  KELTNER TUNED LIVE SCANNER  (ATR {KC_ATR_MULTIPLIER} + EMA 10/21)", Colors.BOLD + Colors.CYAN))
     print(colored(f"  {datetime.now().strftime('%A, %d %B %Y  %H:%M:%S')}", Colors.CYAN))
     print(colored("=" * 70, Colors.CYAN))
 
