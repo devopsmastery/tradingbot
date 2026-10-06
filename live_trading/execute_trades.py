@@ -137,6 +137,14 @@ def generate_signal(df: pd.DataFrame, strategy_id: int = None) -> tuple:
     if len(df) < KC_PERIOD + 1:
         return "HOLD", 0, ["Insufficient data"]
 
+    # Prevent evaluating on massively stale data (e.g. delisted symbols)
+    last_date = df.index[-1].date()
+    yesterday = datetime.now().date() - timedelta(days=1)
+    # Calculate missing business days up to yesterday
+    missing_bdays = len(pd.bdate_range(last_date, yesterday)) - 1
+    if missing_bdays > 5:
+        return "HOLD", 0, [f"Stale data (last candle {last_date})"]
+
     # ---- STRATEGY 6: 5-RULE RETRACEMENT BREAKOUT ----
     if strategy_id == 6:
         today = df.iloc[-1]
@@ -488,6 +496,10 @@ def main():
     try:
         live_quotes = fetch_batch_quotes(all_fyers_symbols, access_token)
         print(colored(f"Done ({len(live_quotes)} quotes active).", Colors.GREEN))
+    except RuntimeError as e:
+        print(colored(f"\n[CRITICAL] {e}", Colors.RED + Colors.BOLD))
+        print(colored("Please refresh your Fyers authentication token.\n", Colors.RED))
+        sys.exit(1)
     except Exception as q_err:
         live_quotes = {}
         print(colored(f"Warning: Batch quotes fallback - {q_err}", Colors.YELLOW))
@@ -527,12 +539,12 @@ def main():
                     df = fetch_historical_data(fyers_symbol, access_token, days=60)
                     save_historical_data(fyers_symbol, df)
 
-                # 1b. Staleness guard: if DuckDB data is >5 days old, fetch missing days
-                #     so EMA/KC indicators are computed on current history (not old snapshots)
-                _MAX_STALE = 5
+                # 1b. Staleness guard: if DuckDB is missing business days, fetch them
                 _last_date = df.index[-1].date()
-                _days_stale = (datetime.now().date() - _last_date).days
-                if _days_stale > _MAX_STALE:
+                _yesterday = datetime.now().date() - timedelta(days=1)
+                _missing_bdays = len(pd.bdate_range(_last_date, _yesterday)) - 1
+                
+                if _missing_bdays > 0:
                     try:
                         from datetime import timedelta as _td
                         import requests as _req
@@ -546,6 +558,17 @@ def main():
                         }
                         _resp = _req.get(HISTORY_URL, params=_params, headers=_hdrs, timeout=8)
                         _data = _resp.json()
+                        
+                        if _data.get("s") == "error":
+                            _code = _data.get("code")
+                            _msg = _data.get("message", "")
+                            if _code in [-8, -15, -17] or "token" in _msg.lower():
+                                raise RuntimeError(f"Fyers API Auth Error: {_msg}. Your token has expired.")
+                            elif _code == -300 or "invalid symbol" in _msg.lower():
+                                print(colored(f"\n  [WARNING] Fyers API: {_msg} for {fyers_symbol}. Symbol may be delisted or renamed.", Colors.YELLOW))
+                            else:
+                                pass # other errors
+                                
                         if _data.get("s") == "ok" and _data.get("candles"):
                             import pandas as _pd2
                             _new = _pd2.DataFrame(
@@ -561,6 +584,10 @@ def main():
                             df = df[~df.index.duplicated(keep="last")]
                             df.sort_index(inplace=True)
                             upsert_historical_data(fyers_symbol, _new)
+                    except RuntimeError as e:
+                        print(colored(f"\n[CRITICAL] {e}", Colors.RED + Colors.BOLD))
+                        print(colored("Please refresh your Fyers authentication token.\n", Colors.RED))
+                        sys.exit(1)
                     except Exception:
                         # If refresh fails, continue with stale data (no crash)
                         pass

@@ -197,19 +197,26 @@ def move_to_sell_watchlist(symbols: List[str]) -> Dict[str, Any]:
     """
     current_active = get_active_watchlist()
     current_sell = get_sell_watchlist()
+    current_main = get_test_stocks()
 
     moved = []
+    main_modified = False
     for s in symbols:
         cs = clean_symbol(s)
         if cs:
             if cs in current_active:
                 current_active.remove(cs)
+            if cs in current_main:
+                current_main.remove(cs)
+                main_modified = True
             if cs not in current_sell:
                 current_sell.append(cs)
                 moved.append(cs)
 
     write_symbols_to_file(ACTIVE_WATCHLIST_FILE, current_active, "Active Stock Watchlist")
     write_symbols_to_file(SELL_WATCHLIST_FILE, current_sell, "Sell Watchlist - Weakness & Exit Signals")
+    if main_modified:
+        write_symbols_to_file(STOCKS_FILE, current_main, "Main Stocks Universe")
 
     return {
         "success": True,

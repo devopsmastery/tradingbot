@@ -90,6 +90,12 @@ def fetch_historical_data(
         response = requests.get(HISTORY_URL, params=params, headers=headers)
         data = response.json()
 
+        if data.get("s") == "error":
+            code = data.get("code")
+            msg = data.get("message", "")
+            if code in [-8, -15, -17] or "token" in msg.lower():
+                raise RuntimeError(f"Fyers API Auth Error: {msg}. Your token has expired.")
+
         if data.get("s") == "ok" and "candles" in data:
             all_candles.extend(data["candles"])
         else:
@@ -218,6 +224,12 @@ def fetch_batch_quotes(symbols: list, access_token: str, chunk_size: int = 50) -
         try:
             response = requests.get(url, headers=headers, timeout=5)
             data = response.json()
+            if data.get("s") == "error":
+                code = data.get("code")
+                msg = data.get("message", "")
+                if code in [-8, -15, -17] or "token" in msg.lower():
+                    raise RuntimeError(f"Fyers API Auth Error: {msg}. Your token has expired.")
+            
             if data.get("s") == "ok" and "d" in data:
                 for item in data["d"]:
                     s_name = item.get("n", "")
@@ -230,6 +242,8 @@ def fetch_batch_quotes(symbols: list, access_token: str, chunk_size: int = 50) -
                             "close": v.get("lp"),
                             "volume": v.get("volume", 0)
                         }
+        except RuntimeError:
+            raise
         except Exception:
             pass
 

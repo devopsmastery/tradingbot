@@ -1057,13 +1057,27 @@
         const authTxt = document.getElementById('auth-status-text');
 
         if (data.token_valid) {
+          const meta = data.token_meta || {};
+          const remaining = meta.hours_remaining != null ? meta.hours_remaining : 0;
+          const remainStr = remaining > 1 ? `${Math.round(remaining)}h left` : `${Math.round(remaining * 60)}m left`;
           authDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-          authTxt.textContent = 'Fyers Connected';
+          authTxt.textContent = `Connected (${remainStr})`;
           authBtn.className = 'flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-dark-card2 border-emerald-500/30 text-emerald-400';
+          authBtn.title = data.token_message || '';
+        } else if (data.token_meta && data.token_meta.date) {
+          // Token exists on disk but 24h validity period has expired
+          const meta = data.token_meta || {};
+          const expiredH = meta.hours_remaining != null ? Math.abs(meta.hours_remaining) : 0;
+          const expStr = expiredH > 1 ? `${Math.round(expiredH)}h ago` : `${Math.round(expiredH * 60)}m ago`;
+          authDot.className = 'w-2 h-2 rounded-full bg-rose-400 animate-pulse';
+          authTxt.textContent = `Expired (${expStr})`;
+          authBtn.className = 'flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-rose-500/10 border-rose-500/40 text-rose-300 hover:bg-rose-500/20';
+          authBtn.title = data.token_message || 'Token expired. Click to refresh.';
         } else {
           authDot.className = 'w-2 h-2 rounded-full bg-amber-400';
           authTxt.textContent = 'Generate Auth Code';
           authBtn.className = 'flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-amber-500/10 border-amber-500/40 text-amber-300 hover:bg-amber-500/20';
+          authBtn.title = 'No token found. Click to authenticate.';
         }
       } catch (e) {
         console.error('Failed to fetch status:', e);

@@ -32,7 +32,8 @@ load_dotenv(os.path.join(PROJECT_DIR, ".env"))
 
 from live_trading.fyers_auth import (
     generate_login_url, generate_access_token, get_access_token,
-    FYERS_APP_ID, FYERS_REDIRECT_URI, TOKEN_FILE
+    FYERS_APP_ID, FYERS_REDIRECT_URI, TOKEN_FILE,
+    is_token_fresh, get_token_meta, token_hours_remaining, TOKEN_META_FILE
 )
 from data.data_fetcher import (
     to_fyers_symbol, load_historical_csv, read_stocks, fetch_historical_data,
@@ -157,14 +158,23 @@ def get_status():
     """Returns general bot health, token status, stock universe counts."""
     token_valid = False
     token_message = "No token file found"
+    token_meta = {}
     
     if os.path.exists(TOKEN_FILE):
         try:
             with open(TOKEN_FILE, "r") as f:
                 tok = f.read().strip()
             if tok:
-                token_valid = True
-                token_message = "Token cached on disk"
+                token_meta = get_token_meta()
+                remaining = token_hours_remaining()
+                if is_token_fresh():
+                    token_valid = True
+                    token_message = f"Token active ({remaining:.1f}h remaining, generated {token_meta.get('date', '??')} {token_meta.get('time', '??')} via {token_meta.get('source', '??')})"
+                    token_meta["hours_remaining"] = round(remaining, 1)
+                else:
+                    token_valid = False
+                    token_message = f"Token EXPIRED ({abs(remaining):.1f}h past expiry, generated {token_meta.get('date', '??')} {token_meta.get('time', '??')}). Please refresh."
+                    token_meta["hours_remaining"] = round(remaining, 1)
         except Exception as e:
             token_message = str(e)
 
@@ -185,6 +195,7 @@ def get_status():
         "time": datetime.now().strftime("%H:%M:%S"),
         "token_valid": token_valid,
         "token_message": token_message,
+        "token_meta": token_meta,
         "app_id": FYERS_APP_ID or "Not Configured",
         "is_task_running": task_manager.is_running,
         "active_task": task_manager.current_task_name,
@@ -232,7 +243,7 @@ def verify_auth_code(req: AuthVerifyRequest):
             pass
 
     try:
-        access_token = generate_access_token(auth_code)
+        access_token = generate_access_token(auth_code, source="gui")
         
         env_file = os.path.join(PROJECT_DIR, ".env")
         if os.path.exists(env_file):

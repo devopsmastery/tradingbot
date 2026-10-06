@@ -1,13 +1,23 @@
 """
 Fyers Authentication Module (using raw HTTP requests).
 Bypasses fyers-apiv3 SDK to avoid Python 3.14 compatibility issues.
+
+Token lifecycle:
+  - Fyers tokens are valid for ~24h from generation.
+  - .fyers_token           : the raw access token string
+  - .fyers_token_meta.json : structured metadata (generated_at, date, source)
+  - .last_auth_date        : legacy date stamp (kept for backward compat)
+
+All writes go through _save_token_with_meta() to ensure the metadata
+file is always in sync with the token file.
 """
 
 import os
 import sys
+import json
 import hashlib
 import requests
-from datetime import date
+from datetime import date, datetime
 from urllib.parse import urlencode
 from dotenv import load_dotenv
 
@@ -19,10 +29,122 @@ FYERS_REDIRECT_URI = os.getenv("FYERS_REDIRECT_URI")
 
 TOKEN_FILE = os.path.join(os.path.dirname(__file__), "..", ".fyers_token")
 LAST_AUTH_DATE_FILE = os.path.join(os.path.dirname(__file__), "..", ".last_auth_date")
+TOKEN_META_FILE = os.path.join(os.path.dirname(__file__), "..", ".fyers_token_meta.json")
 
 # Fyers API endpoints
 AUTH_BASE_URL = "https://api-t1.fyers.in/api/v3"
 TOKEN_URL = f"{AUTH_BASE_URL}/validate-authcode"
+
+
+# ================================================================
+# Token persistence helpers
+# ================================================================
+
+def _save_token_with_meta(access_token: str, source: str = "unknown") -> None:
+    """
+    Writes the access token to .fyers_token AND writes structured
+    metadata to .fyers_token_meta.json so we can track *when* and
+    *how* the token was generated.
+
+    Args:
+        access_token: the raw JWT access token string.
+        source: one of "gui", "cli", "env" — how the token was generated.
+    """
+    now = datetime.now()
+
+    # Write the raw token
+    with open(TOKEN_FILE, "w") as f:
+        f.write(access_token)
+
+    # Write structured metadata
+    meta = {
+        "generated_at": now.isoformat(),
+        "date": now.strftime("%Y-%m-%d"),
+        "time": now.strftime("%H:%M:%S"),
+        "source": source,
+        "token_preview": f"{access_token[:10]}...{access_token[-5:]}" if len(access_token) > 15 else "***",
+    }
+    with open(TOKEN_META_FILE, "w") as f:
+        json.dump(meta, f, indent=2)
+
+    # Also write legacy .last_auth_date for backward compat
+    with open(LAST_AUTH_DATE_FILE, "w") as f:
+        f.write(now.strftime("%Y-%m-%d"))
+
+
+def get_token_meta() -> dict:
+    """
+    Returns the structured token metadata, or an empty dict if no
+    metadata file exists.
+
+    Returned dict has keys:
+        generated_at (str, ISO datetime), date (str, YYYY-MM-DD),
+        time (str, HH:MM:SS), source (str), token_preview (str)
+    """
+    if os.path.exists(TOKEN_META_FILE):
+        try:
+            with open(TOKEN_META_FILE, "r") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError):
+            pass
+
+    # Fallback: infer from file modification time if meta file is missing
+    if os.path.exists(TOKEN_FILE):
+        mod_time = datetime.fromtimestamp(os.path.getmtime(TOKEN_FILE))
+        return {
+            "generated_at": mod_time.isoformat(),
+            "date": mod_time.strftime("%Y-%m-%d"),
+            "time": mod_time.strftime("%H:%M:%S"),
+            "source": "unknown (no meta file)",
+            "token_preview": "",
+        }
+
+    return {}
+
+
+TOKEN_VALIDITY_HOURS = 24  # Fyers tokens expire 24h after generation
+
+
+def token_age_hours() -> float:
+    """
+    Returns how many hours ago the token was generated.
+    Returns float('inf') if no token metadata exists.
+    """
+    meta = get_token_meta()
+    if not meta or "generated_at" not in meta:
+        return float("inf")
+    try:
+        generated = datetime.fromisoformat(meta["generated_at"])
+        age = (datetime.now() - generated).total_seconds() / 3600.0
+        return age
+    except (ValueError, TypeError):
+        return float("inf")
+
+
+def token_hours_remaining() -> float:
+    """
+    Returns how many hours of validity remain for the current token.
+    Negative means expired. Returns -inf if no token exists.
+    """
+    age = token_age_hours()
+    if age == float("inf"):
+        return float("-inf")
+    return TOKEN_VALIDITY_HOURS - age
+
+
+def is_token_fresh() -> bool:
+    """
+    Returns True if the token was generated TODAY (same calendar date).
+
+    Although Fyers documentation sometimes implies 24h rolling validity,
+    in practice Fyers wipes/expires all tokens overnight (usually by 6 AM IST).
+    A token generated at 11 PM will be invalid by 9 AM the next morning.
+    Therefore, calendar date is the safest validity check.
+    """
+    meta = get_token_meta()
+    if not meta:
+        return False
+    return meta.get("date") == date.today().isoformat()
 
 
 def generate_login_url() -> str:
@@ -37,10 +159,14 @@ def generate_login_url() -> str:
     return url
 
 
-def generate_access_token(auth_code: str) -> str:
+def generate_access_token(auth_code: str, source: str = "unknown") -> str:
     """
     Exchanges the auth_code for an access_token using raw HTTP POST.
     The auth_code is obtained after the user logs in via the login URL.
+
+    Args:
+        auth_code: the authorization code from Fyers redirect.
+        source: tracking label — "gui", "cli", or "env".
     """
     # Fyers requires an appIdHash = SHA256(app_id + ":" + secret_key)
     app_id_hash = hashlib.sha256(
@@ -58,10 +184,8 @@ def generate_access_token(auth_code: str) -> str:
 
     if data.get("s") == "ok" and "access_token" in data:
         access_token = data["access_token"]
-        # Save token to file for reuse
-        with open(TOKEN_FILE, "w") as f:
-            f.write(access_token)
-        print("  [OK] Access token generated and saved successfully!")
+        _save_token_with_meta(access_token, source=source)
+        print(f"  [OK] Access token generated and saved successfully! (source={source})")
         return access_token
     else:
         raise RuntimeError(f"Failed to generate access token: {data}")
@@ -70,14 +194,28 @@ def generate_access_token(auth_code: str) -> str:
 def get_access_token() -> str:
     """
     Returns an access token. Checks in order:
-    1. Saved token file (.fyers_token)
+    1. Saved token file (.fyers_token) — warns if older than 24h
     2. FYERS_AUTH_CODE in .env -> exchanges for a new token
+
+    Always returns a token if one exists on disk (even if expired) so that
+    scripts can still attempt API calls, but emits a clear warning.
     """
     if os.path.exists(TOKEN_FILE):
         with open(TOKEN_FILE, "r") as f:
             token = f.read().strip()
         if token:
-            print("  Using saved access token.")
+            meta = get_token_meta()
+            remaining = token_hours_remaining()
+            age = token_age_hours()
+            src = meta.get("source", "??")
+            gen_date = meta.get("date", "unknown")
+            gen_time = meta.get("time", "??")
+
+            if remaining > 0:
+                print(f"  Using saved access token (generated {gen_date} {gen_time} via {src}, {remaining:.1f}h remaining).")
+            else:
+                print(f"  [WARNING] Access token EXPIRED (generated {gen_date} {gen_time} via {src}, {abs(remaining):.1f}h past expiry).")
+                print(f"            Fyers tokens are valid for {TOKEN_VALIDITY_HOURS}h. Please refresh via the GUI or daily_auth_check().")
             return token
 
     # Try to get auth_code from .env
@@ -98,29 +236,27 @@ def get_access_token() -> str:
         print("Step 5: Re-run this script.")
         raise RuntimeError("No auth_code found. Please add FYERS_AUTH_CODE to your .env file.")
 
-    return generate_access_token(auth_code)
+    return generate_access_token(auth_code, source="env")
 
 
 def daily_auth_check():
     """
-    Ensures the Fyers token is refreshed once per calendar day.
+    Ensures the Fyers token is still valid (within 24h of generation).
 
-    - Reads .last_auth_date to check if today's auth is already done.
-    - If already done today: skips silently (no prompt).
-    - If not done: prompts user to paste a fresh auth code, generates a new
-      token, and records today's date in .last_auth_date.
+    - Uses is_token_fresh() to check if the token is within its 24h window.
+    - If still valid: skips silently (no prompt).
+    - If expired: prompts user to paste a fresh auth code.
 
     Call this at the very start of main.py before showing the menu.
     """
-    today = date.today().isoformat()  # e.g. "2026-07-28"
+    today = date.today().isoformat()
 
-    # Check if we already authenticated today
-    if os.path.exists(LAST_AUTH_DATE_FILE):
-        with open(LAST_AUTH_DATE_FILE, "r") as f:
-            last_date = f.read().strip()
-        if last_date == today:
-            print(f"  [OK] Token already refreshed for today ({today}).")
-            return
+    # Check if token is still within its 24h validity window
+    if is_token_fresh():
+        meta = get_token_meta()
+        remaining = token_hours_remaining()
+        print(f"  [OK] Token is valid ({remaining:.1f}h remaining, generated {meta.get('date', '??')} {meta.get('time', '??')} via {meta.get('source', '??')}).")
+        return
 
     # Need fresh auth for today
     print()
@@ -160,10 +296,9 @@ def daily_auth_check():
     print()
     print("  Exchanging auth code for access token...")
     try:
-        generate_access_token(auth_code)
-        # Record today's date so we skip this prompt for the rest of the day
-        with open(LAST_AUTH_DATE_FILE, "w") as f:
-            f.write(today)
+        generate_access_token(auth_code, source="cli")
+        # _save_token_with_meta() inside generate_access_token() already
+        # wrote .last_auth_date and .fyers_token_meta.json
         print(f"  [OK] Token refreshed. Valid for today ({today}).")
     except RuntimeError as e:
         print(f"  [!] Token generation failed: {e}")

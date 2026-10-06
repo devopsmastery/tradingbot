@@ -233,6 +233,7 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description="Update DuckDB Historical Data")
     parser.add_argument("--force", action="store_true", help="Force sync even if EOD gate says current")
+    parser.add_argument("--full-scan", action="store_true", help="Also sync the entire NSE Small+Mid Cap universe (800+ stocks) for fast scanning")
     args, _ = parser.parse_known_args()
 
     # ---- Smart EOD Gate: skip if DB is already current (unless --force or underfilled history exists) ----
@@ -286,13 +287,21 @@ def main():
         except Exception:
             pass
 
-    all_stocks    = list(dict.fromkeys(main_stocks + active_stocks + sell_stocks + port_stocks))
+    full_scan_stocks = []
+    if args.full_scan:
+        nse_cache = os.path.join(os.path.dirname(STOCKS_FILE), "data", "nse_smallmid_symbols.txt")
+        if os.path.exists(nse_cache):
+            full_scan_stocks = read_stocks(nse_cache)
+        else:
+            print("  [WARNING] --full-scan requested but nse_smallmid_symbols.txt not found. Run full_exchange_scan.py first.")
+
+    all_stocks    = list(dict.fromkeys(main_stocks + active_stocks + sell_stocks + port_stocks + full_scan_stocks))
 
     if not all_stocks:
         print("  No stocks found in any watchlist or portfolio.")
         return
 
-    print(f"  Total stocks      : {len(all_stocks)} ({len(main_stocks)} main + {len(active_stocks)} active + {len(sell_stocks)} sell + {len(port_stocks)} portfolio)")
+    print(f"  Total stocks      : {len(all_stocks)} ({len(main_stocks)} main + {len(active_stocks)} active + {len(sell_stocks)} sell + {len(port_stocks)} portfolio + {len(full_scan_stocks)} full-scan)")
     print(f"  Parallel workers  : {MAX_WORKERS}  (rate-limit: {MAX_RPS} req/s)")
     print()
 

@@ -33,6 +33,12 @@ import requests
 import pandas as pd
 from datetime import datetime
 from io import StringIO
+import io
+
+# Force UTF-8 output for Windows cp1252 compatibility
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace', line_buffering=True)
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace', line_buffering=True)
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
@@ -74,10 +80,7 @@ NEAR_52W_HIGH_RATIO  = 0.88   # Must be within 12% of 52-week high (momentum fil
 
 BATCH_SIZE = 50  # Fyers quotes API maximum batch size (up to 50 symbols/request)
 
-# Staleness gate: if DuckDB last candle is older than this many calendar days,
-# fetch only the missing days from Fyers before running strategy.
-# Prevents stale EMA/KC indicators from generating false signals (e.g. BlueDart).
-MAX_STALE_DAYS = 5
+BATCH_SIZE = 50  # Fyers quotes API maximum batch size (up to 50 symbols/request)
 
 
 def refresh_stale_candles(
@@ -88,23 +91,25 @@ def refresh_stale_candles(
     today: "datetime.date",
 ) -> "pd.DataFrame":
     """
-    If a DuckDB-cached DataFrame's last candle is more than MAX_STALE_DAYS old,
-    fetches only the missing days from Fyers and appends them (incremental refresh).
+    If a DuckDB-cached DataFrame is missing any trading days between its last
+    candle and yesterday, fetches only the missing days from Fyers and appends them.
 
-    Returns the refreshed DataFrame (or the original if already fresh / API fails).
-    Strategy indicators are then computed on the complete, up-to-date data.
-
-    Why needed: `apply_live_quote` only patches the *last candle's price*, it cannot
-    fix EMA/KC values that are built from 50+ days of missing history.
+    Returns the refreshed DataFrame. If the API fails, returns None (strict mode)
+    to prevent applying today's live quote over a massive gap and distorting EMAs.
     """
-    last_candle_date = df.index[-1].date()
-    days_stale = (today - last_candle_date).days
-
-    if days_stale <= MAX_STALE_DAYS:
-        return df  # Already fresh — nothing to do
-
-    # Symbol's DuckDB data is stale: fetch missing days incrementally
+    import pandas as _pd
     from datetime import timedelta
+
+    last_candle_date = df.index[-1].date()
+    yesterday = today - timedelta(days=1)
+    
+    # Calculate missing business days between last candle and yesterday
+    missing_bdays = len(_pd.bdate_range(last_candle_date, yesterday)) - 1
+
+    if missing_bdays <= 0:
+        return df  # Already fresh up to yesterday!
+
+    # Symbol's DuckDB data has gaps: fetch missing days incrementally
     start_fetch = last_candle_date + timedelta(days=1)
     start_str   = start_fetch.strftime("%Y-%m-%d")
     end_str     = today.strftime("%Y-%m-%d")
@@ -123,8 +128,13 @@ def refresh_stale_candles(
         resp = _requests.get(HISTORY_URL, params=params, headers=headers, timeout=8)
         data = resp.json()
 
+        if data.get("s") == "error":
+            code = data.get("code")
+            msg = data.get("message", "")
+            if code in [-8, -15, -17] or "token" in msg.lower():
+                raise RuntimeError(f"Fyers API Auth Error: {msg}. Your token has expired.")
+
         if data.get("s") == "ok" and data.get("candles"):
-            import pandas as _pd
             new_df = _pd.DataFrame(
                 data["candles"],
                 columns=["Epoch", "Open", "High", "Low", "Close", "Volume"]
@@ -145,11 +155,13 @@ def refresh_stale_candles(
             refreshed = refreshed[~refreshed.index.duplicated(keep="last")]
             refreshed.sort_index(inplace=True)
             return refreshed
+        else:
+            return None # API returned error or no data
 
+    except RuntimeError:
+        raise
     except Exception:
-        pass  # Network or parse error — fall through to stale data with a warning
-
-    return df  # Return original if refresh failed
+        return None # Network or parse error — return None to prevent silent gaps
 
 
 # ============================================================
@@ -472,10 +484,13 @@ def main():
             fyers_sym = to_fyers_symbol(symbol)
             try:
                 df = load_candles(fyers_sym, con=db_con)
-                days_stale = (today_date - df.index[-1].date()).days
-                if days_stale > MAX_STALE_DAYS:
-                    # Stale: last candle too old for reliable EMA/KC — queue for refresh
-                    stale_symbols.append((symbol, fyers_sym, df, days_stale))
+                last_candle_date = df.index[-1].date()
+                yesterday = today_date - pd.Timedelta(days=1)
+                missing_bdays = len(pd.bdate_range(last_candle_date, yesterday)) - 1
+                
+                if missing_bdays > 0:
+                    # Stale: missing trading days, queue for strict refresh
+                    stale_symbols.append((symbol, fyers_sym, df, missing_bdays))
                 else:
                     candidate_dfs[symbol] = df
                     cache_hits += 1
@@ -488,10 +503,10 @@ def main():
     # Fetches only the missing trading days (fast), merges, and persists to DuckDB.
     if stale_symbols:
         print(f"  Refreshing {len(stale_symbols)} stale symbols "
-              f"(last data >{MAX_STALE_DAYS}d old) in parallel...", flush=True)
+              f"(missing trading days) in parallel...", flush=True)
 
         def refresh_worker(args):
-            sym, fsym, old_df, days_stale = args
+            sym, fsym, old_df, missing_bdays = args
             refreshed = refresh_stale_candles(sym, fsym, old_df, access_token, today_date)
             return sym, refreshed
 
@@ -500,11 +515,14 @@ def main():
             for f in as_completed(rfutures):
                 sym, refreshed_df = f.result()
                 if refreshed_df is not None and not refreshed_df.empty:
-                    candidate_dfs[sym] = refreshed_df
-                    new_days_stale = (today_date - refreshed_df.index[-1].date()).days
-                    if new_days_stale <= MAX_STALE_DAYS:
+                    # Strict check: ensure it successfully fetched up to yesterday
+                    last_dt = refreshed_df.index[-1].date()
+                    yesterday = today_date - pd.Timedelta(days=1)
+                    if len(pd.bdate_range(last_dt, yesterday)) - 1 <= 0:
+                        candidate_dfs[sym] = refreshed_df
                         stale_refreshed += 1
-                    # else: refresh failed/no new data — still evaluate with best available
+                else:
+                    errors += 1 # strict mode: API failure means we skip the symbol
 
     # Step 2b: Concurrently fetch full 60-day history for symbols not in DuckDB at all
     if uncached_symbols:
@@ -564,15 +582,15 @@ def main():
     print(colored('  DISCOVERY BUY SIGNALS  --  New Stocks Outside Your Universe', Colors.BOLD + Colors.GREEN))
     print(colored('=' * 70, Colors.GREEN))
     print(f'  Candidates scanned  : {len(candidates)}')
-    print(f'  Cache hits (fresh)  : {cache_hits} (instant, ≤{MAX_STALE_DAYS}d old)')
+    print(f'  Cache hits (fresh)  : {cache_hits} (0 missing business days)')
     if stale_refreshed:
         print(f'  Stale refreshed     : {stale_refreshed} (incremental update applied)')
-    stale_not_refreshed = len(stale_symbols) - stale_refreshed
-    if stale_not_refreshed > 0:
-        print(f'  Stale (no refresh)  : {stale_not_refreshed} (evaluated on best-available data)')
+    stale_skipped = len(stale_symbols) - stale_refreshed
+    if stale_skipped > 0:
+        print(f'  Stale (skipped)     : {stale_skipped} (strict mode: skipped due to fetch failure)')
     print(f'  New (60d fetch)     : {api_fetches} (downloaded fresh)')
     if errors:
-        print(f'  Errors              : {errors}')
+        print(f'  Errors / Skipped    : {errors}')
 
 
     if not discoveries:
